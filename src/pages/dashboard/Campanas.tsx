@@ -1,6 +1,5 @@
-
 import React, { useState } from "react";
-import { Calendar as CalendarIcon, Plus, Play, Pause, Edit, Trash2, Filter } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Play, Pause, Edit, Trash2, Filter, Users } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,8 @@ import DataTable from "../../components/ui/dashboard/DataTable";
 import { es } from "date-fns/locale";
 import SlidePanel from "@/components/ui/dashboard/SlidePanel";
 import CampaignForm from "@/components/campaigns/CampaignForm";
+import { Card } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Datos de ejemplo para campañas
 const campanasData = [
@@ -54,15 +55,6 @@ const campanasData = [
     responsable: "Ana María López"
   },
 ];
-
-// Convert campaigns data to calendar events
-const calendarEvents = campanasData.map(campaign => ({
-  id: campaign.id,
-  title: campaign.nombre,
-  start: campaign.fechaInicio,
-  end: campaign.fechaFin,
-  estado: campaign.estado
-}));
 
 const columns = [
   {
@@ -134,11 +126,90 @@ const columns = [
   },
 ];
 
+const CalendarView = ({ calendarEvents }: { calendarEvents: any[] }) => {
+  const [date, setDate] = useState<Date>(new Date());
+
+  return (
+    <Card className="p-6">
+      <div className="grid md:grid-cols-[300px_1fr] gap-6">
+        <div>
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            locale={es}
+            className="rounded-md border w-full"
+          />
+        </div>
+        <div className="space-y-4">
+          <h3 className="font-medium text-lg">
+            Campañas para {format(date, "MMMM yyyy", { locale: es })}
+          </h3>
+          <div className="space-y-2">
+            {calendarEvents.map((event) => {
+              let bgColor = "bg-gray-100";
+              let textColor = "text-gray-700";
+              
+              if (event.estado === "Activa") {
+                bgColor = "bg-green-100";
+                textColor = "text-green-700";
+              } else if (event.estado === "Planificada") {
+                bgColor = "bg-amber-100";
+                textColor = "text-amber-700";
+              }
+              
+              return (
+                <div 
+                  key={event.id}
+                  className={`p-4 rounded-lg ${bgColor} ${textColor}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium">{event.title}</h4>
+                      <p className="text-sm mt-1">
+                        {format(event.start, "dd/MM/yyyy")} - {format(event.end, "dd/MM/yyyy")}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="icon-button">
+                        <Users className="h-4 w-4" />
+                      </button>
+                      <button className="icon-button">
+                        <Edit className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            
+            {calendarEvents.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                No hay campañas programadas para este período
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
 const Campanas: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showCalendarView, setShowCalendarView] = useState(false);
   const [showNewCampaign, setShowNewCampaign] = useState(false);
+  const isMobile = useIsMobile();
   
+  // Convert campaigns data to calendar events
+  const calendarEvents = campanasData.map(campaign => ({
+    id: campaign.id,
+    title: campaign.nombre,
+    start: campaign.fechaInicio,
+    end: campaign.fechaFin,
+    estado: campaign.estado
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -193,44 +264,7 @@ const Campanas: React.FC = () => {
       </div>
 
       {showCalendarView ? (
-        <div className="bg-white rounded-lg shadow-card p-5">
-          <div className="mb-4">
-            <h2 className="text-lg font-medium">{format(date || new Date(), 'MMMM yyyy', { locale: es })}</h2>
-          </div>
-          <div className="border rounded-lg p-4 h-[500px] overflow-auto">
-            {calendarEvents.map((event) => {
-              // Determinamos el color según el estado
-              let bgColor = "bg-gray-100";
-              let textColor = "text-gray-700";
-              
-              if (event.estado === "Activa") {
-                bgColor = "bg-green-100";
-                textColor = "text-green-700";
-              } else if (event.estado === "Planificada") {
-                bgColor = "bg-amber-100";
-                textColor = "text-amber-700";
-              }
-              
-              return (
-                <div 
-                  key={event.id}
-                  className={`mb-2 p-2 rounded ${bgColor} ${textColor} cursor-pointer hover:shadow-sm transition-shadow`}
-                >
-                  <div className="font-medium">{event.title}</div>
-                  <div className="text-xs">
-                    {format(event.start, "dd/MM/yyyy")} - {format(event.end, "dd/MM/yyyy")}
-                  </div>
-                </div>
-              );
-            })}
-            
-            {calendarEvents.length === 0 && (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
-                No hay eventos para mostrar
-              </div>
-            )}
-          </div>
-        </div>
+        <CalendarView calendarEvents={calendarEvents} />
       ) : (
         <div className="overflow-auto">
           <DataTable 
@@ -244,7 +278,7 @@ const Campanas: React.FC = () => {
         isOpen={showNewCampaign}
         onClose={() => setShowNewCampaign(false)}
         title="Nueva Campaña"
-        width="md"
+        width={isMobile ? "full" : "lg"}
       >
         <CampaignForm onClose={() => setShowNewCampaign(false)} />
       </SlidePanel>

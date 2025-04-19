@@ -3,10 +3,13 @@ import React from 'react';
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Users } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface CampaignFormProps {
   onClose: () => void;
@@ -15,22 +18,53 @@ interface CampaignFormProps {
 const CampaignForm: React.FC<CampaignFormProps> = ({ onClose }) => {
   const [startDate, setStartDate] = React.useState<Date>();
   const [endDate, setEndDate] = React.useState<Date>();
+  const [selectedClients, setSelectedClients] = React.useState<string[]>([]);
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Nombre de la Campaña</label>
+          <Label>Nombre de la Campaña</Label>
           <Input placeholder="Ej: Campaña Verano 2024" />
         </div>
         
         <div className="space-y-2">
-          <label className="text-sm font-medium">Objetivo</label>
+          <Label>Objetivo</Label>
           <Input placeholder="Ej: 500 leads" />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Fecha de Inicio</label>
+          <Label>Tipo de Campaña</Label>
+          <Select>
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccionar tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="email">Email Marketing</SelectItem>
+              <SelectItem value="social">Redes Sociales</SelectItem>
+              <SelectItem value="sms">SMS</SelectItem>
+              <SelectItem value="call">Llamadas</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Estado</Label>
+          <Select>
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccionar estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">Borrador</SelectItem>
+              <SelectItem value="scheduled">Programada</SelectItem>
+              <SelectItem value="active">Activa</SelectItem>
+              <SelectItem value="paused">Pausada</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Fecha de Inicio</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full justify-start text-left">
@@ -52,7 +86,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onClose }) => {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Fecha de Fin</label>
+          <Label>Fecha de Fin</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full justify-start text-left">
@@ -75,8 +109,29 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onClose }) => {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Responsable</label>
-        <Input placeholder="Nombre del responsable" />
+        <Label>Descripción</Label>
+        <Textarea 
+          placeholder="Describe los objetivos y detalles de la campaña..." 
+          className="min-h-[100px]"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2">
+          <Users className="h-4 w-4" />
+          Clientes Asignados
+        </Label>
+        <Select>
+          <SelectTrigger>
+            <SelectValue placeholder="Seleccionar clientes" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los clientes</SelectItem>
+            <SelectItem value="active">Clientes activos</SelectItem>
+            <SelectItem value="inactive">Clientes inactivos</SelectItem>
+            <SelectItem value="custom">Selección personalizada</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex justify-end space-x-2">

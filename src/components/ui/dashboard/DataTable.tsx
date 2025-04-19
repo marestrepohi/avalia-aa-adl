@@ -14,7 +14,6 @@ interface DataTableProps {
   data: Record<string, any>[];
   emptyMessage?: string;
   className?: string;
-  showCheckboxes?: boolean;
 }
 
 const DataTable: React.FC<DataTableProps> = ({ 
@@ -22,22 +21,13 @@ const DataTable: React.FC<DataTableProps> = ({
   data, 
   emptyMessage = "No hay datos disponibles",
   className = "",
-  showCheckboxes = false,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
   const itemsPerPage = 5;
   
   const totalPages = Math.ceil(data.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
-
-  const handleCheckboxChange = (index: number) => {
-    setSelectedRows(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }));
-  };
 
   return (
     <div className={`bg-white rounded-lg shadow-card p-5 overflow-hidden card-hover ${className}`}>
@@ -45,15 +35,10 @@ const DataTable: React.FC<DataTableProps> = ({
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              {showCheckboxes && (
-                <th className="py-3 px-4 text-left w-10">
-                  <span className="sr-only">Seleccionar</span>
-                </th>
-              )}
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`py-3 px-4 text-left text-sm font-medium text-foreground ${column.className || ""}`}
+                  className={`py-3 px-4 text-left text-sm font-medium text-foreground whitespace-nowrap ${column.className || ""}`}
                 >
                   {column.header}
                 </th>
@@ -67,18 +52,6 @@ const DataTable: React.FC<DataTableProps> = ({
                   key={index} 
                   className="table-row-hover border-b border-border last:border-0"
                 >
-                  {showCheckboxes && (
-                    <td className="py-3 px-4 w-10">
-                      <div className="flex items-center justify-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedRows[index] || false}
-                          onChange={() => handleCheckboxChange(index)}
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                        />
-                      </div>
-                    </td>
-                  )}
                   {columns.map((column) => (
                     <td
                       key={`${index}-${column.key}`}
@@ -94,7 +67,7 @@ const DataTable: React.FC<DataTableProps> = ({
             ) : (
               <tr>
                 <td
-                  colSpan={showCheckboxes ? columns.length + 1 : columns.length}
+                  colSpan={columns.length}
                   className="py-8 text-center text-muted-foreground"
                 >
                   {emptyMessage}
@@ -106,13 +79,13 @@ const DataTable: React.FC<DataTableProps> = ({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4 px-4 py-2 border-t border-border">
-          <div className="text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-4 px-4 py-2 border-t border-border gap-4">
+          <div className="text-sm text-muted-foreground text-center sm:text-left">
             Mostrando {startIndex + 1} a{" "}
             {Math.min(startIndex + itemsPerPage, data.length)} de {data.length}{" "}
             resultados
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-center sm:justify-end space-x-2">
             <button
               className="icon-button"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
