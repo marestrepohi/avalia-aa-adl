@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { LayoutDashboard, Users, Megaphone, UserSquare2, Settings, CreditCard, ChevronDown, ChevronRight, PhoneCall, BarChart } from "lucide-react";
+
+import React, { useState } from "react";
+import { LayoutDashboard, Users, Megaphone, UserSquare2, Settings, ChevronDown, ChevronRight } from "lucide-react";
 import { useDashboard } from "../../contexts/DashboardContext";
+
 interface SidebarItemProps {
   icon: React.ReactNode;
   text: string;
@@ -9,6 +11,7 @@ interface SidebarItemProps {
   isOpen?: boolean;
   onClick?: () => void;
 }
+
 const SidebarItem: React.FC<SidebarItemProps> = ({
   icon,
   text,
@@ -17,41 +20,57 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   isOpen = false,
   onClick
 }) => {
-  return <button className={`sidebar-item sidebar-item-hover w-full flex justify-between ${isActive ? 'sidebar-item-active' : ''}`} onClick={onClick}>
+  return (
+    <button 
+      className={`sidebar-item sidebar-item-hover w-full flex justify-between ${isActive ? 'sidebar-item-active' : ''}`} 
+      onClick={onClick}
+    >
       <div className="flex items-center gap-3">
         <div className={`${isActive ? 'text-primary' : 'text-sidebar-foreground'}`}>
           {icon}
         </div>
         <span className="my-0 text-left">{text}</span>
       </div>
-      {hasChildren && <div className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+      {hasChildren && (
+        <div className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
           <ChevronDown className="h-4 w-4" />
-        </div>}
-    </button>;
+        </div>
+      )}
+    </button>
+  );
 };
+
 interface SubMenuItemProps {
   text: string;
   isActive?: boolean;
   onClick?: () => void;
 }
+
 const SubMenuItem: React.FC<SubMenuItemProps> = ({
   text,
   isActive = false,
   onClick
 }) => {
-  return <button className={`sidebar-item sidebar-item-hover w-full pl-10 ${isActive ? 'sidebar-item-active' : ''}`} onClick={onClick}>
+  return (
+    <button 
+      className={`sidebar-item sidebar-item-hover w-full pl-10 ${isActive ? 'sidebar-item-active' : ''}`} 
+      onClick={onClick}
+    >
       <div className="flex items-center gap-3">
         <ChevronRight className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-sidebar-foreground'}`} />
         <span>{text}</span>
       </div>
-    </button>;
+    </button>
+  );
 };
+
 const Sidebar: React.FC = () => {
   const {
     activeView,
     setActiveView
   } = useDashboard();
   const [openSubMenu, setOpenSubMenu] = useState<string | null>("clients");
+  
   const toggleSubMenu = (key: string) => {
     setOpenSubMenu(openSubMenu === key ? null : key);
   };
@@ -60,7 +79,9 @@ const Sidebar: React.FC = () => {
   const handleViewChange = (view: string) => {
     setActiveView(view as any);
   };
-  return <aside className="fixed left-0 top-16 bottom-0 w-64 bg-sidebar border-r border-sidebar-border p-4 overflow-y-auto">
+  
+  return (
+    <aside className="fixed left-0 top-16 bottom-0 w-64 bg-sidebar border-r border-sidebar-border p-4 overflow-y-auto">
       <nav className="space-y-1">
         <SidebarItem 
           icon={<LayoutDashboard className="h-5 w-5" />} 
