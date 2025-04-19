@@ -144,9 +144,8 @@ const Campanas: React.FC = () => {
           >
             {showCalendarView ? "Ver Tabla" : "Ver Calendario"} 
           </Button>
-          <Button 
-            leftIcon={<Plus className="h-5 w-5" />}
-          >
+          <Button>
+            <Plus className="h-5 w-5 mr-2" />
             Nueva Campaña
           </Button>
         </div>

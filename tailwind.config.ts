@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -51,6 +52,12 @@ export default {
 					foreground: '#FFFFFF',
 					hover: '#D97706',
 					light: '#FFFBEB',
+				},
+				danger: {
+					DEFAULT: '#EF4444',
+					foreground: '#FFFFFF',
+					hover: '#DC2626',
+					light: '#FEF2F2',
 				},
 				muted: {
 					DEFAULT: '#F9FAFB',

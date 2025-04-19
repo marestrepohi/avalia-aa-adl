@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import DataTable from "../../components/ui/dashboard/DataTable";
 import { cn } from "@/lib/utils";
+import type { DateRange } from "react-day-picker";
 
 // Datos de KPIs
 const kpiData = [
@@ -138,10 +139,7 @@ const chartData = [
 ];
 
 const AnalisisLlamadas: React.FC = () => {
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(new Date().setDate(new Date().getDate() - 7)),
     to: new Date(),
   });
