@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import KpiCard from '@/components/ui/dashboard/KpiCard';
@@ -15,25 +14,25 @@ const kpiData = [
     title: "Clientes Activos",
     value: "1,248",
     change: "+12.5%",
-    changeType: "positive"
+    changeType: "positive" as "positive"
   },
   {
     title: "Nuevos Clientes (30d)",
     value: "64",
     change: "+4.3%",
-    changeType: "positive"
+    changeType: "positive" as "positive"
   },
   {
     title: "Tasa de Conversión",
     value: "24.8%",
     change: "-2.5%",
-    changeType: "negative"
+    changeType: "negative" as "negative"
   },
   {
     title: "Tickets Abiertos",
     value: "42",
     change: "+8",
-    changeType: "neutral"
+    changeType: "neutral" as "neutral"
   }
 ];
 
@@ -214,42 +213,51 @@ const contactosData = [
 ];
 
 const clientesColumns = [
-  { accessor: "id", header: "ID" },
-  { accessor: "nombre", header: "Nombre" },
-  { accessor: "empresa", header: "Empresa" },
-  { 
-    accessor: "ultimoContacto", 
-    header: "Último Contacto",
-    cell: (value: Date) => format(value, 'dd/MM/yyyy') 
+  {
+    key: "id",
+    header: "ID"
   },
   {
-    accessor: "estado",
+    key: "nombre",
+    header: "Nombre"
+  },
+  {
+    key: "empresa",
+    header: "Empresa"
+  },
+  { 
+    key: "ultimoContacto", 
+    header: "Último Contacto",
+    render: (value: Date) => format(value, 'dd/MM/yyyy')
+  },
+  {
+    key: "estado",
     header: "Estado",
-    cell: (value: string) => {
-      let badgeClass = "badge ";
+    render: (value: string) => {
+      let badgeClass = "badge-neutral";
       switch (value) {
         case "Activo":
-          badgeClass += "badge-success";
+          badgeClass = "badge-success";
           break;
         case "En Seguimiento":
-          badgeClass += "badge-warning";
+          badgeClass = "badge-warning";
           break;
         case "Nuevo":
-          badgeClass += "badge-primary";
+          badgeClass = "badge-primary";
           break;
         case "Inactivo":
-          badgeClass += "badge-neutral";
+          badgeClass = "badge-neutral";
           break;
         default:
-          badgeClass += "badge-neutral";
+          badgeClass = "badge-neutral";
       }
-      return <span className={badgeClass}>{value}</span>;
+      return <span className={`badge ${badgeClass}`}>{value}</span>;
     }
   },
   {
-    accessor: "prioridad",
+    key: "prioridad",
     header: "Prioridad",
-    cell: (value: string) => {
+    render: (value: string) => {
       let badgeClass = "badge ";
       switch (value) {
         case "Alta":
@@ -270,14 +278,14 @@ const clientesColumns = [
 ];
 
 const prospectosColumns = [
-  { accessor: "id", header: "ID" },
-  { accessor: "nombre", header: "Nombre" },
-  { accessor: "empresa", header: "Empresa" },
-  { accessor: "origen", header: "Origen" },
+  { key: "id", header: "ID" },
+  { key: "nombre", header: "Nombre" },
+  { key: "empresa", header: "Empresa" },
+  { key: "origen", header: "Origen" },
   {
-    accessor: "estado",
+    key: "estado",
     header: "Estado",
-    cell: (value: string) => {
+    render: (value: string) => {
       let badgeClass = "badge ";
       switch (value) {
         case "Calificado":
@@ -299,26 +307,26 @@ const prospectosColumns = [
     }
   },
   { 
-    accessor: "fecha", 
+    key: "fecha", 
     header: "Fecha",
-    cell: (value: Date) => format(value, 'dd/MM/yyyy')
+    render: (value: Date) => format(value, 'dd/MM/yyyy')
   }
 ];
 
 const cuentasColumns = [
-  { accessor: "id", header: "ID" },
-  { accessor: "nombre", header: "Nombre" },
-  { accessor: "tipo", header: "Tipo" },
-  { accessor: "ingresos", header: "Ingresos Anuales" },
+  { key: "id", header: "ID" },
+  { key: "nombre", header: "Nombre" },
+  { key: "tipo", header: "Tipo" },
+  { key: "ingresos", header: "Ingresos Anuales" },
   { 
-    accessor: "ultimaCompra", 
+    key: "ultimaCompra", 
     header: "Última Compra",
-    cell: (value: Date) => format(value, 'dd/MM/yyyy')
+    render: (value: Date) => format(value, 'dd/MM/yyyy')
   },
   {
-    accessor: "estado",
+    key: "estado",
     header: "Estado",
-    cell: (value: string) => {
+    render: (value: string) => {
       let badgeClass = "badge ";
       switch (value) {
         case "Activo":
@@ -336,12 +344,12 @@ const cuentasColumns = [
 ];
 
 const contactosColumns = [
-  { accessor: "id", header: "ID" },
-  { accessor: "nombre", header: "Nombre" },
-  { accessor: "cargo", header: "Cargo" },
-  { accessor: "empresa", header: "Empresa" },
-  { accessor: "email", header: "Email" },
-  { accessor: "telefono", header: "Teléfono" }
+  { key: "id", header: "ID" },
+  { key: "nombre", header: "Nombre" },
+  { key: "cargo", header: "Cargo" },
+  { key: "empresa", header: "Empresa" },
+  { key: "email", header: "Email" },
+  { key: "telefono", header: "Teléfono" }
 ];
 
 const InformacionCliente: React.FC = () => {
@@ -350,28 +358,22 @@ const InformacionCliente: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Información de Cliente</h1>
-        <div className="flex space-x-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Buscar..."
-              className="w-64 pl-8"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <Button variant="outline">
-            Filtros
-            <ChevronDown className="ml-2 h-4 w-4" />
-          </Button>
+        <div className="relative w-full sm:w-auto">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Buscar..."
+            className="pl-8 w-full sm:w-64"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-5 w-full">
+        <TabsList className="w-full grid grid-cols-2 sm:grid-cols-5">
           <TabsTrigger value="dashboard">Panel Principal</TabsTrigger>
           <TabsTrigger value="clientes">Clientes</TabsTrigger>
           <TabsTrigger value="prospectos">Prospectos</TabsTrigger>
@@ -380,14 +382,14 @@ const InformacionCliente: React.FC = () => {
         </TabsList>
         
         <TabsContent value="dashboard" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {kpiData.map((kpi, index) => (
               <KpiCard 
                 key={index}
                 title={kpi.title}
                 value={kpi.value}
                 change={kpi.change}
-                changeType={kpi.changeType as "positive" | "negative" | "neutral"}
+                changeType={kpi.changeType}
               />
             ))}
           </div>

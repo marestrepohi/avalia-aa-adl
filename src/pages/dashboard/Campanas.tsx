@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Calendar as CalendarIcon, Plus, Play, Pause, Edit, Trash2, Filter } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -8,6 +7,8 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import DataTable from "../../components/ui/dashboard/DataTable";
 import { es } from "date-fns/locale";
+import SlidePanel from "@/components/ui/dashboard/SlidePanel";
+import CampaignForm from "@/components/campaigns/CampaignForm";
 
 // Datos de ejemplo para campañas
 const campanasData = [
@@ -53,7 +54,6 @@ const campanasData = [
   },
 ];
 
-// Columnas para la tabla de campañas
 const columns = [
   {
     key: "nombre",
@@ -92,67 +92,63 @@ const columns = [
     header: "Conversión",
   },
   {
+    key: "responsable",
+    header: "Responsable",
+  },
+  {
     key: "actions",
     header: "Acciones",
     render: (_: any, row: any) => (
       <div className="flex items-center gap-2">
         {row.estado === "Activa" ? (
           <button className="icon-button group">
-            <Pause className="h-4 w-4 text-warning group-hover:text-warning transition-colors duration-200" />
-            <span className="tooltip -bottom-8">Pausar</span>
+            <Pause className="h-4 w-4 text-warning group-hover:text-warning" />
+            <span className="tooltip">Pausar</span>
           </button>
         ) : (
           <button className="icon-button group">
-            <Play className="h-4 w-4 text-success group-hover:text-success transition-colors duration-200" />
-            <span className="tooltip -bottom-8">Activar</span>
+            <Play className="h-4 w-4 text-success group-hover:text-success" />
+            <span className="tooltip">Activar</span>
           </button>
         )}
         <button className="icon-button group">
-          <Edit className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
-          <span className="tooltip -bottom-8">Editar</span>
+          <Edit className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+          <span className="tooltip">Editar</span>
         </button>
         <button className="icon-button group">
-          <Trash2 className="h-4 w-4 text-muted-foreground group-hover:text-destructive transition-colors duration-200" />
-          <span className="tooltip -bottom-8">Eliminar</span>
+          <Trash2 className="h-4 w-4 text-muted-foreground group-hover:text-destructive" />
+          <span className="tooltip">Eliminar</span>
         </button>
       </div>
     ),
   },
 ];
 
-// Eventos para el calendario
-const events = campanasData.map((campana) => ({
-  id: campana.id,
-  title: campana.nombre,
-  start: campana.fechaInicio,
-  end: campana.fechaFin,
-  estado: campana.estado
-}));
-
 const Campanas: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showCalendarView, setShowCalendarView] = useState(false);
+  const [showNewCampaign, setShowNewCampaign] = useState(false);
   
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Campañas</h1>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <Button 
             variant="outline"
             onClick={() => setShowCalendarView(!showCalendarView)}
           >
             {showCalendarView ? "Ver Tabla" : "Ver Calendario"} 
           </Button>
-          <Button>
+          <Button onClick={() => setShowNewCampaign(true)}>
             <Plus className="h-5 w-5 mr-2" />
             Nueva Campaña
           </Button>
         </div>
       </div>
       
-      <div className="flex items-center gap-4 mb-6">
-        <div className="max-w-xs">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="w-full sm:w-auto">
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -177,7 +173,7 @@ const Campanas: React.FC = () => {
             </PopoverContent>
           </Popover>
         </div>
-        <div className="max-w-md">
+        <div className="w-full sm:w-auto flex-1">
           <input 
             type="text"
             placeholder="Buscar campañas..."
@@ -187,7 +183,7 @@ const Campanas: React.FC = () => {
       </div>
 
       {showCalendarView ? (
-        <div className="bg-white rounded-lg shadow-card p-5 mb-5">
+        <div className="bg-white rounded-lg shadow-card p-5">
           <div className="mb-4">
             <h2 className="text-lg font-medium">{format(date || new Date(), 'MMMM yyyy', { locale: es })}</h2>
           </div>
@@ -226,11 +222,22 @@ const Campanas: React.FC = () => {
           </div>
         </div>
       ) : (
-        <DataTable 
-          columns={columns}
-          data={campanasData}
-        />
+        <div className="overflow-auto">
+          <DataTable 
+            columns={columns}
+            data={campanasData}
+          />
+        </div>
       )}
+
+      <SlidePanel
+        isOpen={showNewCampaign}
+        onClose={() => setShowNewCampaign(false)}
+        title="Nueva Campaña"
+        width="md"
+      >
+        <CampaignForm onClose={() => setShowNewCampaign(false)} />
+      </SlidePanel>
     </div>
   );
 };
