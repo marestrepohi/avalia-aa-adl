@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   LayoutDashboard, 
   Users, 
@@ -9,7 +9,9 @@ import {
   Calendar, 
   CreditCard,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  PhoneCall,
+  BarChart
 } from "lucide-react";
 import { useDashboard } from "../../contexts/DashboardContext";
 
@@ -71,11 +73,16 @@ const SubMenuItem: React.FC<SubMenuItemProps> = ({ text, isActive = false, onCli
 };
 
 const Sidebar: React.FC = () => {
-  const [activeItem, setActiveItem] = useState("dashboard");
+  const { activeView, setActiveView } = useDashboard();
   const [openSubMenu, setOpenSubMenu] = useState<string | null>("clients");
 
   const toggleSubMenu = (key: string) => {
     setOpenSubMenu(openSubMenu === key ? null : key);
+  };
+
+  // Manejar el cambio de vista
+  const handleViewChange = (view: string) => {
+    setActiveView(view as any);
   };
 
   return (
@@ -84,24 +91,29 @@ const Sidebar: React.FC = () => {
         <SidebarItem 
           icon={<LayoutDashboard className="h-5 w-5" />} 
           text="Resumen General" 
-          isActive={activeItem === "dashboard"}
-          onClick={() => setActiveItem("dashboard")}
+          isActive={activeView === "dashboard"}
+          onClick={() => handleViewChange("dashboard")}
         />
         <SidebarItem 
           icon={<Users className="h-5 w-5" />} 
           text="Centro de Llamadas" 
           hasChildren={true}
           isOpen={openSubMenu === "callcenter"}
-          isActive={activeItem === "agents"}
+          isActive={activeView === "agents" || activeView === "callAnalysis"}
           onClick={() => toggleSubMenu("callcenter")}
         />
         {openSubMenu === "callcenter" && (
           <div className="animate-accordion-down overflow-hidden">
-            <div className="pt-1 pb-1">
+            <div className="pt-1 pb-1 space-y-1">
               <SubMenuItem 
                 text="Agentes IA" 
-                isActive={activeItem === "agents"}
-                onClick={() => setActiveItem("agents")}
+                isActive={activeView === "agents"}
+                onClick={() => handleViewChange("agents")}
+              />
+              <SubMenuItem 
+                text="Análisis de Llamadas" 
+                isActive={activeView === "callAnalysis"}
+                onClick={() => handleViewChange("callAnalysis")}
               />
             </div>
           </div>
@@ -109,15 +121,15 @@ const Sidebar: React.FC = () => {
         <SidebarItem 
           icon={<Megaphone className="h-5 w-5" />} 
           text="Campañas" 
-          isActive={activeItem === "campaigns"}
-          onClick={() => setActiveItem("campaigns")}
+          isActive={activeView === "campaigns"}
+          onClick={() => handleViewChange("campaigns")}
         />
         <SidebarItem 
           icon={<UserSquare2 className="h-5 w-5" />} 
           text="Información de Clientes" 
           hasChildren={true}
           isOpen={openSubMenu === "clients"}
-          isActive={["clientDashboard", "accounts", "contacts", "prospects", "clientConfig"].includes(activeItem)}
+          isActive={["clientDashboard", "accounts", "contacts", "prospects", "clientConfig"].includes(activeView)}
           onClick={() => toggleSubMenu("clients")}
         />
         {openSubMenu === "clients" && (
@@ -125,28 +137,28 @@ const Sidebar: React.FC = () => {
             <div className="pt-1 space-y-1">
               <SubMenuItem 
                 text="Panel Principal" 
-                isActive={activeItem === "clientDashboard"}
-                onClick={() => setActiveItem("clientDashboard")}
+                isActive={activeView === "clientDashboard"}
+                onClick={() => handleViewChange("clientDashboard")}
               />
               <SubMenuItem 
                 text="Cuentas" 
-                isActive={activeItem === "accounts"}
-                onClick={() => setActiveItem("accounts")}
+                isActive={activeView === "accounts"}
+                onClick={() => handleViewChange("accounts")}
               />
               <SubMenuItem 
                 text="Contactos" 
-                isActive={activeItem === "contacts"}
-                onClick={() => setActiveItem("contacts")}
+                isActive={activeView === "contacts"}
+                onClick={() => handleViewChange("contacts")}
               />
               <SubMenuItem 
                 text="Prospectos" 
-                isActive={activeItem === "prospects"}
-                onClick={() => setActiveItem("prospects")}
+                isActive={activeView === "prospects"}
+                onClick={() => handleViewChange("prospects")}
               />
               <SubMenuItem 
                 text="Configuración" 
-                isActive={activeItem === "clientConfig"}
-                onClick={() => setActiveItem("clientConfig")}
+                isActive={activeView === "clientConfig"}
+                onClick={() => handleViewChange("clientConfig")}
               />
             </div>
           </div>
@@ -154,20 +166,20 @@ const Sidebar: React.FC = () => {
         <SidebarItem 
           icon={<Calendar className="h-5 w-5" />} 
           text="Calendario" 
-          isActive={activeItem === "calendar"}
-          onClick={() => setActiveItem("calendar")}
+          isActive={activeView === "calendar"}
+          onClick={() => handleViewChange("calendar")}
         />
         <SidebarItem 
           icon={<CreditCard className="h-5 w-5" />} 
           text="Info. Bancaria" 
-          isActive={activeItem === "banking"}
-          onClick={() => setActiveItem("banking")}
+          isActive={activeView === "banking"}
+          onClick={() => handleViewChange("banking")}
         />
         <SidebarItem 
           icon={<Settings className="h-5 w-5" />} 
           text="Configuración" 
-          isActive={activeItem === "settings"}
-          onClick={() => setActiveItem("settings")}
+          isActive={activeView === "settings"}
+          onClick={() => handleViewChange("settings")}
         />
       </nav>
     </aside>

@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
-type ViewType = 'dashboard' | 'agents' | 'campaigns' | 'clientDashboard' | 'accounts' | 'contacts' | 'prospects' | 'clientConfig' | 'calendar' | 'banking' | 'settings';
+type ViewType = 'dashboard' | 'agents' | 'campaigns' | 'clientDashboard' | 'accounts' | 'contacts' | 'prospects' | 'clientConfig' | 'calendar' | 'banking' | 'settings' | 'callAnalysis';
 
 interface DashboardContextType {
   activeView: ViewType;

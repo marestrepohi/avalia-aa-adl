@@ -1,106 +1,138 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
-
+ 
 @layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
+    --primary: 262.1 83.3% 57.8%; /* ADL: #6941C6 */
+    --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 0 0% 98%;
-    --muted-foreground: 215 20% 50%;
-
-    --accent: 220 13% 91%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 262.1 83.3% 57.8%;
-
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 262.1 83.3% 57.8%; /* ADL: #6941C6 */
     --radius: 0.5rem;
+    
+    /* Custom: Sidebar */
+    --sidebar: 220 14.3% 97.9%; /* #F9FAFB */
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-foreground: 215.4 16.3% 46.9%;
+    
+    /* Custom: Success, Warning, Danger */
+    --success: 151.8 56.9% 41.8%; /* #10B981 */
+    --success-light: 155.9 64% 94.9%; /* #ECFDF5 */
+    --success-foreground: 210 40% 98%;
+    
+    --warning: 32 94.6% 51.1%; /* #F59E0B */
+    --warning-light: 40.6 96.1% 97.5%; /* #FFFBEA */
+    --warning-foreground: 210 40% 98%;
+    
+    --danger: 0 84.2% 60.2%; /* #EF4444 */
+    --danger-light: 0 90.6% 97.5%; /* #FEF2F2 */
+    --danger-foreground: 210 40% 98%;
+    
+    /* Custom: Primary Light */
+    --primary-light: 262.1 83.3% 96%; /* Lightest version of #6941C6 */
+  }
+ 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 262.1 83.3% 57.8%;
+    
+    /* Custom: Sidebar */
+    --sidebar: 222.2 84% 4.9%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-foreground: 215 20.2% 65.1%;
+    
+    /* Custom: Success, Warning, Danger - Same but with darker hues */
+    --success: 151.8 56.9% 41.8%;
+    --success-light: 155.9 64% 20%;
+    --success-foreground: 210 40% 98%;
+    
+    --warning: 32 94.6% 51.1%;
+    --warning-light: 40.6 96.1% 20%;
+    --warning-foreground: 210 40% 98%;
+    
+    --danger: 0 84.2% 60.2%;
+    --danger-light: 0 90.6% 20%;
+    --danger-foreground: 210 40% 98%;
+    
+    /* Custom: Primary Light - Darker for dark mode */
+    --primary-light: 262.1 83.3% 25%;
   }
 }
-
+ 
 @layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground font-sans;
-  }
-
-  h1 {
-    @apply text-2xl font-semibold tracking-tight;
-  }
-
-  h2 {
-    @apply text-xl font-semibold tracking-tight;
-  }
-
-  h3 {
-    @apply text-lg font-semibold tracking-tight;
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer components {
-  .btn {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
-  }
-
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary-hover active:scale-[0.98] transition-all duration-200;
+    @apply bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-colors;
   }
-
+  
   .btn-secondary {
-    @apply bg-white border border-input hover:bg-accent/50 active:scale-[0.98] transition-all duration-200;
+    @apply bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80 transition-colors;
   }
 
-  .btn-destructive {
-    @apply bg-destructive text-destructive-foreground hover:bg-destructive-hover active:scale-[0.98] transition-all duration-200;
+  .input-field {
+    @apply w-full px-4 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors;
   }
-
-  .card-hover {
-    @apply transition-shadow duration-200 hover:shadow-md;
-  }
-
-  .table-row-hover {
-    @apply hover:bg-muted transition-colors duration-200;
-  }
-
+  
   .sidebar-item {
-    @apply flex items-center gap-3 py-2 px-3 rounded-md text-sidebar-foreground transition-all duration-200;
+    @apply p-2 rounded-md w-full flex items-center gap-3;
   }
-
-  .sidebar-item-active {
-    @apply text-sidebar-active bg-primary-light font-medium;
-  }
-
+  
   .sidebar-item-hover {
-    @apply hover:bg-sidebar-hover;
+    @apply hover:bg-muted transition-colors;
   }
   
-  .icon-button {
-    @apply p-2 rounded-md hover:bg-accent transition-colors duration-200;
+  .sidebar-item-active {
+    @apply bg-primary/10 text-primary;
+  }
+  
+  .table-row-hover {
+    @apply hover:bg-muted/50 transition-colors;
   }
 
-  .tooltip {
-    @apply absolute z-50 px-2 py-1 text-xs rounded bg-foreground text-background opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap;
-  }
-  
   .badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium;
   }
   
   .badge-success {
@@ -111,19 +143,27 @@
     @apply bg-warning-light text-warning;
   }
   
-  .badge-error {
-    @apply bg-destructive-light text-destructive;
+  .badge-danger {
+    @apply bg-danger-light text-danger;
   }
   
   .badge-neutral {
     @apply bg-muted text-muted-foreground;
   }
-  
-  .badge-primary {
-    @apply bg-primary-light text-primary;
+
+  .icon-button {
+    @apply p-2 rounded-md hover:bg-muted transition-colors relative;
+  }
+
+  .tooltip {
+    @apply absolute hidden group-hover:inline-flex bg-popover text-popover-foreground px-2 py-1 rounded shadow-md z-50 whitespace-nowrap text-xs left-1/2 -translate-x-1/2;
   }
   
-  .spinner {
-    @apply animate-spinner w-4 h-4 border-2 rounded-full border-t-transparent;
+  .shadow-card {
+    @apply shadow-sm hover:shadow transition-shadow duration-200;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-200;
   }
 }
