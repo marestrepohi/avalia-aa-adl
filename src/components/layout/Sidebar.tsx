@@ -17,17 +17,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   isOpen = false,
   onClick
 }) => {
-  return <button className={`sidebar-item sidebar-item-hover w-full flex justify-between ${isActive ? 'sidebar-item-active' : ''}`} onClick={onClick}>
-      <div className="flex items-center gap-3">
-        <div className={`${isActive ? 'text-primary' : 'text-sidebar-foreground'}`}>
-          {icon}
-        </div>
-        
-      </div>
-      {hasChildren && <div className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
-          <ChevronDown className="h-4 w-4" />
-        </div>}
-    </button>;
+  return;
 };
 interface SubMenuItemProps {
   text: string;
