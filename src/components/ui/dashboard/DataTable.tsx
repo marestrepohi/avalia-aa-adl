@@ -14,6 +14,7 @@ interface DataTableProps {
   data: Record<string, any>[];
   emptyMessage?: string;
   className?: string;
+  showCheckboxes?: boolean;
 }
 
 const DataTable: React.FC<DataTableProps> = ({ 
@@ -21,13 +22,37 @@ const DataTable: React.FC<DataTableProps> = ({
   data, 
   emptyMessage = "No hay datos disponibles",
   className = "",
+  showCheckboxes = false,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRows, setSelectedRows] = useState<Record<string | number, boolean>>({});
   const itemsPerPage = 5;
   
   const totalPages = Math.ceil(data.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
+
+  const toggleSelectAll = () => {
+    if (Object.keys(selectedRows).length === paginatedData.length) {
+      setSelectedRows({});
+    } else {
+      const newSelectedRows = { ...selectedRows };
+      paginatedData.forEach((row, index) => {
+        newSelectedRows[row.id || index] = true;
+      });
+      setSelectedRows(newSelectedRows);
+    }
+  };
+
+  const toggleSelectRow = (id: string | number) => {
+    setSelectedRows(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const areAllSelected = paginatedData.length > 0 && 
+    paginatedData.every((row, index) => selectedRows[row.id || index]);
 
   return (
     <div className={`bg-white rounded-lg shadow-card p-5 overflow-hidden card-hover ${className}`}>
@@ -35,6 +60,18 @@ const DataTable: React.FC<DataTableProps> = ({
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
+              {showCheckboxes && (
+                <th className="py-3 px-4 text-left text-sm font-medium whitespace-nowrap w-10">
+                  <div className="flex items-center justify-center">
+                    <button 
+                      className={`h-4 w-4 rounded border ${areAllSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-input'} flex items-center justify-center`}
+                      onClick={toggleSelectAll}
+                    >
+                      {areAllSelected && <Check className="h-3 w-3" />}
+                    </button>
+                  </div>
+                </th>
+              )}
               {columns.map((column) => (
                 <th
                   key={column.key}
@@ -52,6 +89,18 @@ const DataTable: React.FC<DataTableProps> = ({
                   key={index} 
                   className="table-row-hover border-b border-border last:border-0"
                 >
+                  {showCheckboxes && (
+                    <td className="py-3 px-4 text-sm w-10">
+                      <div className="flex items-center justify-center">
+                        <button 
+                          className={`h-4 w-4 rounded border ${selectedRows[row.id || index] ? 'bg-primary border-primary text-primary-foreground' : 'border-input'} flex items-center justify-center`}
+                          onClick={() => toggleSelectRow(row.id || index)}
+                        >
+                          {selectedRows[row.id || index] && <Check className="h-3 w-3" />}
+                        </button>
+                      </div>
+                    </td>
+                  )}
                   {columns.map((column) => (
                     <td
                       key={`${index}-${column.key}`}
@@ -67,7 +116,7 @@ const DataTable: React.FC<DataTableProps> = ({
             ) : (
               <tr>
                 <td
-                  colSpan={columns.length}
+                  colSpan={showCheckboxes ? columns.length + 1 : columns.length}
                   className="py-8 text-center text-muted-foreground"
                 >
                   {emptyMessage}

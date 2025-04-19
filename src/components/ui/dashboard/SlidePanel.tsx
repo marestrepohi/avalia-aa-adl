@@ -8,7 +8,7 @@ interface SlidePanelProps {
   title: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  width?: "sm" | "md" | "lg" | "xl";
+  width?: "sm" | "md" | "lg" | "xl" | "full";
 }
 
 const SlidePanel: React.FC<SlidePanelProps> = ({
@@ -27,6 +27,7 @@ const SlidePanel: React.FC<SlidePanelProps> = ({
     md: "max-w-lg",
     lg: "max-w-2xl",
     xl: "max-w-4xl",
+    full: "w-full",
   }[width];
 
   // Close when pressing escape
