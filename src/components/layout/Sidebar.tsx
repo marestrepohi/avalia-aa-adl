@@ -42,7 +42,7 @@ const SubMenuItem: React.FC<SubMenuItemProps> = ({
   return <button className={`sidebar-item sidebar-item-hover w-full pl-10 ${isActive ? 'sidebar-item-active' : ''}`} onClick={onClick}>
       <div className="flex items-center gap-3">
         <ChevronRight className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-sidebar-foreground'}`} />
-        <span>{text}</span>
+        <span className="text-left">{text}</span>
       </div>
     </button>;
 };
