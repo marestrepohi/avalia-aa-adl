@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import KpiCard from '@/components/ui/dashboard/KpiCard';
@@ -355,6 +356,7 @@ const contactosColumns = [
 const InformacionCliente: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClients, setSelectedClients] = useState<Record<string, boolean>>({});
 
   return (
     <div className="space-y-6">

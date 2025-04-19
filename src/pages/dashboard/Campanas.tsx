@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Calendar as CalendarIcon, Plus, Play, Pause, Edit, Trash2, Filter } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -53,6 +54,15 @@ const campanasData = [
     responsable: "Ana María López"
   },
 ];
+
+// Convert campaigns data to calendar events
+const calendarEvents = campanasData.map(campaign => ({
+  id: campaign.id,
+  title: campaign.nombre,
+  start: campaign.fechaInicio,
+  end: campaign.fechaFin,
+  estado: campaign.estado
+}));
 
 const columns = [
   {
@@ -188,7 +198,7 @@ const Campanas: React.FC = () => {
             <h2 className="text-lg font-medium">{format(date || new Date(), 'MMMM yyyy', { locale: es })}</h2>
           </div>
           <div className="border rounded-lg p-4 h-[500px] overflow-auto">
-            {events.map((event) => {
+            {calendarEvents.map((event) => {
               // Determinamos el color según el estado
               let bgColor = "bg-gray-100";
               let textColor = "text-gray-700";
@@ -214,7 +224,7 @@ const Campanas: React.FC = () => {
               );
             })}
             
-            {events.length === 0 && (
+            {calendarEvents.length === 0 && (
               <div className="flex items-center justify-center h-full text-muted-foreground">
                 No hay eventos para mostrar
               </div>

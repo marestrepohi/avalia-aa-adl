@@ -150,28 +150,28 @@ const ResumenGeneral: React.FC = () => {
           title="Total Llamadas"
           value="1,245"
           change="12%"
-          isPositive={true}
+          changeType="positive"
           icon={<Phone className="h-5 w-5 text-primary" />}
         />
         <KpiCard
           title="Agentes Activos"
           value="12"
           change="2"
-          isPositive={true}
+          changeType="positive"
           icon={<Users className="h-5 w-5 text-primary" />}
         />
         <KpiCard
           title="Leads Generados"
           value="89"
           change="7%"
-          isPositive={true}
+          changeType="positive"
           icon={<Users className="h-5 w-5 text-primary" />}
         />
         <KpiCard
           title="Ingreso Estimado"
           value="$24,500"
           change="5%"
-          isPositive={false}
+          changeType="negative"
           icon={<DollarSign className="h-5 w-5 text-primary" />}
         />
       </div>
