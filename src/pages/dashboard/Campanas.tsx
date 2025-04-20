@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Calendar as CalendarIcon, Plus, Play, Pause, Edit, Trash2, Filter, Users } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -9,6 +10,7 @@ import DataTable from "../../components/ui/dashboard/DataTable";
 import { es } from "date-fns/locale";
 import SlidePanel from "@/components/ui/dashboard/SlidePanel";
 import CampaignForm from "@/components/campaigns/CampaignForm";
+import AudienciasForm from "@/components/campaigns/AudienciasForm";
 import { Card } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -199,6 +201,7 @@ const Campanas: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showCalendarView, setShowCalendarView] = useState(false);
   const [showNewCampaign, setShowNewCampaign] = useState(false);
+  const [showAudiencias, setShowAudiencias] = useState(false);
   const isMobile = useIsMobile();
   
   // Convert campaigns data to calendar events
@@ -220,6 +223,13 @@ const Campanas: React.FC = () => {
             onClick={() => setShowCalendarView(!showCalendarView)}
           >
             {showCalendarView ? "Ver Tabla" : "Ver Calendario"} 
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowAudiencias(true)}
+          >
+            <Users className="h-5 w-5 mr-2" />
+            Audiencias
           </Button>
           <Button onClick={() => setShowNewCampaign(true)}>
             <Plus className="h-5 w-5 mr-2" />
@@ -281,6 +291,15 @@ const Campanas: React.FC = () => {
         width={isMobile ? "full" : "lg"}
       >
         <CampaignForm onClose={() => setShowNewCampaign(false)} />
+      </SlidePanel>
+
+      <SlidePanel
+        isOpen={showAudiencias}
+        onClose={() => setShowAudiencias(false)}
+        title="Gestión de Audiencias"
+        width={isMobile ? "full" : "lg"}
+      >
+        <AudienciasForm onClose={() => setShowAudiencias(false)} />
       </SlidePanel>
     </div>
   );

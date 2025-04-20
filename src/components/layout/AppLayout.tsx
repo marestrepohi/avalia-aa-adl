@@ -2,6 +2,7 @@
 import React from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+import Chatbot from "../chat/Chatbot";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           {children}
         </div>
       </main>
+      <Chatbot />
     </div>
   );
 };

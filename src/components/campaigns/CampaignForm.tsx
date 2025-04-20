@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,21 @@ interface CampaignFormProps {
 const CampaignForm: React.FC<CampaignFormProps> = ({ onClose }) => {
   const [startDate, setStartDate] = React.useState<Date>();
   const [endDate, setEndDate] = React.useState<Date>();
-  const [selectedClients, setSelectedClients] = React.useState<string[]>([]);
+  const [selectedAudience, setSelectedAudience] = useState<string>("");
+  const [selectedAgent, setSelectedAgent] = useState<string>("");
+
+  // Mock data for available agents and audiences
+  const availableAgents = [
+    { id: "1", name: "Agente IA - Ventas" },
+    { id: "2", name: "Agente IA - Atención al Cliente" },
+    { id: "3", name: "Agente IA - Soporte Técnico" },
+  ];
+
+  const availableAudiences = [
+    { id: "1", name: "Clientes Premium" },
+    { id: "2", name: "Prospectos Calificados" },
+    { id: "3", name: "Clientes Inactivos" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -119,17 +133,37 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onClose }) => {
       <div className="space-y-2">
         <Label className="flex items-center gap-2">
           <Users className="h-4 w-4" />
-          Clientes Asignados
+          Audiencia
         </Label>
-        <Select>
+        <Select value={selectedAudience} onValueChange={setSelectedAudience}>
           <SelectTrigger>
-            <SelectValue placeholder="Seleccionar clientes" />
+            <SelectValue placeholder="Seleccionar audiencia" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos los clientes</SelectItem>
-            <SelectItem value="active">Clientes activos</SelectItem>
-            <SelectItem value="inactive">Clientes inactivos</SelectItem>
-            <SelectItem value="custom">Selección personalizada</SelectItem>
+            {availableAudiences.map(audience => (
+              <SelectItem key={audience.id} value={audience.id}>
+                {audience.name}
+              </SelectItem>
+            ))}
+            <SelectItem value="custom">Crear nueva audiencia</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2">
+          Agente para llamadas
+        </Label>
+        <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+          <SelectTrigger>
+            <SelectValue placeholder="Seleccionar agente IA" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableAgents.map(agent => (
+              <SelectItem key={agent.id} value={agent.id}>
+                {agent.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
