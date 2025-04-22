@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,12 +8,13 @@ import {
   Package, 
   CreditCard, 
   BanknoteIcon as Banknote, 
-  PhoneCallIcon as PhoneCall,
+  PhoneCall,
   TrendingUp,
   TrendingDown,
   FileText
 } from "lucide-react";
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface ClienteDetalleProps {
   cliente: Record<string, any>;
@@ -57,6 +59,13 @@ interface Incidencia {
 }
 
 const ClienteDetalle: React.FC<ClienteDetalleProps> = ({ cliente }) => {
+  // Function to handle transcription button click
+  const handleTranscripcionClick = (llamadaId: string) => {
+    toast.success("Transcripción de llamada abierta", {
+      description: `Se ha abierto la transcripción de la llamada #${llamadaId}.`
+    });
+  };
+
   // Datos simulados para demostración
   const transacciones: Transaccion[] = [
     {
@@ -428,7 +437,12 @@ const ClienteDetalle: React.FC<ClienteDetalleProps> = ({ cliente }) => {
                       </div>
                     </td>
                     <td className="py-2 px-2">
-                      <Button variant="outline" size="sm" className="h-8">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-8"
+                        onClick={() => handleTranscripcionClick(llamada.id)}
+                      >
                         <FileText className="h-4 w-4 mr-1" /> Transcripción
                       </Button>
                     </td>

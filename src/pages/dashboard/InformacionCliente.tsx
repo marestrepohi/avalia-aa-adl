@@ -4,11 +4,12 @@ import { Card } from "@/components/ui/card";
 import KpiCard from '@/components/ui/dashboard/KpiCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CheckCircle, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import DataTable from '@/components/ui/dashboard/DataTable';
 import { format } from 'date-fns';
 import ClienteDetalle from '@/components/cliente/ClienteDetalle';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // KPI data
 const kpiData = [
@@ -82,6 +83,42 @@ const clientesData = [
   }
 ];
 
+// Table data for prospects
+const prospectosData = [
+  {
+    id: "PR-1001",
+    nombre: "Luisa Morales",
+    empresa: "Distribuidora Nacional S.A.",
+    ultimoContacto: new Date(2025, 3, 18),
+    estado: "En Seguimiento",
+    prioridad: "Alta"
+  },
+  {
+    id: "PR-1002",
+    nombre: "Fernando Ruiz",
+    empresa: "Tecnología Avanzada Ltda.",
+    ultimoContacto: new Date(2025, 3, 14),
+    estado: "Nuevo",
+    prioridad: "Media"
+  },
+  {
+    id: "PR-1003",
+    nombre: "Paula Sánchez",
+    empresa: "Consultora Estratégica Global",
+    ultimoContacto: new Date(2025, 3, 11),
+    estado: "En Seguimiento",
+    prioridad: "Baja"
+  },
+  {
+    id: "PR-1004",
+    nombre: "Gabriel Mendoza",
+    empresa: "Soluciones Digitales Express",
+    ultimoContacto: new Date(2025, 3, 8),
+    estado: "Nuevo",
+    prioridad: "Alta"
+  }
+];
+
 const clientesColumns = [
   {
     key: "id",
@@ -149,7 +186,21 @@ const clientesColumns = [
 
 const InformacionCliente: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedClients, setSelectedClients] = useState<Record<string, boolean>>({});
+  const [selectedTab, setSelectedTab] = useState('clientes');
+
+  // Filter data based on search term
+  const filterData = (data: any[]) => {
+    if (!searchTerm) return data;
+    
+    return data.filter(item => 
+      item.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.empresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.id.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
+  const filteredClientes = filterData(clientesData);
+  const filteredProspectos = filterData(prospectosData);
 
   // Función para mostrar transcripción cuando se haga clic en el botón
   const handleMostrarTranscripcion = () => {
@@ -187,23 +238,41 @@ const InformacionCliente: React.FC = () => {
       </div>
       
       <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Clientes</h2>
-        <DataTable 
-          columns={clientesColumns}
-          data={clientesData}
-          showCheckboxes={true}
-          renderExpandedRow={(cliente) => (
-            <ClienteDetalle cliente={cliente} />
-          )}
-        />
-        <div className="mt-4 flex justify-end">
-          <Button onClick={() => toast.success("Llamadas iniciadas", {
-            description: "Se han iniciado las llamadas para los clientes seleccionados."
-          })}>
-            <CheckCircle className="mr-2 h-4 w-4" />
-            Iniciar Llamadas Seleccionadas
-          </Button>
-        </div>
+        <Tabs 
+          defaultValue="clientes" 
+          value={selectedTab}
+          onValueChange={setSelectedTab} 
+          className="w-full"
+        >
+          <TabsList className="grid grid-cols-2 mb-4">
+            <TabsTrigger value="clientes">Clientes</TabsTrigger>
+            <TabsTrigger value="prospectos">Prospectos</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="clientes">
+            <h2 className="text-xl font-semibold mb-4">Lista de Clientes</h2>
+            <DataTable 
+              columns={clientesColumns}
+              data={filteredClientes}
+              showCheckboxes={true}
+              renderExpandedRow={(cliente) => (
+                <ClienteDetalle cliente={cliente} />
+              )}
+            />
+          </TabsContent>
+          
+          <TabsContent value="prospectos">
+            <h2 className="text-xl font-semibold mb-4">Lista de Prospectos</h2>
+            <DataTable 
+              columns={clientesColumns}
+              data={filteredProspectos}
+              showCheckboxes={true}
+              renderExpandedRow={(cliente) => (
+                <ClienteDetalle cliente={cliente} />
+              )}
+            />
+          </TabsContent>
+        </Tabs>
       </Card>
     </div>
   );
