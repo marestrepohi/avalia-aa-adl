@@ -1,6 +1,14 @@
 
 import React, { useState } from "react";
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface Column {
   key: string;
@@ -15,6 +23,7 @@ interface DataTableProps {
   emptyMessage?: string;
   className?: string;
   showCheckboxes?: boolean;
+  renderExpandedRow?: (row: Record<string, any>) => React.ReactNode;
 }
 
 const DataTable: React.FC<DataTableProps> = ({ 
@@ -23,9 +32,11 @@ const DataTable: React.FC<DataTableProps> = ({
   emptyMessage = "No hay datos disponibles",
   className = "",
   showCheckboxes = false,
+  renderExpandedRow,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRows, setSelectedRows] = useState<Record<string | number, boolean>>({});
+  const [expandedRows, setExpandedRows] = useState<Record<string | number, boolean>>({});
   const itemsPerPage = 5;
   
   const totalPages = Math.ceil(data.length / itemsPerPage);
@@ -51,17 +62,29 @@ const DataTable: React.FC<DataTableProps> = ({
     }));
   };
 
+  const toggleExpandRow = (id: string | number) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
   const areAllSelected = paginatedData.length > 0 && 
     paginatedData.every((row, index) => selectedRows[row.id || index]);
 
   return (
-    <div className={`bg-white rounded-lg shadow-card p-5 overflow-hidden card-hover ${className}`}>
+    <div className={`bg-white rounded-lg shadow-card overflow-hidden card-hover ${className}`}>
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {renderExpandedRow && (
+                <TableHead className="w-10 px-2">
+                  <span className="sr-only">Expandir</span>
+                </TableHead>
+              )}
               {showCheckboxes && (
-                <th className="py-3 px-4 text-left text-sm font-medium whitespace-nowrap w-10">
+                <TableHead className="w-10">
                   <div className="flex items-center justify-center">
                     <button 
                       className={`h-4 w-4 rounded border ${areAllSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-input'} flex items-center justify-center`}
@@ -70,65 +93,91 @@ const DataTable: React.FC<DataTableProps> = ({
                       {areAllSelected && <Check className="h-3 w-3" />}
                     </button>
                   </div>
-                </th>
+                </TableHead>
               )}
               {columns.map((column) => (
-                <th
+                <TableHead
                   key={column.key}
-                  className={`py-3 px-4 text-left text-sm font-medium text-foreground whitespace-nowrap ${column.className || ""}`}
+                  className={column.className || ""}
                 >
                   {column.header}
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {paginatedData.length > 0 ? (
               paginatedData.map((row, index) => (
-                <tr 
-                  key={index} 
-                  className="table-row-hover border-b border-border last:border-0"
-                >
-                  {showCheckboxes && (
-                    <td className="py-3 px-4 text-sm w-10">
-                      <div className="flex items-center justify-center">
+                <React.Fragment key={row.id || index}>
+                  <TableRow className="hover:bg-muted/50">
+                    {renderExpandedRow && (
+                      <TableCell className="w-10 px-2">
                         <button 
-                          className={`h-4 w-4 rounded border ${selectedRows[row.id || index] ? 'bg-primary border-primary text-primary-foreground' : 'border-input'} flex items-center justify-center`}
-                          onClick={() => toggleSelectRow(row.id || index)}
+                          className="p-1 rounded-full hover:bg-muted transition-colors"
+                          onClick={() => toggleExpandRow(row.id || index)}
+                          aria-label="Expandir fila"
                         >
-                          {selectedRows[row.id || index] && <Check className="h-3 w-3" />}
+                          {expandedRows[row.id || index] ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
                         </button>
-                      </div>
-                    </td>
+                      </TableCell>
+                    )}
+                    {showCheckboxes && (
+                      <TableCell className="w-10">
+                        <div className="flex items-center justify-center">
+                          <button 
+                            className={`h-4 w-4 rounded border ${selectedRows[row.id || index] ? 'bg-primary border-primary text-primary-foreground' : 'border-input'} flex items-center justify-center`}
+                            onClick={() => toggleSelectRow(row.id || index)}
+                          >
+                            {selectedRows[row.id || index] && <Check className="h-3 w-3" />}
+                          </button>
+                        </div>
+                      </TableCell>
+                    )}
+                    {columns.map((column) => (
+                      <TableCell
+                        key={`${index}-${column.key}`}
+                        className={column.className || ""}
+                      >
+                        {column.render
+                          ? column.render(row[column.key], row)
+                          : row[column.key]}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {expandedRows[row.id || index] && renderExpandedRow && (
+                    <TableRow>
+                      <TableCell 
+                        colSpan={(showCheckboxes ? 1 : 0) + (renderExpandedRow ? 1 : 0) + columns.length} 
+                        className="bg-muted/30 p-0"
+                      >
+                        <div className="p-4 animate-accordion-down">
+                          {renderExpandedRow(row)}
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   )}
-                  {columns.map((column) => (
-                    <td
-                      key={`${index}-${column.key}`}
-                      className={`py-3 px-4 text-sm ${column.className || ""}`}
-                    >
-                      {column.render
-                        ? column.render(row[column.key], row)
-                        : row[column.key]}
-                    </td>
-                  ))}
-                </tr>
+                </React.Fragment>
               ))
             ) : (
-              <tr>
-                <td
-                  colSpan={showCheckboxes ? columns.length + 1 : columns.length}
-                  className="py-8 text-center text-muted-foreground"
+              <TableRow>
+                <TableCell
+                  colSpan={(showCheckboxes ? 1 : 0) + (renderExpandedRow ? 1 : 0) + columns.length}
+                  className="h-24 text-center text-muted-foreground"
                 >
                   {emptyMessage}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-4 px-4 py-2 border-t border-border gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-2 border-t border-border gap-4">
           <div className="text-sm text-muted-foreground text-center sm:text-left">
             Mostrando {startIndex + 1} a{" "}
             {Math.min(startIndex + itemsPerPage, data.length)} de {data.length}{" "}

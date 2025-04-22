@@ -13,8 +13,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     <div className="flex min-h-screen bg-background">
       <Header />
       <Sidebar />
-      <main className="flex-1 pt-16 pl-64 min-h-screen">
-        <div className="p-6 max-w-7xl mx-auto">
+      <main className="flex-1 pt-16 pl-4 md:pl-64 min-h-screen">
+        <div className="p-4 sm:p-6 max-w-[100rem] mx-auto">
           {children}
         </div>
       </main>
