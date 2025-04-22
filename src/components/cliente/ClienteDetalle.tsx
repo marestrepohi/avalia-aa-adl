@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,7 +6,7 @@ import {
   MessageSquare, 
   Package, 
   CreditCard, 
-  BanknotesIcon as Banknote, 
+  BanknoteIcon as Banknote, 
   PhoneCallIcon as PhoneCall,
   TrendingUp,
   TrendingDown,
