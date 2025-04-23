@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, User, Users, Settings } from 'lucide-react';
-import { format } from 'date-fns';
 
 interface Asistente {
   id: string;
@@ -21,7 +20,6 @@ interface AsistenteCardProps {
 }
 
 const AsistenteCard: React.FC<AsistenteCardProps> = ({ asistente, onSelect }) => {
-  // Render the correct icon based on the icon name
   const renderIcon = () => {
     const iconProps = { 
       size: 32, 
@@ -49,10 +47,6 @@ const AsistenteCard: React.FC<AsistenteCardProps> = ({ asistente, onSelect }) =>
         {renderIcon()}
         <h3 className="text-lg font-medium mb-2">{asistente.nombre}</h3>
         <p className="text-muted-foreground text-sm mb-3">{asistente.descripcion}</p>
-        <div className="flex justify-between text-sm">
-          <span>Fuentes: {asistente.fuentes}</span>
-          <span>Última: {format(asistente.ultimaConversacion, 'dd/MM/yyyy')}</span>
-        </div>
       </CardContent>
       <CardFooter className="pt-0">
         <Button 

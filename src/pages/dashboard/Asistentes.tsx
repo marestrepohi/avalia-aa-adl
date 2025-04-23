@@ -1,39 +1,8 @@
 
 import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
-import KpiCard from '@/components/ui/dashboard/KpiCard';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from '@/components/ui/button';
 import AsistenteCard from '@/components/asistentes/AsistenteCard';
 import AsistenteChat from '@/components/asistentes/AsistenteChat';
-
-// KPI data for assistants
-const kpiData = [
-  {
-    title: "Asistentes Activos",
-    value: "4",
-    change: "+1",
-    changeType: "positive" as "positive"
-  },
-  {
-    title: "Chats Activos",
-    value: "8",
-    change: "+3",
-    changeType: "positive" as "positive"
-  },
-  {
-    title: "Chats Completados",
-    value: "152",
-    change: "+12%",
-    changeType: "positive" as "positive"
-  },
-  {
-    title: "Tiempo Promedio",
-    value: "2m 45s",
-    change: "-15s",
-    changeType: "positive" as "positive"
-  }
-];
 
 // Sample assistant data
 const asistentesData = [
@@ -77,7 +46,6 @@ const asistentesData = [
 
 const Asistentes: React.FC = () => {
   const [selectedAsistente, setSelectedAsistente] = useState<string | null>(null);
-  const [currentTab, setCurrentTab] = useState<'asistentes' | 'fuentes'>('asistentes');
   
   const handleSelectAsistente = (id: string) => {
     setSelectedAsistente(id);
@@ -94,42 +62,24 @@ const Asistentes: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Asistentes IA</h1>
-        <Button variant="outline">+ Crear Asistente</Button>
       </div>
       
       {!selectedAsistente ? (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {kpiData.map((kpi, index) => (
-              <KpiCard 
-                key={index}
-                title={kpi.title}
-                value={kpi.value}
-                change={kpi.change}
-                changeType={kpi.changeType}
+        <Card className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {asistentesData.map((asistente) => (
+              <AsistenteCard
+                key={asistente.id}
+                asistente={asistente}
+                onSelect={() => handleSelectAsistente(asistente.id)}
               />
             ))}
           </div>
-          
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Asistentes Disponibles</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {asistentesData.map((asistente) => (
-                <AsistenteCard
-                  key={asistente.id}
-                  asistente={asistente}
-                  onSelect={() => handleSelectAsistente(asistente.id)}
-                />
-              ))}
-            </div>
-          </Card>
-        </>
+        </Card>
       ) : (
         <AsistenteChat 
           asistente={asistente}
           onClose={handleCloseChat}
-          activeTab={currentTab}
-          onTabChange={(tab) => setCurrentTab(tab as 'asistentes' | 'fuentes')}
         />
       )}
     </div>
