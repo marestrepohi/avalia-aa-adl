@@ -73,57 +73,55 @@ const FuentesDocumentos: React.FC<FuentesDocumentosProps> = ({ asistenteId }) =>
               <TabsTrigger value="documentos">Documentos</TabsTrigger>
               <TabsTrigger value="enlaces">Enlaces</TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="documentos">
+              <div className="space-y-2">
+                {documentos
+                  .filter(doc => doc.tipo === 'archivo')
+                  .map(doc => (
+                    <div key={doc.id} className="border rounded-md p-3 flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">{doc.nombre}</p>
+                          <div className="flex gap-3 text-xs text-muted-foreground">
+                            <span>{doc.tamaño}</span>
+                            <span>Agregado: {format(doc.fechaAgregado, 'dd/MM/yyyy')}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="enlaces">
+              <div className="space-y-2">
+                {documentos
+                  .filter(doc => doc.tipo === 'enlace')
+                  .map(doc => (
+                    <div key={doc.id} className="border rounded-md p-3 flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <LinkIcon className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">{doc.nombre}</p>
+                          <div className="flex gap-3 text-xs text-muted-foreground">
+                            <span>Agregado: {format(doc.fechaAgregado, 'dd/MM/yyyy')}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+              </div>
+            </TabsContent>
           </Tabs>
         </CardHeader>
-        
-        <CardContent className="p-4">
-          <TabsContent value="documentos">
-            <div className="space-y-2">
-              {documentos
-                .filter(doc => doc.tipo === 'archivo')
-                .map(doc => (
-                  <div key={doc.id} className="border rounded-md p-3 flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">{doc.nombre}</p>
-                        <div className="flex gap-3 text-xs text-muted-foreground">
-                          <span>{doc.tamaño}</span>
-                          <span>Agregado: {format(doc.fechaAgregado, 'dd/MM/yyyy')}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="enlaces">
-            <div className="space-y-2">
-              {documentos
-                .filter(doc => doc.tipo === 'enlace')
-                .map(doc => (
-                  <div key={doc.id} className="border rounded-md p-3 flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <LinkIcon className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">{doc.nombre}</p>
-                        <div className="flex gap-3 text-xs text-muted-foreground">
-                          <span>Agregado: {format(doc.fechaAgregado, 'dd/MM/yyyy')}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-            </div>
-          </TabsContent>
-        </CardContent>
       </Card>
     </div>
   );
