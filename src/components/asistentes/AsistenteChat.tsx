@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send, Paperclip } from 'lucide-react';
 import { format } from 'date-fns';
-import FuentesDocumentos from './FuentesDocumentos';
+import ConversacionesSidebar from './ConversacionesSidebar';
 
 interface Asistente {
   id: string;
@@ -95,8 +94,10 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({ asistente, onClose }) => 
   if (!asistente) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <Card className="p-0 md:col-span-2">
+    <div className="grid grid-cols-[auto,1fr] h-[calc(100vh-4rem)]">
+      <ConversacionesSidebar asistenteId={asistente.id} />
+      
+      <Card className="border-0 rounded-none">
         <div className="border-b border-border">
           <div className="p-4 flex items-center gap-3">
             <Button
@@ -114,7 +115,7 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({ asistente, onClose }) => 
           </div>
         </div>
         
-        <div className="h-[calc(80vh-220px)] flex flex-col">
+        <div className="flex flex-col h-[calc(100vh-8rem)]">
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {mensajes.map((msg) => (
               <div 
@@ -184,10 +185,6 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({ asistente, onClose }) => 
           </form>
         </div>
       </Card>
-
-      <div className="md:col-span-1">
-        <FuentesDocumentos asistenteId={asistente.id} />
-      </div>
     </div>
   );
 };
