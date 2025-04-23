@@ -1,6 +1,8 @@
+
 import React, { useState } from "react";
-import { LayoutDashboard, Users, Megaphone, UserSquare2, Settings, ChevronDown, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Users, Megaphone, UserSquare2, MessageSquare, ChevronDown, ChevronRight } from "lucide-react";
 import { useDashboard } from "../../contexts/DashboardContext";
+
 interface SidebarItemProps {
   icon: React.ReactNode;
   text: string;
@@ -9,6 +11,7 @@ interface SidebarItemProps {
   isOpen?: boolean;
   onClick?: () => void;
 }
+
 const SidebarItem: React.FC<SidebarItemProps> = ({
   icon,
   text,
@@ -29,11 +32,13 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
         </div>}
     </button>;
 };
+
 interface SubMenuItemProps {
   text: string;
   isActive?: boolean;
   onClick?: () => void;
 }
+
 const SubMenuItem: React.FC<SubMenuItemProps> = ({
   text,
   isActive = false,
@@ -46,6 +51,7 @@ const SubMenuItem: React.FC<SubMenuItemProps> = ({
       </div>
     </button>;
 };
+
 const Sidebar: React.FC = () => {
   const {
     activeView,
@@ -72,6 +78,8 @@ const Sidebar: React.FC = () => {
             </div>
           </div>}
 
+        <SidebarItem icon={<MessageSquare className="h-5 w-5" />} text="Asistentes" isActive={activeView === "asistentes"} onClick={() => handleViewChange("asistentes")} />
+
         <SidebarItem icon={<Megaphone className="h-5 w-5" />} text="Campañas" isActive={activeView === "campaigns"} onClick={() => handleViewChange("campaigns")} />
 
         <SidebarItem icon={<UserSquare2 className="h-5 w-5" />} text="Información de Clientes" hasChildren={true} isOpen={openSubMenu === "clients"} isActive={["clientDashboard", "accounts", "contacts", "prospects", "clientConfig", "banking"].includes(activeView)} onClick={() => toggleSubMenu("clients")} />
@@ -85,9 +93,8 @@ const Sidebar: React.FC = () => {
               <SubMenuItem text="Configuración" isActive={activeView === "clientConfig"} onClick={() => handleViewChange("clientConfig")} />
             </div>
           </div>}
-
-        <SidebarItem icon={<Settings className="h-5 w-5" />} text="Configuración" isActive={activeView === "settings"} onClick={() => handleViewChange("settings")} />
       </nav>
     </aside>;
 };
+
 export default Sidebar;

@@ -7,6 +7,7 @@ import Campanas from './dashboard/Campanas';
 import InformacionCliente from './dashboard/InformacionCliente';
 import InformacionBancaria from './dashboard/InformacionBancaria';
 import AnalisisLlamadas from './dashboard/AnalisisLlamadas';
+import Asistentes from './dashboard/Asistentes';
 import { useDashboard } from '../contexts/DashboardContext';
 
 const Index = () => {
@@ -25,6 +26,7 @@ const Index = () => {
       {activeView === 'clientDashboard' && <InformacionCliente />}
       {activeView === 'banking' && <InformacionBancaria />}
       {activeView === 'callAnalysis' && <AnalisisLlamadas />}
+      {activeView === 'asistentes' && <Asistentes />}
     </AppLayout>
   );
 };
