@@ -1,9 +1,8 @@
-
 import React, { useState } from "react";
-import { BarChart as ChartBar, Smile, Meh, Frown, Filter, Download, Users, MessageSquare } from "lucide-react";
+import { BarChart as ChartBar, Smile, Meh, Frown, Filter, Download, Users, MessageSquare, PhoneCall, PhoneOff, ListFilter, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import DataTable from "../../components/ui/dashboard/DataTable";
@@ -168,10 +167,16 @@ const columnasLlamadas = [
     key: "actions",
     header: "Acciones",
     render: (_: any, row: any) => (
-      <button className="btn-secondary flex items-center gap-2 py-1 px-2 text-xs">
-        <MessageSquare className="h-3 w-3" />
-        <span>Transcripción</span>
-      </button>
+      <div className="flex justify-center gap-2">
+        <button className="icon-button group p-2 hover:bg-muted rounded-full transition-colors">
+          <MessageSquare className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
+          <span className="tooltip -bottom-8 hidden sm:group-hover:inline-flex">Transcripción</span>
+        </button>
+        <button className="icon-button group p-2 hover:bg-muted rounded-full transition-colors">
+          <PhoneCall className="h-4 w-4 text-muted-foreground group-hover:text-green-500 transition-colors duration-200" />
+          <span className="tooltip -bottom-8 hidden sm:group-hover:inline-flex">Llamar</span>
+        </button>
+      </div>
     ),
   },
 ];
@@ -210,16 +215,56 @@ const AnalisisLlamadas: React.FC = () => {
                 key={f.value}
                 variant={tipoAgenteFiltro === f.value ? "default" : "outline"}
                 onClick={() => setTipoAgenteFiltro(f.value)}
-                className={tipoAgenteFiltro === f.value ? "" : "bg-white"}
+                className={tipoAgenteFiltro === f.value ? "" : "bg-white hover:bg-gray-50"}
               >
                 {f.label}
               </Button>
             ))}
           </div>
-          {/* Elimina el botón calendario y solo deja exportar */}
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            <span>Exportar</span>
+          {/* Botones de calendario y exportar */}
+          <div className="flex gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="bg-white hover:bg-gray-50">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  <span>Rango</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <CalendarComponent
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange.from}
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  numberOfMonths={1}
+                  locale={es}
+                />
+              </PopoverContent>
+            </Popover>
+            <Button variant="outline" className="bg-white hover:bg-gray-50">
+              <Download className="mr-2 h-4 w-4" />
+              <span>Exportar</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Panel de botones de Acciones Rápidas */}
+      <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+        <h2 className="text-lg font-medium mb-3 text-center">Acciones Rápidas</h2>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button className="flex items-center gap-2">
+            <PhoneCall className="h-4 w-4" />
+            <span>Iniciar Llamada</span>
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2">
+            <ListFilter className="h-4 w-4" />
+            <span>Filtros Avanzados</span>
+          </Button>
+          <Button variant="secondary" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            <span>Descargar Reporte</span>
           </Button>
         </div>
       </div>
@@ -227,21 +272,21 @@ const AnalisisLlamadas: React.FC = () => {
       {/* Dashboard de Sentimientos */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* Sentimiento Positivo */}
-        <div className="flex flex-col justify-center items-center bg-white rounded-lg shadow-card p-5">
+        <div className="flex flex-col justify-center items-center bg-white rounded-lg shadow-card p-5 hover:shadow-md transition-all duration-200">
           <Smile className="h-10 w-10 text-green-500 mb-2" />
           <div className="text-3xl font-semibold text-green-600">{sentimentStats.pctPositivos}%</div>
           <div className="text-sm text-muted-foreground mt-1">Positivas</div>
           <div className="mt-1 font-mono">{sentimentStats.positivos} llamadas</div>
         </div>
         {/* Sentimiento Neutro */}
-        <div className="flex flex-col justify-center items-center bg-white rounded-lg shadow-card p-5">
+        <div className="flex flex-col justify-center items-center bg-white rounded-lg shadow-card p-5 hover:shadow-md transition-all duration-200">
           <Meh className="h-10 w-10 text-yellow-500 mb-2" />
           <div className="text-3xl font-semibold text-yellow-600">{sentimentStats.pctNeutros}%</div>
           <div className="text-sm text-muted-foreground mt-1">Neutras</div>
           <div className="mt-1 font-mono">{sentimentStats.neutros} llamadas</div>
         </div>
         {/* Sentimiento Negativo */}
-        <div className="flex flex-col justify-center items-center bg-white rounded-lg shadow-card p-5">
+        <div className="flex flex-col justify-center items-center bg-white rounded-lg shadow-card p-5 hover:shadow-md transition-all duration-200">
           <Frown className="h-10 w-10 text-red-500 mb-2" />
           <div className="text-3xl font-semibold text-red-600">{sentimentStats.pctNegativos}%</div>
           <div className="text-sm text-muted-foreground mt-1">Negativas</div>
@@ -298,9 +343,9 @@ const AnalisisLlamadas: React.FC = () => {
               placeholder="Buscar llamadas..."
               className="input-field text-sm py-1 px-3 h-9"
             />
-            <button className="icon-button group">
+            <button className="icon-button group p-2 hover:bg-muted rounded-full transition-colors">
               <Filter className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
-              <span className="tooltip -bottom-8">Filtrar</span>
+              <span className="tooltip -bottom-8 hidden sm:group-hover:inline-flex">Filtrar</span>
             </button>
           </div>
         </div>
