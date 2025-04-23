@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, PaperClip, Image } from 'lucide-react';
+import { ArrowLeft, Send, Paperclip, Image } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Asistente {
@@ -167,7 +167,7 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({ asistente, onClose }) => 
               size="icon"
               onClick={() => document.getElementById('file-upload')?.click()}
             >
-              <PaperClip className="h-4 w-4" />
+              <Paperclip className="h-4 w-4" />
             </Button>
             <Input 
               value={mensaje}
