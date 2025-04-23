@@ -1,15 +1,15 @@
-
 import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import KpiCard from '@/components/ui/dashboard/KpiCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 import DataTable from '@/components/ui/dashboard/DataTable';
 import { format } from 'date-fns';
 import ClienteDetalle from '@/components/cliente/ClienteDetalle';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CallModal from '@/components/cliente/CallModal';
 
 // KPI data
 const kpiData = [
@@ -181,13 +181,22 @@ const clientesColumns = [
       }
       return <span className={badgeClass}>{value}</span>;
     }
-  }
+  },
+  {
+    key: "actions",
+    header: "Acciones",
+    render: (_: any, row: any) => (
+      <div className="flex items-center gap-2">
+        <CallModal clientName={row.nombre} />
+      </div>
+    ),
+  },
 ];
 
 const InformacionCliente: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTab, setSelectedTab] = useState('clientes');
-
+  
   // Filter data based on search term
   const filterData = (data: any[]) => {
     if (!searchTerm) return data;
@@ -213,16 +222,6 @@ const InformacionCliente: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Información de Cliente</h1>
-        <div className="relative w-full sm:w-auto">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Buscar..."
-            className="pl-8 w-full sm:w-64"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

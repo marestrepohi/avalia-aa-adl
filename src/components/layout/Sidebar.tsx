@@ -1,7 +1,7 @@
-
 import React, { useState } from "react";
-import { LayoutDashboard, Users, Megaphone, UserSquare2, MessageSquare, ChevronDown, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Users, Megaphone, UserSquare2, MessageSquare, ChevronDown, PanelLeft, ChevronRight } from "lucide-react";
 import { useDashboard } from "../../contexts/DashboardContext";
+import { Button } from "@/components/ui/button";
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -53,48 +53,66 @@ const SubMenuItem: React.FC<SubMenuItemProps> = ({
 };
 
 const Sidebar: React.FC = () => {
-  const {
-    activeView,
-    setActiveView
-  } = useDashboard();
+  const { activeView, setActiveView } = useDashboard();
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [openSubMenu, setOpenSubMenu] = useState<string | null>("clients");
   const toggleSubMenu = (key: string) => {
     setOpenSubMenu(openSubMenu === key ? null : key);
   };
-
-  // Manejar el cambio de vista
+  
   const handleViewChange = (view: string) => {
     setActiveView(view as any);
   };
-  return <aside className="fixed left-0 top-16 bottom-0 w-64 bg-sidebar border-r border-sidebar-border p-4 overflow-y-auto">
+
+  return (
+    <aside className={`fixed left-0 top-16 bottom-0 ${isCollapsed ? 'w-16' : 'w-64'} bg-sidebar border-r border-sidebar-border p-4 overflow-y-auto transition-all duration-300`}>
       <nav className="space-y-1">
-        <SidebarItem icon={<LayoutDashboard className="h-5 w-5" />} text="Resumen General" isActive={activeView === "dashboard"} onClick={() => handleViewChange("dashboard")} />
+        <SidebarItem 
+          icon={<LayoutDashboard className="h-5 w-5" />} 
+          text={isCollapsed ? "" : "Resumen General"} 
+          isActive={activeView === "dashboard"}
+          onClick={() => handleViewChange("dashboard")} 
+        />
 
-        <SidebarItem icon={<Users className="h-5 w-5" />} text="Centro de Llamadas" hasChildren={true} isOpen={openSubMenu === "callcenter"} isActive={activeView === "agents" || activeView === "callAnalysis"} onClick={() => toggleSubMenu("callcenter")} />
-        {openSubMenu === "callcenter" && <div className="animate-accordion-down overflow-hidden">
-            <div className="pt-1 pb-1 space-y-1">
-              <SubMenuItem text="Agentes IA" isActive={activeView === "agents"} onClick={() => handleViewChange("agents")} />
-              <SubMenuItem text="Análisis de Llamadas" isActive={activeView === "callAnalysis"} onClick={() => handleViewChange("callAnalysis")} />
-            </div>
-          </div>}
+        <SidebarItem 
+          icon={<Users className="h-5 w-5" />} 
+          text={isCollapsed ? "" : "Centro de Llamadas"} 
+          isActive={activeView === "agents" || activeView === "callAnalysis"}
+          onClick={() => handleViewChange("agents")} 
+        />
 
-        <SidebarItem icon={<MessageSquare className="h-5 w-5" />} text="Asistentes" isActive={activeView === "asistentes"} onClick={() => handleViewChange("asistentes")} />
+        <SidebarItem 
+          icon={<MessageSquare className="h-5 w-5" />} 
+          text={isCollapsed ? "" : "Asistentes"} 
+          isActive={activeView === "asistentes"}
+          onClick={() => handleViewChange("asistentes")} 
+        />
 
-        <SidebarItem icon={<Megaphone className="h-5 w-5" />} text="Campañas" isActive={activeView === "campaigns"} onClick={() => handleViewChange("campaigns")} />
+        <SidebarItem 
+          icon={<Megaphone className="h-5 w-5" />} 
+          text={isCollapsed ? "" : "Campañas"} 
+          isActive={activeView === "campaigns"}
+          onClick={() => handleViewChange("campaigns")} 
+        />
 
-        <SidebarItem icon={<UserSquare2 className="h-5 w-5" />} text="Información de Clientes" hasChildren={true} isOpen={openSubMenu === "clients"} isActive={["clientDashboard", "accounts", "contacts", "prospects", "clientConfig", "banking"].includes(activeView)} onClick={() => toggleSubMenu("clients")} />
-        {openSubMenu === "clients" && <div className="animate-accordion-down overflow-hidden">
-            <div className="pt-1 space-y-1">
-              <SubMenuItem text="Panel Principal" isActive={activeView === "clientDashboard"} onClick={() => handleViewChange("clientDashboard")} />
-              <SubMenuItem text="Cuentas" isActive={activeView === "accounts"} onClick={() => handleViewChange("accounts")} />
-              <SubMenuItem text="Contactos" isActive={activeView === "contacts"} onClick={() => handleViewChange("contacts")} />
-              <SubMenuItem text="Prospectos" isActive={activeView === "prospects"} onClick={() => handleViewChange("prospects")} />
-              <SubMenuItem text="Info. Bancaria" isActive={activeView === "banking"} onClick={() => handleViewChange("banking")} />
-              <SubMenuItem text="Configuración" isActive={activeView === "clientConfig"} onClick={() => handleViewChange("clientConfig")} />
-            </div>
-          </div>}
+        <SidebarItem 
+          icon={<UserSquare2 className="h-5 w-5" />} 
+          text={isCollapsed ? "" : "Información de Clientes"} 
+          isActive={activeView === "clientDashboard"}
+          onClick={() => handleViewChange("clientDashboard")} 
+        />
       </nav>
-    </aside>;
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute bottom-4 left-4"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+      >
+        <PanelLeft className={`h-5 w-5 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
+      </Button>
+    </aside>
+  );
 };
 
 export default Sidebar;
