@@ -57,65 +57,6 @@ const campanasData = [
   },
 ];
 
-const columns = [
-  {
-    key: "nombre",
-    header: "Campaña",
-    render: (value: string, row: any) => (
-      <div className="font-medium text-primary cursor-pointer hover:underline" onClick={() => handleRowClick(row)}>{value}</div>
-    ),
-  },
-  {
-    key: "fechaInicio",
-    header: "Fecha Inicio",
-    render: (value: Date) => format(value, "dd/MM/yyyy"),
-  },
-  {
-    key: "fechaFin",
-    header: "Fecha Fin",
-    render: (value: Date) => format(value, "dd/MM/yyyy"),
-  },
-  {
-    key: "estado",
-    header: "Estado",
-    render: (value: string) => {
-      let badgeClass = "badge-neutral";
-      if (value === "Activa") badgeClass = "badge-success";
-      if (value === "Inactiva") badgeClass = "badge-neutral";
-      if (value === "Planificada") badgeClass = "badge-warning";
-      return <span className={`badge ${badgeClass}`}>{value}</span>;
-    },
-  },
-  {
-    key: "objetivos",
-    header: "Objetivos",
-  },
-  {
-    key: "conversion",
-    header: "Conversión",
-  },
-  {
-    key: "responsable",
-    header: "Responsable",
-  },
-  {
-    key: "actions",
-    header: "Acciones",
-    render: (_: any, row: any) => (
-      <Button
-        variant="outline"
-        size="sm"
-        className="flex items-center gap-2"
-        aria-label="Editar"
-        onClick={() => { setSelectedCampaign(row); setShowDetailPanel(true); }}
-      >
-        <Edit className="h-4 w-4" />
-        Editar
-      </Button>
-    ),
-  },
-];
-
 // Datos de ejemplo para audiencias
 const audienciasData = [
   {
@@ -184,6 +125,9 @@ const renderAudienciaDetalle = (row: any) => (
 );
 
 const Campanas: React.FC = () => {
+  const [campaigns, setCampaigns] = useState(campanasData);
+  const handleStart = (row: any) => setCampaigns(prev => prev.map(c => c.id === row.id ? { ...c, estado: 'Activa' } : c));
+  const handlePause = (row: any) => setCampaigns(prev => prev.map(c => c.id === row.id ? { ...c, estado: 'Inactiva' } : c));
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showCalendarView, setShowCalendarView] = useState(false);
   const [showNewCampaign, setShowNewCampaign] = useState(false);
@@ -192,8 +136,8 @@ const Campanas: React.FC = () => {
   const [showDetailPanel, setShowDetailPanel] = useState(false);
   const isMobile = useIsMobile();
   
-  // Convert campaigns data to calendar events
-  const calendarEvents = campanasData.map(campaign => ({
+  // Convert campaigns state to calendar events
+  const calendarEvents = campaigns.map(campaign => ({
     id: campaign.id,
     title: campaign.nombre,
     start: campaign.fechaInicio,
@@ -208,13 +152,72 @@ const Campanas: React.FC = () => {
   };
 
   // Columnas con click handler
-  const columnsWithClick = columns.map(col =>
-    col.key === 'nombre'
-      ? { ...col, render: (value: string, row: any) => (
-          <div className="font-medium text-primary cursor-pointer hover:underline" onClick={() => handleRowClick(row)}>{value}</div>
-        ) }
-      : col
-  );
+  const columnsWithClick = [
+    {
+      key: "nombre",
+      header: "Campaña",
+      render: (value: string, row: any) => (
+        <div className="font-medium text-primary cursor-pointer hover:underline" onClick={() => handleRowClick(row)}>{value}</div>
+      ),
+    },
+    {
+      key: "fechaInicio",
+      header: "Fecha Inicio",
+      render: (value: Date) => format(value, "dd/MM/yyyy"),
+    },
+    {
+      key: "fechaFin",
+      header: "Fecha Fin",
+      render: (value: Date) => format(value, "dd/MM/yyyy"),
+    },
+    {
+      key: "estado",
+      header: "Estado",
+      render: (value: string) => {
+        let badgeClass = "badge-neutral";
+        if (value === "Activa") badgeClass = "badge-success";
+        if (value === "Inactiva") badgeClass = "badge-neutral";
+        if (value === "Planificada") badgeClass = "badge-warning";
+        return <span className={`badge ${badgeClass}`}>{value}</span>;
+      },
+    },
+    {
+      key: "objetivos",
+      header: "Objetivos",
+    },
+    {
+      key: "conversion",
+      header: "Conversión",
+    },
+    {
+      key: "responsable",
+      header: "Responsable",
+    },
+    {
+      key: "actions",
+      header: "Acciones",
+      render: (_: any, row: any) => (
+        <div className="flex items-center gap-2">
+          {row.estado === 'Activa' ? (
+            <Button size="sm" variant="outline" onClick={() => handlePause(row)} aria-label="Pausar">
+              <Pause className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button size="sm" variant="outline" onClick={() => handleStart(row)} aria-label="Iniciar">
+              <Play className="h-4 w-4" />
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={() => handleRowClick(row)} aria-label="Detalle">
+            Detalle
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => { setSelectedCampaign(row); setShowDetailPanel(true); }} aria-label="Editar">
+            <Edit className="h-4 w-4" />
+            Editar
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   // Métricas simuladas para el detalle
   const campaignMetrics = selectedCampaign ? [
@@ -263,7 +266,7 @@ const Campanas: React.FC = () => {
         <div className="overflow-auto">
           <DataTable
             columns={columnsWithClick}
-            data={campanasData}
+            data={campaigns}
           />
         </div>
         <SlidePanel
@@ -280,6 +283,16 @@ const Campanas: React.FC = () => {
           title={selectedCampaign ? `Editar campaña: ${selectedCampaign.nombre}` : ''}
           width={isMobile ? 'full' : 'lg'}
         >
+          {selectedCampaign && (
+            <Card className="mb-4">
+              <div className="p-4">
+                <h2 className="text-lg font-semibold">Resumen de la campaña</h2>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {`La campaña ${selectedCampaign.nombre} ${selectedCampaign.estado === 'Activa' ? 'está activa' : selectedCampaign.estado === 'Inactiva' ? 'está inactiva' : 'está planificada'} desde ${format(selectedCampaign.fechaInicio, 'dd/MM/yyyy')} hasta ${format(selectedCampaign.fechaFin, 'dd/MM/yyyy')}. Objetivos: ${selectedCampaign.objetivos}. Conversión: ${selectedCampaign.conversion}. Responsable: ${selectedCampaign.responsable}.`}
+                </p>
+              </div>
+            </Card>
+          )}
           {selectedCampaign && (
             <form className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -337,7 +350,7 @@ const Campanas: React.FC = () => {
                   <Button type="button" variant="outline" onClick={() => setShowDetailPanel(false)}>
                     Cancelar
                   </Button>
-                  <Button type="submit" variant="primary">
+                  <Button type="submit" variant="default">
                     Guardar Cambios
                   </Button>
                 </div>

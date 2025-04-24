@@ -218,10 +218,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             <SidebarItem 
               icon={<UserSquare2 className="h-5 w-5" />} 
               text="Información de Clientes" 
-              isActive={activeView === "clientDashboard" || activeView === "banking"}
+              isActive={activeView === "clientDashboard"}
               hasChildren={!isCollapsed}
               isOpen={openSubMenu === "clients"}
-              onClick={() => isCollapsed ? handleViewChange("clientDashboard") : toggleSubMenu("clients")} 
+              onClick={() => {
+                handleViewChange("clientDashboard");
+                if (!isCollapsed) toggleSubMenu("clients");
+              }} 
               collapsed={isCollapsed}
             />
             
@@ -231,11 +234,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
                   text="Dashboard Cliente" 
                   isActive={activeView === "clientDashboard"}
                   onClick={() => handleViewChange("clientDashboard")} 
-                />
-                <SubMenuItem 
-                  text="Información Bancaria" 
-                  isActive={activeView === "banking"}
-                  onClick={() => handleViewChange("banking")} 
                 />
               </div>
             )}

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import KpiCard from '@/components/ui/dashboard/KpiCard';
 
 interface ClienteDetalleProps {
   cliente: Record<string, any>;
@@ -204,11 +204,27 @@ const ClienteDetalle: React.FC<ClienteDetalleProps> = ({ cliente }) => {
 
   const totalLlamadas3Meses = llamadas.length;
 
+  // Summary metrics for detalle
+  const detalleMetrics = [
+    { title: 'Transacciones', value: transacciones.length.toString(), change: '', changeType: 'neutral' as const },
+    { title: 'Productos Activos', value: productos.length.toString(), change: '', changeType: 'neutral' as const },
+    { title: 'Llamadas (3m)', value: totalLlamadas3Meses.toString(), change: '', changeType: 'neutral' as const },
+    { title: 'Incidencias', value: incidencias.length.toString(), change: '', changeType: 'neutral' as const }
+  ];
+
   return (
     <div className="space-y-6 py-2">
+      {/* KPI resumen detalle cliente */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {detalleMetrics.map((m, idx) => (
+          <KpiCard key={idx} title={m.title} value={m.value} change={m.change} changeType={m.changeType} />
+        ))}
+      </div>
+      {/* Perfil e Información Bancaria */}
       <div className="flex flex-wrap gap-4 mb-4">
-        <div className="flex-1 min-w-[250px]">
-          <div className="text-lg font-semibold mb-1">Perfil de Cliente</div>
+        {/* Perfil de Cliente Card */}
+        <Card className="flex-1 min-w-[250px] p-4">
+          <div className="text-lg font-semibold mb-2">Perfil de Cliente</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="text-muted-foreground">Nombre:</div>
             <div className="font-medium">{cliente.nombre}</div>
@@ -233,10 +249,11 @@ const ClienteDetalle: React.FC<ClienteDetalleProps> = ({ cliente }) => {
             <div className="text-muted-foreground">Productos activos:</div>
             <div className="font-medium">{productos.length}</div>
           </div>
-        </div>
+        </Card>
 
-        <div className="flex-1 min-w-[250px]">
-          <div className="text-lg font-semibold mb-1">Información Bancaria</div>
+        {/* Información Bancaria Card */}
+        <Card className="flex-1 min-w-[250px] p-4">
+          <div className="text-lg font-semibold mb-2">Información Bancaria</div>
           <div className="text-sm mb-3">
             <div className="font-medium mb-1">Principal banco de ingresos:</div>
             {bancosMasIngresos.map((banco, i) => (
@@ -259,7 +276,7 @@ const ClienteDetalle: React.FC<ClienteDetalleProps> = ({ cliente }) => {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       </div>
 
       <Tabs defaultValue="transacciones" className="w-full">
