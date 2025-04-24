@@ -34,7 +34,7 @@ const ConversacionesSidebar = ({
   asistenteId: string;
 }) => {
   return <div className="w-full max-w-xs md:w-72 border-r border-border h-full flex flex-col bg-gradient-to-b from-white to-muted/40">
-      <div className="p-4 border-b flex items-center justify-between gap-2 bg-slate-100 rounded-none">
+      <div className="p-4 border-b flex items-center justify-between gap-2 bg-slate-100 rounded-none py-[12px]">
         <h3 className="font-semibold text-lg flex-1 truncate">Conversaciones</h3>
         <Button variant="default" size="icon" className="rounded-full shadow-md hover:scale-105 transition-transform" title="Nuevo chat" aria-label="Nuevo chat">
           <Plus className="h-5 w-5" />
@@ -57,7 +57,7 @@ const ConversacionesSidebar = ({
             </Button>)}
         </div>
       </ScrollArea>
-      <div className="p-4 border-t mt-auto">
+      <div className="p-4 border-t mt-auto py-[12px]">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" className="w-full justify-start gap-2">
