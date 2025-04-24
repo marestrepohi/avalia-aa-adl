@@ -1,15 +1,14 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import { toast } from "sonner";
+import loginBackground from "/public/lovable-uploads/e7cceea0-688b-41df-b406-0efbb8dbcff5.png";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -27,52 +26,29 @@ const Login = () => {
     }
   };
 
-  const handleMicrosoftLogin = () => {
-    toast.error("Función de Microsoft no disponible en modo demo");
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-2 text-center">
-          <h2 className="text-2xl font-bold tracking-tight">Iniciar Sesión</h2>
-          <p className="text-muted-foreground">
-            Ingresa con tu correo o cuenta de Microsoft
-          </p>
-        </CardHeader>
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={handleMicrosoftLogin}
-              >
-                <svg
-                  className="mr-2 h-4 w-4"
-                  aria-hidden="true"
-                  focusable="false"
-                  data-prefix="fab"
-                  data-icon="microsoft"
-                  role="img"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 448 448"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M0 32h214.6v214.6H0V32zm233.4 0H448v214.6H233.4V32zM0 265.4h214.6V480H0V265.4zm233.4 0H448V480H233.4V265.4z"
-                  />
-                </svg>
-                Continuar con Microsoft
-              </Button>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  O continúa con
-                </span>
-              </div>
-            </div>
-            <div className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="w-full max-w-5xl flex shadow-lg rounded-3xl overflow-hidden">
+        {/* Left side - Image */}
+        <div 
+          className="w-1/2 bg-cover bg-center"
+          style={{ 
+            backgroundImage: `url(${loginBackground})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        />
+        
+        {/* Right side - Login Form */}
+        <div className="w-1/2 p-12 flex flex-col justify-center bg-white">
+          <h2 className="text-3xl font-bold mb-4 text-gray-800">Bienvenido</h2>
+          <p className="text-gray-600 mb-8">Inicia sesión en tu cuenta</p>
+          
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Correo electrónico
+              </label>
               <div className="relative">
                 <Input
                   type="email"
@@ -81,41 +57,61 @@ const Login = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  className="pr-10"
+                  className="pl-10 py-3"
                 />
-                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
-              </div>
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Contraseña"
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 h-5 w-5" />
               </div>
             </div>
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full">
+            
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Contraseña
+              </label>
+              <Input
+                type="password"
+                placeholder="Contraseña"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                className="py-3"
+              />
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  className="mr-2 rounded text-blue-600"
+                />
+                <label htmlFor="remember" className="text-sm text-gray-600">
+                  Recordarme
+                </label>
+              </div>
+              <a href="#" className="text-sm text-blue-600 hover:underline">
+                ¿Olvidaste tu contraseña?
+              </a>
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+            >
               Iniciar Sesión
             </Button>
-          </CardFooter>
-        </form>
-      </Card>
+          </form>
+          
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              ¿No tienes una cuenta? {" "}
+              <a href="#" className="text-blue-600 hover:underline">
+                Regístrate
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
