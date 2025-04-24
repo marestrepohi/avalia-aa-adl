@@ -138,10 +138,11 @@ const Campanas: React.FC = () => {
   const [newMetricLabel, setNewMetricLabel] = useState("");
   const [newMetricValue, setNewMetricValue] = useState("");
   
+  // Fix: Convert all number values to strings in defaultMetrics
   const defaultMetrics = [
-    { label: 'Llamadas realizadas', value: 320 },
-    { label: 'Contactos efectivos', value: 180 },
-    { label: 'Conversiones', value: 58 },
+    { label: 'Llamadas realizadas', value: '320' },
+    { label: 'Contactos efectivos', value: '180' },
+    { label: 'Conversiones', value: '58' },
     { label: 'Sentimiento promedio', value: '82%' },
     { label: 'Tasa de éxito', value: '18%' },
   ];

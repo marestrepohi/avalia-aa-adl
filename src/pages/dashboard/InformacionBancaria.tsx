@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Search, Filter, Eye, Edit, Trash2, Plus } from "lucide-react";
 import DataTable from "../../components/ui/dashboard/DataTable";
@@ -125,7 +126,7 @@ const InformacionBancaria: React.FC = () => {
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold">Información Bancaria</h1>
-        <Button variant="primary" className="flex items-center gap-2">
+        <Button variant="default" className="flex items-center gap-2">
           <Plus className="h-5 w-5" /> Añadir Cuenta
         </Button>
       </div>

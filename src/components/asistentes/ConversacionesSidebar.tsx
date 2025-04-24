@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ const ConversacionesSidebar = ({ asistenteId }: { asistenteId: string }) => {
       <div className="p-4 border-b flex items-center justify-between gap-2">
         <h3 className="font-semibold text-lg flex-1 truncate">Conversaciones</h3>
         <Button
-          variant="primary"
+          variant="default"
           size="icon"
           className="rounded-full shadow-md hover:scale-105 transition-transform"
           title="Nuevo chat"
