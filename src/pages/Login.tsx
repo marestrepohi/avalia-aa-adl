@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -41,8 +42,7 @@ const Login = () => {
         
         {/* Right side - Login Form */}
         <div className="w-1/2 p-12 flex flex-col justify-center bg-white">
-          <h2 className="text-3xl font-bold mb-2 text-gray-800">Bienvenido a Aval IA</h2>
-          <p className="text-gray-600 mb-4">Automatización de procesos con IA</p>
+          <h2 className="text-3xl font-bold mb-4 text-gray-800">Bienvenido</h2>
           <p className="text-gray-600 mb-8">Inicia sesión en tu cuenta</p>
           
           <form onSubmit={handleLogin} className="space-y-6">
