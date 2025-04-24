@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Book } from 'lucide-react';
+import { MessageSquare, Book, Plus } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import FuentesDocumentos from './FuentesDocumentos';
 
@@ -37,31 +36,44 @@ const conversaciones: Conversacion[] = [
 
 const ConversacionesSidebar = ({ asistenteId }: { asistenteId: string }) => {
   return (
-    <div className="w-64 border-r border-border h-[calc(100vh-4rem)] flex flex-col">
-      <div className="p-4 border-b">
-        <h3 className="font-semibold">Conversaciones</h3>
+    <div className="w-full max-w-xs md:w-72 border-r border-border h-full flex flex-col bg-gradient-to-b from-white to-muted/40">
+      <div className="p-4 border-b flex items-center justify-between gap-2">
+        <h3 className="font-semibold text-lg flex-1 truncate">Conversaciones</h3>
+        <Button
+          variant="primary"
+          size="icon"
+          className="rounded-full shadow-md hover:scale-105 transition-transform"
+          title="Nuevo chat"
+          aria-label="Nuevo chat"
+        >
+          <Plus className="h-5 w-5" />
+        </Button>
       </div>
-      
-      <ScrollArea className="flex-1">
-        <div className="p-2 space-y-2">
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="p-2 space-y-1">
+          {conversaciones.length === 0 && (
+            <div className="text-center text-muted-foreground py-8">No hay conversaciones previas</div>
+          )}
           {conversaciones.map((conv) => (
             <Button
               key={conv.id}
               variant="ghost"
-              className="w-full justify-start gap-2 h-auto py-3"
+              className="w-full justify-start gap-3 h-auto py-3 px-2 rounded-lg hover:bg-primary/10 group transition-colors flex items-center"
             >
-              <MessageSquare className="h-4 w-4 shrink-0" />
-              <div className="flex flex-col items-start truncate">
-                <span className="text-sm font-medium">{conv.titulo}</span>
-                <span className="text-xs text-muted-foreground truncate">
+              <span className="inline-block w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-base shrink-0">
+                {conv.titulo[0]}
+              </span>
+              <div className="flex flex-col items-start flex-1 min-w-0">
+                <span className="text-sm font-medium truncate w-full">{conv.titulo}</span>
+                <span className="text-xs text-muted-foreground truncate w-full group-hover:text-primary">
                   {conv.ultimoMensaje}
                 </span>
               </div>
+              <span className="text-xs text-muted-foreground whitespace-nowrap ml-2 shrink-0 hidden md:block">{conv.fecha.toLocaleDateString()}</span>
             </Button>
           ))}
         </div>
       </ScrollArea>
-
       <div className="p-4 border-t mt-auto">
         <Sheet>
           <SheetTrigger asChild>

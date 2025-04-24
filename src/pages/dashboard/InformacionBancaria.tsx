@@ -1,8 +1,8 @@
-
 import React, { useState } from "react";
 import { Search, Filter, Eye, Edit, Trash2, Plus } from "lucide-react";
 import DataTable from "../../components/ui/dashboard/DataTable";
 import { format } from "date-fns";
+import { Button } from "../../components/ui/button";
 
 // Datos de ejemplo para cuentas bancarias
 const cuentasData = [
@@ -94,18 +94,18 @@ const columnasCuentas = [
     header: "Acciones",
     render: (_: any, row: any) => (
       <div className="flex items-center gap-2">
-        <button className="icon-button group">
-          <Eye className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
+        <Button variant="ghost" size="icon" className="group" aria-label="Ver Detalles">
+          <Eye className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
           <span className="tooltip -bottom-8">Ver Detalles</span>
-        </button>
-        <button className="icon-button group">
-          <Edit className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
+        </Button>
+        <Button variant="ghost" size="icon" className="group" aria-label="Editar">
+          <Edit className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
           <span className="tooltip -bottom-8">Editar</span>
-        </button>
-        <button className="icon-button group">
-          <Trash2 className="h-4 w-4 text-muted-foreground group-hover:text-destructive transition-colors duration-200" />
+        </Button>
+        <Button variant="ghost" size="icon" className="group" aria-label="Eliminar">
+          <Trash2 className="h-4 w-4 text-muted-foreground group-hover:text-destructive" />
           <span className="tooltip -bottom-8">Eliminar</span>
-        </button>
+        </Button>
       </div>
     ),
   },
@@ -125,10 +125,9 @@ const InformacionBancaria: React.FC = () => {
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold">Información Bancaria</h1>
-        <button className="btn-primary flex items-center gap-2">
-          <Plus className="h-5 w-5" />
-          <span>Añadir Cuenta</span>
-        </button>
+        <Button variant="primary" className="flex items-center gap-2">
+          <Plus className="h-5 w-5" /> Añadir Cuenta
+        </Button>
       </div>
       
       <div className="flex items-center gap-4 mb-6">

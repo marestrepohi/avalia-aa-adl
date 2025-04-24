@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send, Paperclip } from 'lucide-react';
 import { format } from 'date-fns';
 import ConversacionesSidebar from './ConversacionesSidebar';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Asistente {
   id: string;
@@ -98,90 +99,94 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({ asistente, onClose }) => 
       <ConversacionesSidebar asistenteId={asistente.id} />
       
       <Card className="border-0 rounded-none">
-        <div className="border-b border-border">
-          <div className="p-4 flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="rounded-full"
-            >
+        <div className="flex flex-col h-full w-full bg-background rounded-lg shadow-card overflow-hidden">
+          {/* Header fijo */}
+          <div className="flex items-center gap-3 px-4 py-3 border-b bg-white sticky top-0 z-10 shadow-sm">
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={onClose}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
-              <h2 className="text-lg font-medium">{asistente.nombre}</h2>
-              <p className="text-sm text-muted-foreground">{asistente.descripcion}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex flex-col h-[calc(100vh-8rem)]">
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {mensajes.map((msg) => (
-              <div 
-                key={msg.id} 
-                className={`flex ${msg.emisor === 'usuario' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div 
-                  className={`max-w-[80%] p-3 rounded-lg ${
-                    msg.emisor === 'usuario' 
-                      ? 'bg-primary text-primary-foreground rounded-br-none' 
-                      : 'bg-muted rounded-bl-none'
-                  }`}
-                >
-                  <p className="text-sm">{msg.contenido}</p>
-                  {msg.archivos && (
-                    <div className="mt-2 space-y-1">
-                      {msg.archivos.map((archivo, index) => (
-                        <div key={index} className="flex items-center gap-2 text-xs">
-                          {archivo.tipo.startsWith('image/') ? (
-                            <img 
-                              src={archivo.url} 
-                              alt={archivo.nombre}
-                              className="max-w-xs rounded"
-                            />
-                          ) : (
-                            <span>{archivo.nombre}</span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <span className="text-xs opacity-50 mt-1 block">
-                    {format(msg.timestamp, 'HH:mm')}
-                  </span>
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full flex items-center justify-center bg-white border shadow" style={{ background: asistente.color + '22' }}>
+                {asistente.icono && <span className="text-xl" style={{ color: asistente.color }}>{/* render icono aquí */}</span>}
               </div>
-            ))}
-          </div>
-          
-          <form onSubmit={handleSend} className="border-t p-4">
-            <div className="flex gap-2">
-              <Input
-                type="file"
-                id="file-upload"
-                className="hidden"
-                multiple
-                onChange={handleFileUpload}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => document.getElementById('file-upload')?.click()}
-              >
-                <Paperclip className="h-4 w-4" />
-              </Button>
-              <Input 
-                value={mensaje}
-                onChange={(e) => setMensaje(e.target.value)}
-                placeholder="Escribe tu mensaje..."
-                className="flex-1"
-              />
-              <Button type="submit" size="icon" style={{ backgroundColor: asistente.color }}>
-                <Send className="h-4 w-4" />
-              </Button>
+              <div>
+                <div className="font-semibold text-base" style={{ color: asistente.color }}>{asistente.nombre}</div>
+                <div className="text-xs text-muted-foreground">{asistente.descripcion}</div>
+              </div>
             </div>
+            <div className="ml-auto hidden md:block">
+              <Button variant="outline" size="sm" onClick={onClose}>Volver</Button>
+            </div>
+          </div>
+          {/* Área de mensajes con scroll, fondo tipo chatgpt */}
+          <div className="flex-1 flex flex-col overflow-y-auto bg-gradient-to-b from-muted/60 to-background px-0 md:px-24 py-6">
+            <div className="flex flex-col gap-4 w-full max-w-2xl mx-auto">
+              {mensajes.map((msg) => (
+                <div 
+                  key={msg.id} 
+                  className={`flex ${msg.emisor === 'usuario' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div 
+                    className={`max-w-[80%] p-4 rounded-2xl shadow-sm text-sm break-words ${
+                      msg.emisor === 'usuario' 
+                        ? 'bg-primary text-primary-foreground rounded-br-md' 
+                        : 'bg-white border rounded-bl-md'
+                    }`}
+                  >
+                    <p>{msg.contenido}</p>
+                    {msg.archivos && (
+                      <div className="mt-2 space-y-1">
+                        {msg.archivos.map((archivo, index) => (
+                          <div key={index} className="flex items-center gap-2 text-xs">
+                            {archivo.tipo.startsWith('image/') ? (
+                              <img 
+                                src={archivo.url} 
+                                alt={archivo.nombre}
+                                className="max-w-xs rounded"
+                              />
+                            ) : (
+                              <span>{archivo.nombre}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <span className="text-xs opacity-50 mt-1 block text-right">
+                      {format(msg.timestamp, 'HH:mm')}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Input fijo abajo */}
+          <form onSubmit={handleSend} className="flex items-center gap-2 px-4 py-3 border-t bg-white sticky bottom-0 z-10 shadow-inner">
+            <Input
+              value={mensaje}
+              onChange={(e) => setMensaje(e.target.value)}
+              placeholder="Escribe tu mensaje..."
+              className="flex-1 rounded-full bg-muted/60 border-none focus:ring-2 focus:ring-primary"
+              autoFocus
+            />
+            <Button type="submit" size="icon" className="rounded-full" style={{ backgroundColor: asistente.color }}>
+              <Send className="h-4 w-4" />
+            </Button>
+            <input
+              type="file"
+              id="file-upload"
+              className="hidden"
+              multiple
+              onChange={handleFileUpload}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => document.getElementById('file-upload')?.click()}
+              className="rounded-full"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
           </form>
         </div>
       </Card>

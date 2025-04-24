@@ -1,6 +1,5 @@
-
 import React, { useState } from "react";
-import { Calendar, Phone, Users, DollarSign, ChevronDown } from "lucide-react";
+import { Calendar, Phone, Users, DollarSign, ChevronDown, Download } from "lucide-react";
 import KpiCard from "../../components/ui/dashboard/KpiCard";
 import BarChart from "../../components/ui/dashboard/BarChart";
 import DataTable from "../../components/ui/dashboard/DataTable";
@@ -114,6 +113,13 @@ const tableColumns = [
   },
 ];
 
+// Opciones para el selector de rango de fechas
+const dateOptions = [
+  { value: "Esta Semana", label: "Esta Semana" },
+  { value: "Este Mes", label: "Este Mes" },
+  { value: "Últimos 30 Días", label: "Últimos 30 Días" },
+];
+
 const ResumenGeneral: React.FC = () => {
   const [dateRange, setDateRange] = useState("Esta Semana");
 
@@ -121,31 +127,23 @@ const ResumenGeneral: React.FC = () => {
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold">Resumen General</h1>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Input
-              type="date"
-              className="w-36"
-            />
-            <span className="text-sm">-</span>
-            <Input
-              type="date"
-              className="w-36"
-            />
-          </div>
-          <div className="relative">
-            <Button
-              variant="secondary"
-              rightIcon={<ChevronDown className="h-4 w-4" />}
-              className="flex items-center gap-2"
-            >
-              {dateRange}
-            </Button>
-          </div>
+        <div className="flex items-center gap-4">
+          {/* Selector de rango de fecha */}
+          <Select
+            options={dateOptions}
+            value={dateRange}
+            onChange={e => setDateRange(e.target.value)}
+            className="w-48"
+          />
+          {/* Botón de exportar */}
+          <Button variant="outline" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Exportar
+          </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
         <KpiCard
           title="Total Llamadas"
           value="1,245"
@@ -173,6 +171,27 @@ const ResumenGeneral: React.FC = () => {
           change="5%"
           changeType="negative"
           icon={<DollarSign className="h-5 w-5 text-primary" />}
+        />
+        <KpiCard
+          title="Tasa de Conversión"
+          value="68%"
+          change="+4%"
+          changeType="positive"
+          icon={<DollarSign className="h-5 w-5 text-green-500" />}
+        />
+        <KpiCard
+          title="Duración Promedio"
+          value="05:32"
+          change="-1%"
+          changeType="negative"
+          icon={<Phone className="h-5 w-5 text-blue-500" />}
+        />
+        <KpiCard
+          title="Satisfacción NPS"
+          value="78%"
+          change="+3"
+          changeType="positive"
+          icon={<Users className="h-5 w-5 text-purple-500" />}
         />
       </div>
 

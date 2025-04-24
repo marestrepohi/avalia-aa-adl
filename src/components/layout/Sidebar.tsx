@@ -199,20 +199,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             
             {openSubMenu === "campaigns" && !isCollapsed && (
               <div className="mt-1 ml-2 space-y-1 border-l-2 border-muted pl-2">
-                <SubMenuItem 
-                  text="Activas" 
-                  isActive={activeView === "campaigns" && false /* añadir state específico si es necesario */}
-                  onClick={() => handleViewChange("campaigns")} 
+                <SubMenuItem
+                  text="Campañas"
+                  isActive={activeView === "campaigns"}
+                  onClick={() => handleViewChange("campaigns")}
                 />
-                <SubMenuItem 
-                  text="Programadas" 
-                  isActive={activeView === "campaignScheduled"}
-                  onClick={() => handleViewChange("campaignScheduled")} 
-                />
-                <SubMenuItem 
-                  text="Historial" 
-                  isActive={activeView === "campaignHistory"}
-                  onClick={() => handleViewChange("campaignHistory")} 
+                <SubMenuItem
+                  text="Audiencias"
+                  isActive={activeView === "audiencias"}
+                  onClick={() => handleViewChange("audiencias")}
                 />
               </div>
             )}
@@ -223,7 +218,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             <SidebarItem 
               icon={<UserSquare2 className="h-5 w-5" />} 
               text="Información de Clientes" 
-              isActive={activeView === "clientDashboard" || activeView === "clientBanking"}
+              isActive={activeView === "clientDashboard" || activeView === "banking"}
               hasChildren={!isCollapsed}
               isOpen={openSubMenu === "clients"}
               onClick={() => isCollapsed ? handleViewChange("clientDashboard") : toggleSubMenu("clients")} 
@@ -239,8 +234,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
                 />
                 <SubMenuItem 
                   text="Información Bancaria" 
-                  isActive={activeView === "clientBanking"}
-                  onClick={() => handleViewChange("clientBanking")} 
+                  isActive={activeView === "banking"}
+                  onClick={() => handleViewChange("banking")} 
                 />
               </div>
             )}

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 
@@ -227,7 +226,7 @@ export const Toggle: React.FC<ToggleProps> = ({
 
 // Tab Component
 interface TabProps {
-  tabs: { id: string; label: string }[];
+  tabs: { id: string; label: string; icon?: React.ReactNode }[]; // Added optional icon
   activeTab: string;
   onChange: (id: string) => void;
   className?: string;
@@ -246,12 +245,13 @@ export const Tabs: React.FC<TabProps> = ({
           <button
             key={tab.id}
             onClick={() => onChange(tab.id)}
-            className={`py-3 px-1 text-sm font-medium border-b-2 -mb-px transition-colors duration-200 ${
+            className={`flex items-center gap-2 py-3 px-1 text-sm font-medium border-b-2 -mb-px transition-colors duration-200 ${ // Added flex and gap
               activeTab === tab.id
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-primary"
             }`}
           >
+            {tab.icon && <span className="h-4 w-4">{tab.icon}</span>} {/* Render icon */}
             {tab.label}
           </button>
         ))}
@@ -268,6 +268,8 @@ interface SliderProps {
   onChange: (value: number) => void;
   label?: string;
   step?: number;
+  suffix?: string; // Added optional suffix
+  description?: string; // Added optional description
 }
 
 export const Slider: React.FC<SliderProps> = ({
@@ -277,6 +279,8 @@ export const Slider: React.FC<SliderProps> = ({
   onChange,
   label,
   step = 1,
+  suffix, // Destructure new props
+  description, // Destructure new props
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(parseInt(e.target.value));
@@ -290,7 +294,7 @@ export const Slider: React.FC<SliderProps> = ({
         <div className="flex justify-between items-center mb-1.5">
           <label className="block text-sm font-medium">{label}</label>
           <span className="text-xs font-medium bg-muted py-0.5 px-2 rounded">
-            {value}
+            {value}{suffix} {/* Append suffix */}
           </span>
         </div>
       )}
@@ -308,6 +312,7 @@ export const Slider: React.FC<SliderProps> = ({
           }}
         />
       </div>
+      {description && <p className="text-xs text-muted-foreground mt-1">{description}</p>} {/* Display description */}
     </div>
   );
 };

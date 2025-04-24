@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import AppLayout from '../components/layout/AppLayout';
 import ResumenGeneral from './dashboard/ResumenGeneral';
@@ -8,6 +7,7 @@ import InformacionCliente from './dashboard/InformacionCliente';
 import InformacionBancaria from './dashboard/InformacionBancaria';
 import AnalisisLlamadas from './dashboard/AnalisisLlamadas';
 import Asistentes from './dashboard/Asistentes';
+import Audiencias from './dashboard/Audiencias';
 import { useDashboard } from '../contexts/DashboardContext';
 
 const Index = () => {
@@ -27,6 +27,7 @@ const Index = () => {
       {activeView === 'banking' && <InformacionBancaria />}
       {activeView === 'callAnalysis' && <AnalisisLlamadas />}
       {activeView === 'asistentes' && <Asistentes />}
+      {activeView === 'audiencias' && <Audiencias />}
     </AppLayout>
   );
 };

@@ -1,8 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import AsistenteCard from '@/components/asistentes/AsistenteCard';
 import AsistenteChat from '@/components/asistentes/AsistenteChat';
+import { Input } from "@/components/ui/input";
+import { AnimatePresence, motion } from "framer-motion";
 
 // Sample assistant data
 const asistentesData = [
@@ -46,6 +47,7 @@ const asistentesData = [
 
 const Asistentes: React.FC = () => {
   const [selectedAsistente, setSelectedAsistente] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   
   const handleSelectAsistente = (id: string) => {
     setSelectedAsistente(id);
@@ -55,33 +57,66 @@ const Asistentes: React.FC = () => {
     setSelectedAsistente(null);
   };
 
+  const asistentesFiltrados = asistentesData.filter(a =>
+    a.nombre.toLowerCase().includes(search.toLowerCase()) ||
+    a.descripcion.toLowerCase().includes(search.toLowerCase())
+  );
+
   const asistente = selectedAsistente ? 
     asistentesData.find(a => a.id === selectedAsistente) : null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="flex flex-col h-[calc(100vh-4rem)] w-full max-w-7xl mx-auto px-2 md:px-6 py-4">
+      <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h1 className="text-2xl font-semibold">Asistentes IA</h1>
+        {!selectedAsistente && (
+          <Input
+            placeholder="Buscar asistente..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="max-w-xs"
+          />
+        )}
       </div>
-      
-      {!selectedAsistente ? (
-        <Card className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {asistentesData.map((asistente) => (
-              <AsistenteCard
-                key={asistente.id}
-                asistente={asistente}
-                onSelect={() => handleSelectAsistente(asistente.id)}
-              />
-            ))}
-          </div>
-        </Card>
-      ) : (
-        <AsistenteChat 
-          asistente={asistente}
-          onClose={handleCloseChat}
-        />
-      )}
+      <AnimatePresence mode="wait">
+        {!selectedAsistente ? (
+          <motion.div
+            key="asistentes-list"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            transition={{ duration: 0.25 }}
+            className="flex-1 overflow-y-auto"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {asistentesFiltrados.map((asistente) => (
+                <AsistenteCard
+                  key={asistente.id}
+                  asistente={asistente}
+                  onSelect={() => handleSelectAsistente(asistente.id)}
+                />
+              ))}
+              {asistentesFiltrados.length === 0 && (
+                <div className="col-span-full text-center text-muted-foreground py-12">No se encontraron asistentes</div>
+              )}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="asistente-chat"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            transition={{ duration: 0.25 }}
+            className="flex-1 flex flex-col h-full min-h-0"
+          >
+            <AsistenteChat 
+              asistente={asistente}
+              onClose={handleCloseChat}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MessageSquare, X, Send, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -55,58 +54,8 @@ const Chatbot: React.FC = () => {
     }
   };
 
-  return (
-    <>
-      {/* Chatbot toggle button */}
-      <Button
-        onClick={toggleChat}
-        className="fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 p-0 shadow-lg"
-        size="icon"
-      >
-        {isOpen ? <X className="h-6 w-6" /> : <MessageSquare className="h-6 w-6" />}
-      </Button>
-
-      {/* Chat window */}
-      {isOpen && (
-        <Card className="fixed bottom-24 right-6 w-80 sm:w-96 h-96 z-50 flex flex-col shadow-xl border rounded-lg overflow-hidden">
-          <div className="bg-primary text-white p-3 font-medium">
-            <h3>Asistente Virtual</h3>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {messages.map((msg) => (
-              <div 
-                key={msg.id} 
-                className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div 
-                  className={`max-w-[80%] p-3 rounded-lg ${
-                    msg.sender === 'user' 
-                      ? 'bg-primary text-white rounded-br-none' 
-                      : 'bg-muted rounded-bl-none'
-                  }`}
-                >
-                  <p className="text-sm">{msg.text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <form onSubmit={handleSend} className="border-t p-3 flex gap-2">
-            <Input 
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Escribe tu mensaje..."
-              className="flex-1"
-            />
-            <Button type="submit" size="icon">
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
-        </Card>
-      )}
-    </>
-  );
+  // Elimina el botón flotante y el renderizado del chat flotante
+  return null;
 };
 
 export default Chatbot;

@@ -1,7 +1,6 @@
-
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
-type ViewType = 'dashboard' | 'agents' | 'campaigns' | 'clientDashboard' | 'accounts' | 'contacts' | 'prospects' | 'clientConfig' | 'calendar' | 'banking' | 'settings' | 'callAnalysis' | 'asistentes';
+type ViewType = 'dashboard' | 'agents' | 'campaigns' | 'clientDashboard' | 'accounts' | 'contacts' | 'prospects' | 'clientConfig' | 'calendar' | 'banking' | 'settings' | 'callAnalysis' | 'asistentes' | 'audiencias';
 
 interface DashboardContextType {
   activeView: ViewType;
