@@ -20,7 +20,7 @@ const Login = () => {
     // Demo credentials check
     if (formData.email === "mateo@adl.com" && formData.password === "1234") {
       toast.success("Inicio de sesión exitoso");
-      navigate("/");
+      navigate("/dashboard"); // Changed from "/" to "/dashboard"
     } else {
       toast.error("Credenciales inválidas");
     }
@@ -29,13 +29,14 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="w-full max-w-5xl flex shadow-lg rounded-3xl overflow-hidden">
-        {/* Left side - Image */}
+        {/* Left side - Image - Reduced size with max-height */}
         <div 
           className="w-1/2 bg-cover bg-center"
           style={{ 
             backgroundImage: `url(${loginBackground})`,
             backgroundSize: 'cover',
-            backgroundPosition: 'center'
+            backgroundPosition: 'center',
+            maxHeight: '600px' // Added max-height to make image smaller
           }}
         />
         
