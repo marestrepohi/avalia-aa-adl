@@ -134,6 +134,18 @@ const Campanas: React.FC = () => {
   const [showAudiencias, setShowAudiencias] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<any | null>(null);
   const [showDetailPanel, setShowDetailPanel] = useState(false);
+  const [metrics, setMetrics] = useState<{label: string, value: string}[]>([]);
+  const [newMetricLabel, setNewMetricLabel] = useState("");
+  const [newMetricValue, setNewMetricValue] = useState("");
+  
+  const defaultMetrics = [
+    { label: 'Llamadas realizadas', value: 320 },
+    { label: 'Contactos efectivos', value: 180 },
+    { label: 'Conversiones', value: 58 },
+    { label: 'Sentimiento promedio', value: '82%' },
+    { label: 'Tasa de éxito', value: '18%' },
+  ];
+
   const isMobile = useIsMobile();
   
   // Convert campaigns state to calendar events
@@ -148,6 +160,7 @@ const Campanas: React.FC = () => {
   // Handler para abrir detalle
   const handleRowClick = (row: any) => {
     setSelectedCampaign(row);
+    setMetrics(defaultMetrics);
     setShowDetailPanel(true);
   };
 
@@ -219,15 +232,6 @@ const Campanas: React.FC = () => {
     },
   ];
 
-  // Métricas simuladas para el detalle
-  const campaignMetrics = selectedCampaign ? [
-    { label: 'Llamadas realizadas', value: 320 },
-    { label: 'Contactos efectivos', value: 180 },
-    { label: 'Conversiones', value: 58 },
-    { label: 'Sentimiento promedio', value: '82%' },
-    { label: 'Tasa de éxito', value: '18%' },
-  ] : [];
-
   // Audiencia simulada
   const audienceTable = (
     <div className="mt-4">
@@ -292,6 +296,21 @@ const Campanas: React.FC = () => {
                 </p>
               </div>
             </Card>
+          )}
+          {selectedCampaign && (
+            <div className="mt-4">
+              <div className="font-semibold mb-2">Métricas</div>
+              <ul className="list-disc list-inside">
+                {metrics.map((m, i) => <li key={i}>{m.label}: {m.value}</li>)}
+              </ul>
+              <div className="mt-2 flex gap-2">
+                <input type="text" placeholder="Etiqueta" className="input-field flex-1" value={newMetricLabel} onChange={e => setNewMetricLabel(e.target.value)} />
+                <input type="text" placeholder="Valor" className="input-field flex-1" value={newMetricValue} onChange={e => setNewMetricValue(e.target.value)} />
+                <Button size="sm" onClick={() => { if(newMetricLabel && newMetricValue){ setMetrics(prev => [...prev, { label: newMetricLabel, value: newMetricValue }]); setNewMetricLabel(''); setNewMetricValue(''); } }}>
+                  Agregar Métrica
+                </Button>
+              </div>
+            </div>
           )}
           {selectedCampaign && (
             <form className="space-y-8">

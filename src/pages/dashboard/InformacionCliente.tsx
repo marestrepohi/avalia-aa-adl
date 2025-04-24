@@ -47,7 +47,8 @@ const clientesData = [
     empresa: "TechSolutions SpA",
     ultimoContacto: new Date(2025, 3, 15),
     estado: "Activo",
-    prioridad: "Alta"
+    prioridad: "Alta",
+    nextProduct: "Línea de Crédito"
   },
   {
     id: "CL-1002",
@@ -55,7 +56,8 @@ const clientesData = [
     empresa: "Comercial Andina Ltda.",
     ultimoContacto: new Date(2025, 3, 12),
     estado: "En Seguimiento",
-    prioridad: "Media"
+    prioridad: "Media",
+    nextProduct: "Crédito Hipotecario"
   },
   {
     id: "CL-1003",
@@ -63,7 +65,8 @@ const clientesData = [
     empresa: "Constructora del Valle S.A.",
     ultimoContacto: new Date(2025, 3, 10),
     estado: "Nuevo",
-    prioridad: "Baja"
+    prioridad: "Baja",
+    nextProduct: "Arrendamiento"
   },
   {
     id: "CL-1004",
@@ -71,7 +74,8 @@ const clientesData = [
     empresa: "Servicios Financieros Integra",
     ultimoContacto: new Date(2025, 2, 28),
     estado: "Inactivo",
-    prioridad: "Baja"
+    prioridad: "Baja",
+    nextProduct: "Seguro de Vida"
   },
   {
     id: "CL-1005",
@@ -79,7 +83,17 @@ const clientesData = [
     empresa: "Importadora Pacífico",
     ultimoContacto: new Date(2025, 3, 5),
     estado: "Activo",
-    prioridad: "Alta"
+    prioridad: "Alta",
+    nextProduct: "Factoring"
+  },
+  {
+    id: "CL-1006",
+    nombre: "Mateo Restreo",
+    empresa: "Aval Digital Labs",
+    ultimoContacto: new Date(2025, 3, 20),
+    estado: "Activo",
+    prioridad: "Media",
+    nextProduct: "Factoring"
   }
 ];
 
@@ -91,7 +105,8 @@ const prospectosData = [
     empresa: "Distribuidora Nacional S.A.",
     ultimoContacto: new Date(2025, 3, 18),
     estado: "En Seguimiento",
-    prioridad: "Alta"
+    prioridad: "Alta",
+    nextProduct: "Crédito Pyme"
   },
   {
     id: "PR-1002",
@@ -99,7 +114,8 @@ const prospectosData = [
     empresa: "Tecnología Avanzada Ltda.",
     ultimoContacto: new Date(2025, 3, 14),
     estado: "Nuevo",
-    prioridad: "Media"
+    prioridad: "Media",
+    nextProduct: "Tarjeta de Crédito"
   },
   {
     id: "PR-1003",
@@ -107,7 +123,8 @@ const prospectosData = [
     empresa: "Consultora Estratégica Global",
     ultimoContacto: new Date(2025, 3, 11),
     estado: "En Seguimiento",
-    prioridad: "Baja"
+    prioridad: "Baja",
+    nextProduct: "Leasing"
   },
   {
     id: "PR-1004",
@@ -115,7 +132,8 @@ const prospectosData = [
     empresa: "Soluciones Digitales Express",
     ultimoContacto: new Date(2025, 3, 8),
     estado: "Nuevo",
-    prioridad: "Alta"
+    prioridad: "Alta",
+    nextProduct: "Seguro de Salud"
   }
 ];
 
@@ -181,6 +199,11 @@ const clientesColumns = [
       }
       return <span className={badgeClass}>{value}</span>;
     }
+  },
+  {
+    key: "nextProduct",
+    header: "Próximo Producto",
+    render: (value: string) => <span>{value}</span>
   },
   {
     key: "actions",
