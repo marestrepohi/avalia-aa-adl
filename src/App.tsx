@@ -20,10 +20,9 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Index />} />
-            <Route path="*" element={<NotFound />} />
-            {/* Redirigir a login como ruta por defecto */}
             <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/dashboard" element={<Index />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </DashboardProvider>
