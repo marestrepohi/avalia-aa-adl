@@ -5,20 +5,6 @@
  
 @layer base {
   :root {
-    /* Dashboard design tokens */
-    --color-background-main: #FFFFFF;
-    --color-background-sidebar: #F8F9FA;
-    --color-background-interactive-hover: #E8EAED;
-    --color-background-interactive-hover-light: rgba(0, 0, 0, 0.03);
-    --color-text-primary: #202124;
-    --color-text-secondary: #5F6368;
-    --color-text-placeholder: #5F6368;
-    --color-border-subtle: #DADCE0;
-    --color-accent-interactive: #1A73E8;
-    --color-accent-indicator: #89B4F8;
-    --color-special-avatar-bg: #E5256F;
-    
-    /* Original theme variables */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -41,9 +27,9 @@
     --radius: 0.5rem;
     
     /* Custom: Sidebar */
-    --sidebar: var(--color-background-sidebar);
-    --sidebar-border: var(--color-border-subtle);
-    --sidebar-foreground: var(--color-text-secondary);
+    --sidebar: 220 14.3% 97.9%; /* #F9FAFB */
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-foreground: 215.4 16.3% 46.9%;
     
     /* Custom: Success, Warning, Danger */
     --success: 151.8 56.9% 41.8%; /* #10B981 */
@@ -109,26 +95,10 @@
 @layer base {
   * {
     @apply border-border;
-    box-sizing: border-box;
   }
-  
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    font-family: 'Roboto', 'Inter', system-ui, sans-serif;
-    font-size: 16px;
-    line-height: 1.5;
-    color: var(--color-text-primary);
-  }
-  
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-  }
-  
-  h1, h2, h3, h4, h5, h6, p {
-    margin: 0;
   }
 }
 
@@ -150,11 +120,11 @@
   }
   
   .sidebar-item-hover {
-    @apply hover:bg-[var(--color-background-interactive-hover)] transition-colors;
+    @apply hover:bg-muted transition-colors;
   }
   
   .sidebar-item-active {
-    @apply bg-[var(--color-accent-interactive)] text-white;
+    @apply bg-primary/10 text-primary;
   }
   
   .table-row-hover {
@@ -182,7 +152,7 @@
   }
 
   .icon-button {
-    @apply p-2 rounded-md hover:bg-[var(--color-background-interactive-hover-light)] transition-colors relative;
+    @apply p-2 rounded-md hover:bg-muted transition-colors relative;
   }
 
   .tooltip {
@@ -196,35 +166,4 @@
   .card-hover {
     @apply transition-all duration-200;
   }
-  
-  /* New utilities based on the design system */
-  .layout-container {
-    @apply flex min-h-screen w-full;
-  }
-  
-  .layout-sidebar {
-    @apply w-[260px] flex-shrink-0 bg-[var(--color-background-sidebar)] border-r border-[var(--color-border-subtle)];
-  }
-  
-  .layout-content {
-    @apply flex-grow bg-[var(--color-background-main)];
-  }
-  
-  /* Spacing utilities based on 8px increments */
-  .space-unit {
-    @apply p-2; /* 8px */
-  }
-  
-  .space-unit-2 {
-    @apply p-4; /* 16px */
-  }
-  
-  .space-unit-3 {
-    @apply p-6; /* 24px */
-  }
-  
-  .space-unit-4 {
-    @apply p-8; /* 32px */
-  }
 }
-
