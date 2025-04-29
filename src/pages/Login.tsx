@@ -1,93 +1,86 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail } from "lucide-react";
+import { LogIn, UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import loginBackground from "/public/lovable-uploads/e7cceea0-688b-41df-b406-0efbb8dbcff5.png";
+
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
     // Demo credentials check
     if (formData.email === "mateo@adl.com" && formData.password === "1234") {
       toast.success("Inicio de sesión exitoso");
-      navigate("/dashboard"); // Changed from "/" to "/dashboard"
+      navigate("/dashboard");
     } else {
       toast.error("Credenciales inválidas");
     }
   };
-  return <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="w-full max-w-5xl flex shadow-lg rounded-3xl overflow-hidden">
-        {/* Left side - Image - Reduced size with max-height */}
-        <div className="w-1/2 bg-cover bg-center" style={{
-        backgroundImage: `url(${loginBackground})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        maxHeight: '600px' // Added max-height to make image smaller
-      }} />
+
+  return (
+    <div className="min-h-screen flex">
+      {/* Left side - Yellow background with logo and slogan */}
+      <div className="w-1/2 bg-[#fffce1] flex flex-col">
+        <div className="p-6">
+          <h1 className="text-[#ff6f00] text-2xl font-bold">Avalia IA</h1>
+        </div>
+        <div className="flex-grow flex flex-col items-center justify-center px-10">
+          <h2 className="text-4xl font-bold text-[#333] mb-4">Escribir textos</h2>
+          <h3 className="text-3xl font-normal text-[#666] mb-2">conectando al usuario</h3>
+          <div className="w-16 h-16 rounded-full bg-[#ff6f00] mt-4 mb-10"></div>
+        </div>
+      </div>
+      
+      {/* Right side - White background with login form */}
+      <div className="w-1/2 bg-white flex flex-col justify-between p-10">
+        <div className="flex-grow flex flex-col justify-center items-center">
+          <div className="w-full max-w-md">
+            <h2 className="text-3xl font-bold text-center mb-10">Comenzar ahora</h2>
+            
+            <div className="space-y-4">
+              <Button 
+                variant="outline" 
+                className="w-full py-6 border border-gray-300 rounded-xl mb-4"
+                onClick={() => navigate("/dashboard")}
+              >
+                <LogIn className="mr-2" />
+                Iniciar sesión
+              </Button>
+              
+              <Button 
+                className="w-full py-6 bg-[#4f46e5] hover:bg-[#4338ca] text-white rounded-xl"
+                onClick={() => toast.info("Registro no disponible en este momento")}
+              >
+                <UserPlus className="mr-2" />
+                Registrarse
+              </Button>
+            </div>
+          </div>
+        </div>
         
-        {/* Right side - Login Form */}
-        <div className="w-1/2 p-12 flex flex-col justify-center bg-white">
-          <h2 className="text-3xl font-bold mb-4 text-gray-800 text-center">Bienvenido a Avalia</h2>
-          <p className="text-gray-600 mb-8 text-center">Automatizando procesos con IA</p>
-          
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Correo electrónico
-              </label>
-              <div className="relative">
-                <Input type="email" placeholder="correo@ejemplo.com" value={formData.email} onChange={e => setFormData({
-                ...formData,
-                email: e.target.value
-              })} className="pl-10 py-3" />
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 h-5 w-5" />
-              </div>
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Contraseña
-              </label>
-              <Input type="password" placeholder="Contraseña" value={formData.password} onChange={e => setFormData({
-              ...formData,
-              password: e.target.value
-            })} className="py-3" />
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <div className="flex items-center">
-                <input type="checkbox" id="remember" className="mr-2 rounded text-blue-600" />
-                <label htmlFor="remember" className="text-sm text-gray-600">
-                  Recordarme
-                </label>
-              </div>
-              <a href="#" className="text-sm text-blue-600 hover:underline">
-                ¿Olvidaste tu contraseña?
-              </a>
-            </div>
-            
-            <Button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
-              Iniciar Sesión
-            </Button>
-          </form>
-          
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              ¿No tienes una cuenta? {" "}
-              <a href="#" className="text-blue-600 hover:underline">
-                Regístrate
-              </a>
-            </p>
+        {/* Footer */}
+        <div className="text-center text-sm text-gray-500 mt-8">
+          <div className="flex justify-center items-center mb-2">
+            <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
+            <span className="ml-2">Avalia IA</span>
+          </div>
+          <div className="flex justify-center space-x-4">
+            <a href="#" className="hover:text-gray-800">Términos de uso</a>
+            <span>|</span>
+            <a href="#" className="hover:text-gray-800">Política de privacidad</a>
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Login;
