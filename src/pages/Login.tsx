@@ -27,23 +27,20 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left side - Yellow background with logo and slogan */}
-      <div className="w-1/2 bg-[#fffce1] flex flex-col">
-        <div className="p-6">
-          <h1 className="text-[#ff6f00] text-2xl font-bold">Avalia IA</h1>
-        </div>
-        <div className="flex-grow flex flex-col items-center justify-center px-10">
-          <h2 className="text-4xl font-bold text-[#333] mb-4">Escribir textos</h2>
-          <h3 className="text-3xl font-normal text-[#666] mb-2">conectando al usuario</h3>
-          <div className="w-16 h-16 rounded-full bg-[#ff6f00] mt-4 mb-10"></div>
-        </div>
+      {/* Left side - Background image with Grupo AVAL branding */}
+      <div className="w-1/2 relative overflow-hidden">
+        <img 
+          src="/lovable-uploads/a806100d-28b8-492a-9ed5-9201d1c739f6.png" 
+          alt="Grupo AVAL" 
+          className="w-full h-full object-cover"
+        />
       </div>
       
       {/* Right side - White background with login form */}
       <div className="w-1/2 bg-white flex flex-col justify-between p-10">
         <div className="flex-grow flex flex-col justify-center items-center">
           <div className="w-full max-w-md">
-            <h2 className="text-3xl font-bold text-center mb-10">Comenzar ahora</h2>
+            <h2 className="text-3xl font-bold text-center mb-10">AVALIA</h2>
             
             <div className="space-y-4">
               <Button 
