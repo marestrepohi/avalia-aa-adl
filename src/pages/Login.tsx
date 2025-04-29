@@ -66,12 +66,17 @@ const Login = () => {
           </div>
         </div>
         
+        {/* ADL Logo */}
+        <div className="flex justify-center mb-4">
+          <img 
+            src="/lovable-uploads/237fbf3a-8d81-4157-91ec-ff5eeebf4eea.png" 
+            alt="ADL Digital Lab" 
+            className="h-10" 
+          />
+        </div>
+        
         {/* Footer */}
-        <div className="text-center text-sm text-gray-500 mt-8">
-          <div className="flex justify-center items-center mb-2">
-            <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
-            <span className="ml-2">Avalia IA</span>
-          </div>
+        <div className="text-center text-sm text-gray-500">
           <div className="flex justify-center space-x-4">
             <a href="#" className="hover:text-gray-800">Términos de uso</a>
             <span>|</span>
