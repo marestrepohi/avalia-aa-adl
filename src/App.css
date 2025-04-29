@@ -3,41 +3,88 @@
   max-width: 100%;
   width: 100%;
   margin: 0 auto;
-  text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Base resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+body {
+  font-family: 'Roboto', 'Inter', system-ui, sans-serif;
+  color: var(--color-text-primary);
+  line-height: 1.5;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Layout classes */
+.main-layout {
+  display: flex;
+  min-height: 100vh;
 }
 
-.card {
-  padding: 2em;
+.sidebar-layout {
+  width: 260px;
+  background-color: var(--color-background-sidebar);
+  border-right: 1px solid var(--color-border-subtle);
 }
 
-.read-the-docs {
-  color: #888;
+.content-layout {
+  flex-grow: 1;
+  background-color: var(--color-background-main);
+}
+
+/* Interaction states */
+.hover-state {
+  transition: background-color 0.2s;
+}
+
+.hover-state:hover {
+  background-color: var(--color-background-interactive-hover);
+}
+
+.hover-state-light:hover {
+  background-color: var(--color-background-interactive-hover-light);
+}
+
+.active-state {
+  background-color: var(--color-accent-interactive);
+  color: white;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-accent {
+  color: var(--color-accent-interactive);
+}
+
+/* Utility classes */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.space-8 {
+  padding: 8px;
+}
+
+.space-16 {
+  padding: 16px;
+}
+
+.space-24 {
+  padding: 24px;
+}
+
+.space-32 {
+  padding: 32px;
 }

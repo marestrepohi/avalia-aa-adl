@@ -1,5 +1,9 @@
+
 import React, { useEffect } from "react";
-import { LayoutDashboard, Users, Megaphone, UserSquare2, MessageSquare, ChevronDown, PanelLeft, ChevronRight, X, PhoneCall, BarChart, HeartPulse } from "lucide-react";
+import { 
+  LayoutDashboard, Users, Megaphone, UserSquare2, MessageSquare, 
+  ChevronDown, PanelLeft, ChevronRight, X, PhoneCall, BarChart, HeartPulse 
+} from "lucide-react";
 import { useDashboard } from "../../contexts/DashboardContext";
 import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/use-mobile";
@@ -23,21 +27,27 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   onClick,
   collapsed = false
 }) => {
-  return <button 
-    className={`sidebar-item sidebar-item-hover w-full flex justify-between ${isActive ? 'sidebar-item-active' : ''} ${collapsed ? 'justify-center' : ''}`} 
-    onClick={onClick}
-    title={collapsed ? text : undefined}
-  >
+  return (
+    <button 
+      className={`sidebar-item sidebar-item-hover w-full flex justify-between ${
+        isActive ? 'sidebar-item-active' : ''
+      } ${collapsed ? 'justify-center' : ''}`} 
+      onClick={onClick}
+      title={collapsed ? text : undefined}
+    >
       <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-        <div className={`${isActive ? 'text-primary' : 'text-sidebar-foreground'}`}>
+        <div className={`${isActive ? 'text-white' : 'text-[var(--color-text-secondary)]'}`}>
           {icon}
         </div>
         {!collapsed && <span className="my-0 text-left">{text}</span>}
       </div>
-      {hasChildren && !collapsed && <div className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+      {hasChildren && !collapsed && (
+        <div className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
           <ChevronDown className="h-4 w-4" />
-        </div>}
-    </button>;
+        </div>
+      )}
+    </button>
+  );
 };
 
 interface SubMenuItemProps {
@@ -55,19 +65,28 @@ const SubMenuItem: React.FC<SubMenuItemProps> = ({
   icon,
   collapsed = false
 }) => {
-  return <button 
-    className={`sidebar-item sidebar-item-hover w-full ${collapsed ? 'justify-center' : 'pl-10'} ${isActive ? 'sidebar-item-active' : ''}`} 
-    onClick={onClick}
-    title={collapsed ? text : undefined}
-  >
+  return (
+    <button 
+      className={`sidebar-item sidebar-item-hover w-full ${
+        collapsed ? 'justify-center' : 'pl-10'
+      } ${isActive ? 'sidebar-item-active' : ''}`} 
+      onClick={onClick}
+      title={collapsed ? text : undefined}
+    >
       <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-        {icon 
-          ? <div className={`${isActive ? 'text-primary' : 'text-sidebar-foreground'}`}>{icon}</div>
-          : <ChevronRight className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-sidebar-foreground'}`} />
-        }
+        {icon ? (
+          <div className={`${isActive ? 'text-white' : 'text-[var(--color-text-secondary)]'}`}>
+            {icon}
+          </div>
+        ) : (
+          <ChevronRight className={`h-4 w-4 ${
+            isActive ? 'text-white' : 'text-[var(--color-text-secondary)]'
+          }`} />
+        )}
         {!collapsed && <span className="text-left text-base">{text}</span>}
       </div>
-    </button>;
+    </button>
+  );
 };
 
 interface SidebarProps {
@@ -89,11 +108,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
   const handleViewChange = (view: string) => {
     setActiveView(view as any);
     if (isMobile) {
-      setIsOpen(false); // Cierra el sidebar en móviles después de la selección
+      setIsOpen(false); // Close sidebar on mobile after selection
     }
   };
 
-  // Notificar al componente padre cuando cambia el estado contraído
+  // Notify parent component when collapsed state changes
   useEffect(() => {
     if (onCollapsedChange) {
       onCollapsedChange(isCollapsed);
@@ -101,7 +120,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
   }, [isCollapsed, onCollapsedChange]);
 
   useEffect(() => {
-    // Cierra el sidebar en dispositivos móviles por defecto
+    // Close sidebar on mobile devices by default
     if (isMobile) {
       setIsOpen(false);
     } else {
@@ -111,7 +130,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
 
   return (
     <>
-      {/* Overlay para cerrar el sidebar en móviles */}
+      {/* Overlay to close sidebar on mobile */}
       {isOpen && isMobile && (
         <div 
           className="fixed inset-0 bg-black/50 z-40"
@@ -120,9 +139,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
       )}
       
       <aside 
-        className={`fixed left-0 top-16 bottom-0 bg-sidebar border-r border-sidebar-border p-4 overflow-y-auto transition-all duration-300 z-50
+        className={`fixed left-0 top-16 bottom-0 bg-[var(--color-background-sidebar)] border-r border-[var(--color-border-subtle)] p-4 overflow-y-auto transition-all duration-300 z-50
           ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
-          ${isCollapsed ? 'w-16' : 'w-64'} 
+          ${isCollapsed ? 'w-16' : 'w-[260px]'} 
           ${isMobile ? 'shadow-xl' : ''}
         `}
       >
@@ -159,7 +178,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             />
             
             {openSubMenu === "callcenter" && !isCollapsed && (
-              <div className="mt-1 ml-2 space-y-1 border-l-2 border-muted pl-2">
+              <div className="mt-1 ml-2 space-y-1 border-l-2 border-[var(--color-border-subtle)] pl-2">
                 <SubMenuItem 
                   icon={<PhoneCall className="h-4 w-4" />}
                   text="Agentes IA" 
@@ -198,7 +217,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             />
             
             {openSubMenu === "campaigns" && !isCollapsed && (
-              <div className="mt-1 ml-2 space-y-1 border-l-2 border-muted pl-2">
+              <div className="mt-1 ml-2 space-y-1 border-l-2 border-[var(--color-border-subtle)] pl-2">
                 <SubMenuItem
                   text="Campañas"
                   isActive={activeView === "campaigns"}
@@ -229,7 +248,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             />
             
             {openSubMenu === "clients" && !isCollapsed && (
-              <div className="mt-1 ml-2 space-y-1 border-l-2 border-muted pl-2">
+              <div className="mt-1 ml-2 space-y-1 border-l-2 border-[var(--color-border-subtle)] pl-2">
                 <SubMenuItem 
                   text="Dashboard Cliente" 
                   isActive={activeView === "clientDashboard"}
@@ -247,7 +266,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             className="absolute bottom-4 left-4"
             onClick={() => {
               setIsCollapsed(!isCollapsed);
-              // Si contraemos el sidebar, cerramos los submenús abiertos
+              // Close submenus when collapsing
               if (!isCollapsed) {
                 setOpenSubMenu(null);
               }
