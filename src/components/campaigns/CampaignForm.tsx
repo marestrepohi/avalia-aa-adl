@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -10,16 +9,67 @@ import { CalendarIcon, Users } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { asistentesData } from '@/lib/asistentes';
 
 interface CampaignFormProps {
   onClose: () => void;
+  onSave?: (payload: {
+    name: string;
+    objective: string;
+    type: string;
+    status: string;
+    startDate?: Date;
+    endDate?: Date;
+    description: string;
+    audienceId: string;
+    assistantId: string;
+  }) => void;
+  initialData?: {
+    name?: string;
+    objective?: string;
+    type?: string;
+    status?: string;
+    startDate?: Date;
+    endDate?: Date;
+    description?: string;
+    audienceId?: string;
+    assistantId?: string;
+  };
 }
 
-const CampaignForm: React.FC<CampaignFormProps> = ({ onClose }) => {
-  const [startDate, setStartDate] = React.useState<Date>();
-  const [endDate, setEndDate] = React.useState<Date>();
-  const [selectedAudience, setSelectedAudience] = useState<string>("");
-  const [selectedAgent, setSelectedAgent] = useState<string>("");
+const CampaignForm: React.FC<CampaignFormProps> = ({ onClose, onSave, initialData = {} }) => {
+  const [startDate, setStartDate] = React.useState<Date | undefined>(initialData.startDate);
+  const [endDate, setEndDate] = React.useState<Date | undefined>(initialData.endDate);
+  const [selectedAudience, setSelectedAudience] = useState<string>(initialData.audienceId || "");
+  const [selectedAssistantId, setSelectedAssistantId] = useState<string>(initialData.assistantId || "");
+
+  // Estados controlados para el formulario
+  const [campaignName, setCampaignName] = useState<string>(initialData.name || "");
+  const [objective, setObjective] = useState<string>(initialData.objective || "");
+  const [campaignType, setCampaignType] = useState<string>(initialData.type || "");
+  const [status, setStatus] = useState<string>(initialData.status || "");
+  const [description, setDescription] = useState<string>(initialData.description || "");
+
+  // Guardar campaña
+  const handleSave = () => {
+    const payload = {
+      name: campaignName,
+      objective,
+      type: campaignType,
+      status,
+      startDate,
+      endDate,
+      description,
+      audienceId: selectedAudience,
+      assistantId: selectedAssistantId,
+    };
+    if (onSave) {
+      onSave(payload);
+    } else {
+      console.log('Guardar campaña', payload);
+    }
+    onClose();
+  };
 
   // Mock data for available agents and audiences
   const availableAgents = [
@@ -39,17 +89,17 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onClose }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Nombre de la Campaña</Label>
-          <Input placeholder="Ej: Campaña Verano 2024" />
+          <Input value={campaignName} onChange={e => setCampaignName(e.target.value)} placeholder="Ej: Campaña Verano 2024" />
         </div>
         
         <div className="space-y-2">
           <Label>Objetivo</Label>
-          <Input placeholder="Ej: 500 leads" />
+          <Input value={objective} onChange={e => setObjective(e.target.value)} placeholder="Ej: 500 leads" />
         </div>
 
         <div className="space-y-2">
           <Label>Tipo de Campaña</Label>
-          <Select>
+          <Select value={campaignType} onValueChange={setCampaignType}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar tipo" />
             </SelectTrigger>
@@ -64,7 +114,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onClose }) => {
 
         <div className="space-y-2">
           <Label>Estado</Label>
-          <Select>
+          <Select value={status} onValueChange={setStatus}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar estado" />
             </SelectTrigger>
@@ -124,8 +174,10 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onClose }) => {
 
       <div className="space-y-2">
         <Label>Descripción</Label>
-        <Textarea 
-          placeholder="Describe los objetivos y detalles de la campaña..." 
+        <Textarea
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          placeholder="Describe los objetivos y detalles de la campaña..."
           className="min-h-[100px]"
         />
       </div>
@@ -150,27 +202,26 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onClose }) => {
         </Select>
       </div>
 
+      {/* Selección de asistente o agente según tipo */}
       <div className="space-y-2">
-        <Label className="flex items-center gap-2">
-          Agente para llamadas
+        <Label>
+          {campaignType === 'call' ? 'Seleccionar Agente IA' : 'Seleccionar Asistente'}
         </Label>
-        <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+        <Select value={selectedAssistantId} onValueChange={setSelectedAssistantId}>
           <SelectTrigger>
-            <SelectValue placeholder="Seleccionar agente IA" />
+            <SelectValue placeholder={campaignType === 'call' ? 'Seleccionar agente' : 'Seleccionar asistente'} />
           </SelectTrigger>
           <SelectContent>
-            {availableAgents.map(agent => (
-              <SelectItem key={agent.id} value={agent.id}>
-                {agent.name}
-              </SelectItem>
-            ))}
+            {campaignType === 'call'
+              ? availableAgents.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)
+              : asistentesData.map(a => <SelectItem key={a.id} value={a.id}>{a.nombre}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
 
       <div className="flex justify-end space-x-2">
         <Button variant="outline" onClick={onClose}>Cancelar</Button>
-        <Button>Guardar Campaña</Button>
+        <Button onClick={handleSave}>Guardar Campaña</Button>
       </div>
     </div>
   );

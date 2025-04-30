@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -40,7 +39,7 @@ const Login = () => {
       <div className="w-1/2 bg-white flex flex-col justify-between p-10">
         <div className="flex-grow flex flex-col justify-center items-center">
           <div className="w-full max-w-md">
-            <h2 className="text-3xl font-bold text-center mb-2">AVALIA</h2>
+            <h2 className="text-3xl font-bold text-center mb-2">Aval IA</h2>
             <p className="text-center text-gray-600 mb-10">Automatizando Procesos con IA</p>
             
             <div className="space-y-4">

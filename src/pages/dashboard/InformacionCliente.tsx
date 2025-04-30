@@ -10,6 +10,8 @@ import ClienteDetalle from '@/components/cliente/ClienteDetalle';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CallModal from '@/components/cliente/CallModal';
+import EmailModal from '@/components/cliente/EmailModal';
+import WhatsAppModal from '@/components/cliente/WhatsAppModal';
 
 // KPI data
 const kpiData = [
@@ -211,6 +213,8 @@ const clientesColumns = [
     render: (_: any, row: any) => (
       <div className="flex items-center gap-2">
         <CallModal clientName={row.nombre} />
+        <EmailModal clientName={row.nombre} />
+        <WhatsAppModal clientName={row.nombre} />
       </div>
     ),
   },

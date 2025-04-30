@@ -1,5 +1,6 @@
-
-import React from 'react';
+import React, { useState } from 'react';
+import { toast } from 'sonner';
+import { asistentesData } from '@/lib/asistentes';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,6 +13,11 @@ interface CallModalProps {
 }
 
 const CallModal: React.FC<CallModalProps> = ({ clientName }) => {
+  const [assistant, setAssistant] = useState('');
+  const handleCall = () => {
+    const asist = asistentesData.find(a => a.id === assistant)?.nombre || assistant;
+    toast.success(`Llamada iniciada con ${clientName}`, { description: `Asistente: ${asist}` });
+  };
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -43,20 +49,20 @@ const CallModal: React.FC<CallModalProps> = ({ clientName }) => {
           </div>
 
           <div className="grid gap-2">
-            <Label>Seleccionar Agente</Label>
-            <Select>
+            <Label>Seleccionar Asistente</Label>
+            <Select onValueChange={setAssistant}>
               <SelectTrigger>
-                <SelectValue placeholder="Seleccionar agente..." />
+                <SelectValue placeholder="Seleccionar asistente..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="agente1">Carlos Rodríguez</SelectItem>
-                <SelectItem value="agente2">Ana López</SelectItem>
-                <SelectItem value="agente3">Juan Pérez</SelectItem>
+                {asistentesData.map(a => (
+                  <SelectItem key={a.id} value={a.id}>{a.nombre}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
-          <Button className="w-full">Iniciar Llamada</Button>
+          <Button className="w-full" onClick={handleCall}>Iniciar Llamada</Button>
         </div>
       </DialogContent>
     </Dialog>
