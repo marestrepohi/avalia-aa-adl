@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { PlusCircle, Edit, Copy, Trash2, PlayCircle, Filter, Phone, Settings, Share2, Mic, Target, Bot } from "lucide-react"; // Added Phone, Settings, Share2, Mic, Target, Bot
+import { PlusCircle, Edit, Copy, Trash2, PlayCircle, Filter, Phone, Settings, Share2, Mic, Target, Bot, Folder } from "lucide-react"; // Added Folder icon
 import DataTable from "../../components/ui/dashboard/DataTable";
 import SlidePanel from "../../components/ui/dashboard/SlidePanel";
 import { Button, Input, Textarea, Select, Toggle, Tabs, Slider } from "../../components/ui/dashboard/FormControls";
 import Modal from "../../components/ui/dashboard/Modal";
 import ReactFlow, { addEdge, applyEdgeChanges, applyNodeChanges, Background, Node, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
+import FuentesDocumentos from "../../components/asistentes/FuentesDocumentos";
 
 // Define Agent type (optional but good practice)
 interface Agent {
@@ -319,7 +320,7 @@ const AgentesIA: React.FC = () => {
     },
     {
       key: "usos",
-      header: "Usos", // Consider renaming to "Llamadas" or similar if it tracks calls
+      header: "Usos",
     },
     {
       key: "fecha",
@@ -471,6 +472,7 @@ const AgentesIA: React.FC = () => {
           tabs={[
             { id: "detalles", label: "Detalles" },
             { id: "configuracion", label: "Configuración", icon: <Settings className="h-4 w-4" /> },
+            { id: "fuentes", label: "Fuentes", icon: <Folder className="h-4 w-4" /> }
           ]}
           activeTab={activeTab}
           onChange={setActiveTab}
@@ -568,6 +570,12 @@ const AgentesIA: React.FC = () => {
                   />
                 </div>
               </div>
+            </div>
+          )}
+          {activeTab === "fuentes" && (
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold">Fuentes de Conocimiento</h4>
+              <FuentesDocumentos asistenteId={selectedAgent?.id?.toString() || ""} />
             </div>
           )}
         </div>
