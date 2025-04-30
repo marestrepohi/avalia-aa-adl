@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LogIn, User, Lock, Github } from "lucide-react";
+import { LogIn, User, Lock, Microsoft } from "lucide-react";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -87,7 +87,7 @@ const Login = () => {
                 className="w-full py-6 bg-[#6941C6] hover:bg-[#5729B3] text-white rounded-xl"
               >
                 <LogIn className="mr-2" />
-                AVALIA
+                Ingresar
               </Button>
             </form>
             
@@ -106,7 +106,7 @@ const Login = () => {
               className="w-full py-6 border border-gray-300 rounded-xl"
               onClick={handleWindowsLogin}
             >
-              <Github className="mr-2" />
+              <Microsoft className="mr-2" />
               Iniciar sesión con Windows
             </Button>
           </div>
