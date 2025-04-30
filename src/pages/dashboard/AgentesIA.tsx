@@ -7,6 +7,8 @@ import Modal from "../../components/ui/dashboard/Modal";
 import ReactFlow, { addEdge, applyEdgeChanges, applyNodeChanges, Background, Node, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
 import FuentesDocumentos from "../../components/asistentes/FuentesDocumentos";
+import BarChart from "../../components/ui/dashboard/BarChart";
+
 
 // Define Agent type (optional but good practice)
 interface Agent {
@@ -361,30 +363,43 @@ const AgentesIA: React.FC = () => {
   ];
 
   // --- Métricas Detalle Expandible ---
-  const renderAgentMetrics = (row: Agent) => (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div className="bg-white rounded-lg p-4 shadow flex flex-col items-center">
-        <span className="text-xs text-muted-foreground">Llamadas</span>
-        <span className="font-bold text-lg">{row.llamadas ?? '-'}</span>
+  const renderAgentMetrics = (row: Agent) => {
+    const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    const callsData = days.map(day => ({ name: day, value: Math.floor(((row.llamadas||0)/7) * (0.8 + Math.random() * 0.4)) }));
+    const durationData = days.map(day => ({ name: day, value: Math.floor(((row.minutos||0)/7) * (0.8 + Math.random() * 0.4)) }));
+    const sentimentData = days.map(day => ({ name: day, value: Number(((row.sentimiento||0)*100 * (0.9 + Math.random() * 0.2)).toFixed(0)) }));
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg p-4 shadow flex flex-col items-center">
+            <span className="text-xs text-muted-foreground">Llamadas</span>
+            <span className="font-bold text-lg">{row.llamadas ?? '-'}</span>
+          </div>
+          <div className="bg-white rounded-lg p-4 shadow flex flex-col items-center">
+            <span className="text-xs text-muted-foreground">Minutos Hablados</span>
+            <span className="font-bold text-lg">{row.minutos ?? '-'}</span>
+          </div>
+          <div className="bg-white rounded-lg p-4 shadow flex flex-col items-center">
+            <span className="text-xs text-muted-foreground">Colgados</span>
+            <span className="font-bold text-lg">{row.colgados ?? '-'}</span>
+          </div>
+          <div className="bg-white rounded-lg p-4 shadow flex flex-col items-center">
+            <span className="text-xs text-muted-foreground">Sentimiento</span>
+            <span className="font-bold text-lg">{row.sentimiento !== undefined ? `${(row.sentimiento * 100).toFixed(0)}%` : '-'}</span>
+          </div>
+          <div className="bg-white rounded-lg p-4 shadow flex flex-col items-center">
+            <span className="text-xs text-muted-foreground">Tasa de Éxito</span>
+            <span className="font-bold text-lg">{row.tasaExito !== undefined ? `${(row.tasaExito * 100).toFixed(0)}%` : '-'}</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <BarChart data={callsData} title="Llamadas por Día" subtitle="Últimos 7 días" />
+          <BarChart data={durationData} title="Duración Promedio" subtitle="Minutos por día" />
+          <BarChart data={sentimentData} title="Sentimiento Diario" subtitle="Últimos 7 días (%)" />
+        </div>
       </div>
-      <div className="bg-white rounded-lg p-4 shadow flex flex-col items-center">
-        <span className="text-xs text-muted-foreground">Minutos Hablados</span>
-        <span className="font-bold text-lg">{row.minutos ?? '-'}</span>
-      </div>
-      <div className="bg-white rounded-lg p-4 shadow flex flex-col items-center">
-        <span className="text-xs text-muted-foreground">Colgados</span>
-        <span className="font-bold text-lg">{row.colgados ?? '-'}</span>
-      </div>
-      <div className="bg-white rounded-lg p-4 shadow flex flex-col items-center">
-        <span className="text-xs text-muted-foreground">Sentimiento</span>
-        <span className="font-bold text-lg">{row.sentimiento !== undefined ? `${(row.sentimiento * 100).toFixed(0)}%` : '-'}</span>
-      </div>
-      <div className="bg-white rounded-lg p-4 shadow flex flex-col items-center">
-        <span className="text-xs text-muted-foreground">Tasa de Éxito</span>
-        <span className="font-bold text-lg">{row.tasaExito !== undefined ? `${(row.tasaExito * 100).toFixed(0)}%` : '-'}</span>
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div>
