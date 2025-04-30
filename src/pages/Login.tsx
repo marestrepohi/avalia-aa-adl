@@ -1,8 +1,9 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LogIn, UserPlus } from "lucide-react";
+import { LogIn, User, Lock, Windows } from "lucide-react";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -11,6 +12,11 @@ const Login = () => {
     email: "",
     password: ""
   });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +28,13 @@ const Login = () => {
     } else {
       toast.error("Credenciales inválidas");
     }
+  };
+
+  const handleWindowsLogin = () => {
+    toast.info("Iniciando sesión con Windows...");
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 1500);
   };
 
   return (
@@ -42,24 +55,60 @@ const Login = () => {
             <h2 className="text-3xl font-bold text-center mb-2">Aval IA</h2>
             <p className="text-center text-gray-600 mb-10">Automatizando Procesos con IA</p>
             
-            <div className="space-y-4">
-              <Button 
-                variant="outline" 
-                className="w-full py-6 border border-gray-300 rounded-xl mb-4"
-                onClick={() => navigate("/dashboard")}
-              >
-                <LogIn className="mr-2" />
-                Iniciar sesión
-              </Button>
+            <form onSubmit={handleLogin} className="space-y-4 mb-6">
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Input
+                  type="text"
+                  name="email"
+                  placeholder="Usuario"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="pl-10"
+                  required
+                />
+              </div>
+              
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Input
+                  type="password"
+                  name="password"
+                  placeholder="Contraseña"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="pl-10"
+                  required
+                />
+              </div>
               
               <Button 
-                className="w-full py-6 bg-[#4f46e5] hover:bg-[#4338ca] text-white rounded-xl"
-                onClick={() => toast.info("Registro no disponible en este momento")}
+                type="submit"
+                className="w-full py-6 bg-[#6941C6] hover:bg-[#5729B3] text-white rounded-xl"
               >
-                <UserPlus className="mr-2" />
-                Registrarse
+                <LogIn className="mr-2" />
+                AVALIA
               </Button>
+            </form>
+            
+            <div className="relative py-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-white px-4 text-sm text-gray-500">O continúa con</span>
+              </div>
             </div>
+
+            <Button 
+              type="button"
+              variant="outline" 
+              className="w-full py-6 border border-gray-300 rounded-xl"
+              onClick={handleWindowsLogin}
+            >
+              <Windows className="mr-2" />
+              Iniciar sesión con Windows
+            </Button>
           </div>
         </div>
         
