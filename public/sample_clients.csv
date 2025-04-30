@@ -1,0 +1,11 @@
+id,nombre,estado,fechaLlamada,comentario
+1,Juan Pérez,Interesado,2025-04-20,Solicitó más información sobre el servicio
+2,María López,Convertido,2025-04-21,Adquirió plan premium
+3,Carlos Sánchez,No interesado,2025-04-22,No dispone de presupuesto actualmente
+4,Ana Gómez,Interesado,2025-04-23,Pide llamada de seguimiento
+5,Luis Martínez,Convertido,2025-04-24,Contrató paquete básico
+6,Sofía Rodríguez,No interesado,2025-04-25,Prefiere revisar más tarde
+7,Pedro Fernández,Interesado,2025-04-26,Quieren cotización detallada
+8,Lucía Fernández,Convertido,2025-04-27,Firma de contrato completada
+9,Diego Herrera,No interesado,2025-04-28,Sin interés en este momento
+10,Valentina Ruiz,Interesado,2025-04-29,Ha solicitado demo del producto

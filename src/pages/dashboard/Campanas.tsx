@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Papa from 'papaparse';
 import { Plus, Play, Pause, Edit, Trash2, Users, Calendar as CalendarIcon, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -26,6 +27,7 @@ import "reactflow/dist/style.css";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 
+// Define cliente interface
 interface Campaign {
   id: number;
   nombre: string;
@@ -39,6 +41,14 @@ interface Campaign {
   description: string;
   audienceId: string;
   assistantId: string;
+ }
+
+interface Client {
+  id: number;
+  nombre: string;
+  estado: string;
+  fechaLlamada: Date;
+  comentario: string;
 }
 
 const initialCampaigns: Campaign[] = [
@@ -96,6 +106,30 @@ const Campanas: React.FC = () => {
   const [showEdit, setShowEdit] = useState(false);
   const [selected, setSelected] = useState<Campaign | null>(null);
   const [showFlow, setShowFlow] = useState(false);
+  const [clientData, setClientData] = useState<Client[]>([]);
+
+  // load clients from CSV on detail open
+  useEffect(() => {
+    if (showDetail) {
+      fetch('/sample_clients.csv')
+        .then(res => res.text())
+        .then(csv => {
+          Papa.parse<Client>(csv, {
+            header: true,
+            skipEmptyLines: true,
+            transformHeader: h => h.trim(),
+            complete: results => {
+              const data = results.data.map(d => ({
+                ...d,
+                id: Number(d.id),
+                fechaLlamada: new Date(d.fechaLlamada)
+              } as Client));
+              setClientData(data);
+            }
+          });
+        });
+    }
+  }, [showDetail]);
 
   // flow state
   const [nodes, setNodes] = useState<Node[]>([
@@ -110,6 +144,13 @@ const Campanas: React.FC = () => {
     { label: "Conversiones", value: "58" },
     { label: "Sentimiento promedio", value: "82%" },
     { label: "Tasa de éxito", value: "18%" },
+  ];
+
+  const clientColumns = [
+    { key: "nombre", header: "Cliente" },
+    { key: "estado", header: "Estado" },
+    { key: "fechaLlamada", header: "Fecha de llamada", render: (d: Date) => format(d, "dd/MM/yyyy", { locale: es }) },
+    { key: "comentario", header: "Comentarios" },
   ];
 
   // handlers
@@ -285,6 +326,21 @@ const Campanas: React.FC = () => {
                 { name: "Vie", value: 9 },
               ]}
             />
+          </div>
+          {/* Resumen general de clientes */}
+          <div>
+            <h2 className="text-lg font-semibold mb-2">Resumen de clientes</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <KpiCard title="Interesados" value={clientData.filter(c => c.estado === "Interesado").length.toString()} />
+              <KpiCard title="Convertidos" value={clientData.filter(c => c.estado === "Convertido").length.toString()} />
+              <KpiCard title="No interesados" value={clientData.filter(c => c.estado === "No interesado").length.toString()} />
+            </div>
+          </div>
+
+          {/* Tabla de clientes */}
+          <div>
+            <h2 className="text-lg font-semibold mb-2">Clientes</h2>
+            <DataTable columns={clientColumns} data={clientData} />
           </div>
         </div>
       </SlidePanel>
