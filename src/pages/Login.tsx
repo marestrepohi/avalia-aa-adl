@@ -28,11 +28,11 @@ const Login = () => {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Background image with Grupo AVAL branding */}
-      <div className="w-1/2 relative overflow-hidden">
+      <div className="w-1/2 relative overflow-hidden flex justify-end">
         <img 
           src="/lovable-uploads/a806100d-28b8-492a-9ed5-9201d1c739f6.png" 
           alt="Grupo AVAL" 
-          className="w-full h-full object-cover"
+          className="h-full object-cover object-right"
         />
       </div>
       
@@ -40,7 +40,8 @@ const Login = () => {
       <div className="w-1/2 bg-white flex flex-col justify-between p-10">
         <div className="flex-grow flex flex-col justify-center items-center">
           <div className="w-full max-w-md">
-            <h2 className="text-3xl font-bold text-center mb-10">AVALIA</h2>
+            <h2 className="text-3xl font-bold text-center mb-2">AVALIA</h2>
+            <p className="text-center text-gray-600 mb-10">Automatizando Procesos con IA</p>
             
             <div className="space-y-4">
               <Button 
