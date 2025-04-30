@@ -24,12 +24,12 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   collapsed = false
 }) => {
   return <button 
-    className={`sidebar-item sidebar-item-hover w-full flex justify-between ${isActive ? 'sidebar-item-active' : ''} ${collapsed ? 'justify-center' : ''}`} 
+    className={`sidebar-item sidebar-item-hover w-full flex ${isActive ? 'sidebar-item-active' : ''} ${collapsed ? 'justify-center p-2 aspect-square h-10 w-10' : 'justify-between'}`} 
     onClick={onClick}
     title={collapsed ? text : undefined}
   >
       <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-        <div className={`${isActive ? 'text-primary' : 'text-sidebar-foreground'}`}>
+        <div className={`${isActive ? 'text-primary' : 'text-sidebar-foreground'} flex-none`}>
           {icon}
         </div>
         {!collapsed && <span className="my-0 text-left">{text}</span>}
@@ -56,14 +56,14 @@ const SubMenuItem: React.FC<SubMenuItemProps> = ({
   collapsed = false
 }) => {
   return <button 
-    className={`sidebar-item sidebar-item-hover w-full ${collapsed ? 'justify-center' : 'pl-10'} ${isActive ? 'sidebar-item-active' : ''}`} 
+    className={`sidebar-item sidebar-item-hover w-full ${collapsed ? 'justify-center p-2 aspect-square h-10 w-10' : 'pl-4'} ${isActive ? 'sidebar-item-active' : ''}`} 
     onClick={onClick}
     title={collapsed ? text : undefined}
   >
       <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
         {icon 
-          ? <div className={`${isActive ? 'text-primary' : 'text-sidebar-foreground'}`}>{icon}</div>
-          : <ChevronRight className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-sidebar-foreground'}`} />
+          ? <div className={`${isActive ? 'text-primary' : 'text-sidebar-foreground'} flex-none`}>{icon}</div>
+          : <ChevronRight className={`h-4 w-4 flex-none ${isActive ? 'text-primary' : 'text-sidebar-foreground'}`} />
         }
         {!collapsed && <span className="text-left text-base">{text}</span>}
       </div>
@@ -159,10 +159,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             />
             
             {openSubMenu === "callcenter" && !isCollapsed && (
-              <div className="mt-1 ml-2 space-y-1 border-l-2 border-muted pl-2">
+              <div className="mt-1 ml-1 space-y-1 border-l-2 border-muted pl-1">
                 <SubMenuItem 
-                  icon={<PhoneCall className="h-4 w-4" />}
-                  text="Agentes IA" 
+                  icon={<PhoneCall className="h-4 w-4" />} 
+                  text="Agentes de Voz" 
                   isActive={activeView === "agents"}
                   onClick={() => handleViewChange("agents")} 
                 />
@@ -179,7 +179,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
           {/* Asistentes con subopciones si es necesario */}
           <SidebarItem 
             icon={<MessageSquare className="h-5 w-5" />} 
-            text="Asistentes" 
+            text="Asistentes de Texto" 
             isActive={activeView === "asistentes"}
             onClick={() => handleViewChange("asistentes")} 
             collapsed={isCollapsed}
@@ -198,13 +198,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             />
             
             {openSubMenu === "campaigns" && !isCollapsed && (
-              <div className="mt-1 ml-2 space-y-1 border-l-2 border-muted pl-2">
+              <div className="mt-1 ml-1 space-y-1 border-l-2 border-muted pl-1">
                 <SubMenuItem
+                  icon={<Megaphone className="h-4 w-4" />}
                   text="Campañas"
                   isActive={activeView === "campaigns"}
                   onClick={() => handleViewChange("campaigns")}
                 />
                 <SubMenuItem
+                  icon={<Users className="h-4 w-4" />}
                   text="Audiencias"
                   isActive={activeView === "audiencias"}
                   onClick={() => handleViewChange("audiencias")}
@@ -229,9 +231,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             />
             
             {openSubMenu === "clients" && !isCollapsed && (
-              <div className="mt-1 ml-2 space-y-1 border-l-2 border-muted pl-2">
-                <SubMenuItem 
-                  text="Dashboard Cliente" 
+              <div className="mt-1 ml-1 space-y-1 border-l-2 border-muted pl-1">
+                <SubMenuItem
+                  icon={<UserSquare2 className="h-4 w-4" />}
+                  text="Dashboard Cliente"
                   isActive={activeView === "clientDashboard"}
                   onClick={() => handleViewChange("clientDashboard")} 
                 />

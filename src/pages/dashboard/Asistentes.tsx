@@ -68,10 +68,10 @@ const Asistentes: React.FC = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] w-full max-w-7xl mx-auto px-2 md:px-6 py-4">
       <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Asistentes IA</h1>
+        <h1 className="text-2xl font-semibold">Asistentes de Texto</h1>
         {!selectedAsistente && (
           <Input
-            placeholder="Buscar asistente..."
+            placeholder="Buscar Asistente de Texto..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="max-w-xs"
@@ -97,7 +97,7 @@ const Asistentes: React.FC = () => {
                 />
               ))}
               {asistentesFiltrados.length === 0 && (
-                <div className="col-span-full text-center text-muted-foreground py-12">No se encontraron asistentes</div>
+                <div className="col-span-full text-center text-muted-foreground py-12">No se encontraron Asistentes de Texto</div>
               )}
             </div>
           </motion.div>

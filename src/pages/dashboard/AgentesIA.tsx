@@ -404,13 +404,13 @@ const AgentesIA: React.FC = () => {
   return (
     <div>
       <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
-        <h1 className="text-2xl font-semibold">Agentes IA</h1>
+        <h1 className="text-2xl font-semibold">Agentes de Voz</h1>
         <button
           onClick={handleCreateClick}
           className="flex items-center gap-2 bg-primary text-white shadow px-6 py-2 rounded-lg hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary/50"
         >
           <PlusCircle className="h-5 w-5" />
-          <span className="font-medium">Crear Agente</span>
+          <span className="font-medium">Crear Agente de Voz</span>
         </button>
       </div>
 
@@ -434,7 +434,7 @@ const AgentesIA: React.FC = () => {
       <SlidePanel
         isOpen={isPanelOpen}
         onClose={() => { setIsPanelOpen(false); setSelectedAgent(null); }} // Clear selection on close
-        title={selectedAgent ? "Editar Agente IA" : "Crear Agente IA"}
+        title={selectedAgent ? "Editar Agente de Voz" : "Crear Agente de Voz"}
         width="lg" // Consider 'xl' if content grows
         footer={
           <div className="flex justify-end gap-2">
@@ -449,7 +449,7 @@ const AgentesIA: React.FC = () => {
               onClick={handleSave}
               disabled={isLoading}
             >
-              {selectedAgent?.id ? "Guardar Cambios" : "Crear Agente"}
+              {selectedAgent?.id ? "Guardar Cambios" : "Crear Agente de Voz"}
             </button>
           </div>
         }
@@ -510,7 +510,7 @@ const AgentesIA: React.FC = () => {
                 />
                 <Textarea
                   label="Instrucciones del Sistema (Prompt)"
-                  placeholder="Define el comportamiento, rol y directrices del agente IA..."
+                  placeholder="Define el comportamiento, rol y directrices del agente de voz..."
                   defaultValue={""}
                   rows={6}
                 />
@@ -714,7 +714,7 @@ const AgentesIA: React.FC = () => {
       <Modal
         isOpen={isTestModalOpen}
         onClose={() => setIsTestModalOpen(false)}
-        title={`Probar Agente - ${selectedAgent?.nombre || ''}`}
+        title={`Probar Agente de Voz - ${selectedAgent?.nombre || ''}`}
         size="sm"
         footer={
           <>
