@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LogIn, User, Lock, Windows } from "lucide-react";
+import { LogIn, User, Lock, Github } from "lucide-react";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -106,7 +106,7 @@ const Login = () => {
               className="w-full py-6 border border-gray-300 rounded-xl"
               onClick={handleWindowsLogin}
             >
-              <Windows className="mr-2" />
+              <Github className="mr-2" />
               Iniciar sesión con Windows
             </Button>
           </div>
