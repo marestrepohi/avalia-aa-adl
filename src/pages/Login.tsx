@@ -31,7 +31,7 @@ const Login = () => {
   };
 
   const handleWindowsLogin = () => {
-    toast.info("Iniciando sesión con Windows...");
+    toast.info("Iniciando sesión con Microsoft...");
     setTimeout(() => {
       navigate("/dashboard");
     }, 1500);
@@ -106,21 +106,12 @@ const Login = () => {
               className="w-full py-6 border border-gray-300 rounded-xl"
               onClick={handleWindowsLogin}
             >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="20" 
-                height="20" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-                className="mr-2"
-              >
-                <path d="M3 12h8V4H3zm10 0h8V4h-8zm-10 8h8v-6H3zm10 8h8v-6h-8z" />
-              </svg>
-              Iniciar sesión con Windows
+              <img 
+                src="/lovable-uploads/a36b435d-d14d-493e-b137-ce2b25f9dad0.png" 
+                alt="Microsoft" 
+                className="mr-2 w-5 h-5"
+              />
+              Iniciar sesión con Microsoft
             </Button>
           </div>
         </div>
