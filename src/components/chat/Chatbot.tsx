@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send, Mic, MicOff, ScreenShare } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -298,9 +299,9 @@ const Chatbot: React.FC = () => {
         // Capturar la pantalla
         const screenshot = await captureScreenshot();
         
-        // Configurar el modelo de Gemini usando el modelo Flash Live
+        // Configurar el modelo de Gemini usando el modelo Flash
         const model = genAI.getGenerativeModel({ 
-          model: "models/gemini-2.0-flash-live-001",
+          model: "gemini-1.5-flash",
           generationConfig: {
             temperature: 0.4,
             topK: 32,
