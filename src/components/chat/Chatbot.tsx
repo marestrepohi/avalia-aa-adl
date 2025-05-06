@@ -299,9 +299,9 @@ const Chatbot: React.FC = () => {
         // Capturar la pantalla
         const screenshot = await captureScreenshot();
         
-        // Configurar el modelo de Gemini usando el modelo Flash
+        // Configurar el modelo de Gemini usando el modelo Flash Live
         const model = genAI.getGenerativeModel({ 
-          model: "gemini-1.5-flash",
+          model: "models/gemini-2.0-flash-live-001",
           generationConfig: {
             temperature: 0.4,
             topK: 32,
