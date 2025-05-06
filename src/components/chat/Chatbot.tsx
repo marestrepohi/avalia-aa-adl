@@ -1,9 +1,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, X, Send, User, Image as ImageIcon } from 'lucide-react';
+import { MessageSquare, X, Send, Mic, MicOff, ScreenShare } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import { toast } from 'sonner';
 
@@ -23,6 +31,9 @@ const Chatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false);
+  const [hasScreenPermission, setHasScreenPermission] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -34,6 +45,7 @@ const Chatbot: React.FC = () => {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -43,39 +55,69 @@ const Chatbot: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    // Limpiar reconocimiento al desmontar
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
   const toggleChat = () => {
     setIsOpen(!isOpen);
+  };
+
+  // Solicitar permiso para capturar pantalla
+  const requestScreenPermission = async () => {
+    try {
+      await navigator.mediaDevices.getDisplayMedia({ video: true });
+      setHasScreenPermission(true);
+      setShowPermissionDialog(false);
+      toast.success("Permiso de pantalla concedido");
+    } catch (error) {
+      console.error('Error al solicitar permiso de pantalla:', error);
+      toast.error("No se pudo obtener permiso para capturar la pantalla");
+      setHasScreenPermission(false);
+    }
   };
 
   // Captura una imagen de la pantalla actual
   const captureScreenshot = async (): Promise<string | null> => {
     try {
-      // Obtener una captura de la pantalla visible
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) return null;
-      
-      // Dimensiones del viewport
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      
-      // Dibujar el contenido HTML en el canvas
-      const html = document.documentElement;
-      const data = new XMLSerializer().serializeToString(html);
-      const DOMURL = window.URL;
-      const img = new Image();
-      const svg = new Blob([data], {type: 'image/svg+xml'});
-      const url = DOMURL.createObjectURL(svg);
+      if (!hasScreenPermission) {
+        setShowPermissionDialog(true);
+        return null;
+      }
+
+      // Obtener una captura de la pantalla visible mediante getDisplayMedia
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      const video = document.createElement('video');
+      video.srcObject = stream;
       
       return new Promise((resolve) => {
-        img.onload = function() {
-          ctx.drawImage(img, 0, 0);
-          const dataUrl = canvas.toDataURL('image/png');
-          DOMURL.revokeObjectURL(url);
-          resolve(dataUrl);
+        video.onloadedmetadata = () => {
+          video.play();
+          
+          video.onplay = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              stream.getTracks().forEach(track => track.stop());
+              resolve(null);
+              return;
+            }
+            
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            stream.getTracks().forEach(track => track.stop());
+            
+            const dataUrl = canvas.toDataURL('image/png');
+            resolve(dataUrl);
+          };
         };
-        img.src = url;
       });
     } catch (error) {
       console.error('Error capturando la pantalla:', error);
@@ -83,26 +125,75 @@ const Chatbot: React.FC = () => {
     }
   };
 
-  // Función para convertir base64 a un blob
-  const base64ToBlob = (base64: string): Blob => {
-    const byteString = atob(base64.split(',')[1]);
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    
-    for (let i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
+  // Iniciar reconocimiento de voz
+  const startSpeechRecognition = () => {
+    if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
+      toast.error('Tu navegador no soporta reconocimiento de voz');
+      return;
     }
-    
-    return new Blob([ab], { type: 'image/png' });
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current.lang = 'es-ES';
+    recognitionRef.current.continuous = false;
+    recognitionRef.current.interimResults = false;
+
+    recognitionRef.current.onstart = () => {
+      setIsListening(true);
+      toast.info("Escuchando...");
+    };
+
+    recognitionRef.current.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setMessage(transcript);
+      setIsListening(false);
+      // Enviar mensaje automáticamente cuando se reconoce la voz
+      handleSendVoiceMessage(transcript);
+    };
+
+    recognitionRef.current.onerror = (event) => {
+      console.error('Error en reconocimiento de voz:', event.error);
+      setIsListening(false);
+      toast.error("Error al escuchar");
+    };
+
+    recognitionRef.current.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current.start();
   };
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (message.trim()) {
+  // Detener reconocimiento de voz
+  const stopSpeechRecognition = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+  };
+
+  // Función para sintetizar voz
+  const speakText = (text: string) => {
+    if ('speechSynthesis' in window) {
+      const synthesis = window.speechSynthesis;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'es-ES';
+      synthesis.speak(utterance);
+    }
+  };
+
+  const handleSendVoiceMessage = async (transcript: string) => {
+    if (transcript.trim()) {
+      await handleSendMessage(transcript);
+    }
+  };
+
+  const handleSendMessage = async (text: string) => {
+    if (text.trim()) {
       // Añadir mensaje del usuario
       const userMessage: Message = {
         id: messages.length + 1,
-        text: message,
+        text: text,
         sender: 'user',
         timestamp: new Date(),
       };
@@ -173,7 +264,7 @@ Habla en español y sé cordial pero profesional.`;
         // Preparar el contenido para el mensaje
         const parts: any[] = [
           { text: systemPrompt },
-          { text: `Pregunta del usuario: ${message}` },
+          { text: `Pregunta del usuario: ${text}` },
         ];
 
         // Añadir la imagen si está disponible
@@ -213,6 +304,9 @@ Habla en español y sé cordial pero profesional.`;
               : msg
           )
         );
+        
+        // Leer la respuesta en voz alta
+        speakText(fullResponse);
       } catch (error) {
         console.error('Error al procesar la respuesta:', error);
         
@@ -233,6 +327,19 @@ Habla en español y sé cordial pero profesional.`;
       } finally {
         setIsLoading(false);
       }
+    }
+  };
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleSendMessage(message);
+  };
+
+  const toggleVoiceRecognition = () => {
+    if (isListening) {
+      stopSpeechRecognition();
+    } else {
+      startSpeechRecognition();
     }
   };
 
@@ -292,17 +399,58 @@ Habla en español y sé cordial pero profesional.`;
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Escribe tu mensaje..."
-              disabled={isLoading}
+              disabled={isLoading || isListening}
               className="flex-1"
             />
-            <Button type="submit" disabled={isLoading || !message.trim()} size="icon">
+            <Button
+              type="button"
+              onClick={toggleVoiceRecognition}
+              disabled={isLoading}
+              size="icon"
+              variant={isListening ? "destructive" : "outline"}
+            >
+              {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setShowPermissionDialog(true)}
+              disabled={isLoading || hasScreenPermission}
+              size="icon"
+              variant="outline"
+              title="Compartir pantalla"
+            >
+              <ScreenShare className="h-5 w-5" />
+            </Button>
+            <Button type="submit" disabled={isLoading || isListening || !message.trim()} size="icon">
               <Send className="h-5 w-5" />
             </Button>
           </form>
         </Card>
       )}
+
+      {/* Diálogo de permisos de pantalla */}
+      <Dialog open={showPermissionDialog} onOpenChange={setShowPermissionDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Permiso para compartir pantalla</DialogTitle>
+            <DialogDescription>
+              Para proporcionarte una asistencia más efectiva, necesito ver lo que estás viendo. 
+              ¿Me permites capturar tu pantalla? Esto me permitirá darte instrucciones más precisas.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPermissionDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={requestScreenPermission}>
+              Permitir acceso
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
 
 export default Chatbot;
+
