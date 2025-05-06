@@ -63,7 +63,7 @@ const Chatbot: React.FC = () => {
       // Dibujar el contenido HTML en el canvas
       const html = document.documentElement;
       const data = new XMLSerializer().serializeToString(html);
-      const DOMURL = window.URL || window.webkitURL || window;
+      const DOMURL = window.URL;
       const img = new Image();
       const svg = new Blob([data], {type: 'image/svg+xml'});
       const url = DOMURL.createObjectURL(svg);
@@ -171,7 +171,7 @@ Habla en español y sé cordial pero profesional.`;
         });
 
         // Preparar el contenido para el mensaje
-        const parts = [
+        const parts: any[] = [
           { text: systemPrompt },
           { text: `Pregunta del usuario: ${message}` },
         ];
