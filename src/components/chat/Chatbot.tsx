@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send, Mic, MicOff, ScreenShare } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -114,7 +113,6 @@ const Chatbot: React.FC = () => {
       const stream = await navigator.mediaDevices.getDisplayMedia({ 
         video: { 
           displaySurface: "monitor",
-          logicalSurface: true,
           cursor: "always"
         }
       });
@@ -146,7 +144,6 @@ const Chatbot: React.FC = () => {
         stream = await navigator.mediaDevices.getDisplayMedia({ 
           video: { 
             displaySurface: "monitor",
-            logicalSurface: true,
             cursor: "always"
           }
         });
