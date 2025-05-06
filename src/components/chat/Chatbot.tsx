@@ -111,10 +111,7 @@ const Chatbot: React.FC = () => {
   const requestScreenPermission = async () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({ 
-        video: { 
-          displaySurface: "monitor",
-          cursor: "always"
-        }
+        video: true
       });
       
       streamRef.current = stream;
@@ -142,10 +139,7 @@ const Chatbot: React.FC = () => {
       // Si no hay stream activo, solicitamos uno nuevo
       if (!stream) {
         stream = await navigator.mediaDevices.getDisplayMedia({ 
-          video: { 
-            displaySurface: "monitor",
-            cursor: "always"
-          }
+          video: true
         });
         streamRef.current = stream;
       }
