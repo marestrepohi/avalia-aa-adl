@@ -34,10 +34,12 @@ const Chatbot: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const [hasScreenPermission, setHasScreenPermission] = useState(false);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "¡Hola! Soy tu asistente virtual con inteligencia de Google Gemini. ¿En qué puedo ayudarte hoy?",
+      text: "¡Hola! Soy Puck, tu asistente virtual con inteligencia de Google Gemini. Puedo ver lo que estás haciendo y responder a tus preguntas en tiempo real. ¿En qué puedo ayudarte hoy?",
       sender: 'bot',
       timestamp: new Date(),
     }
@@ -46,6 +48,38 @@ const Chatbot: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const activeSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Cargar voces disponibles para TTS
+  useEffect(() => {
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices();
+      setVoices(availableVoices);
+      
+      // Intentar seleccionar una voz en español
+      const spanishVoice = availableVoices.find(voice => 
+        voice.lang.includes('es') || voice.name.includes('Spanish')
+      );
+      
+      if (spanishVoice) {
+        setSelectedVoice(spanishVoice);
+      } else if (availableVoices.length > 0) {
+        setSelectedVoice(availableVoices[0]);
+      }
+    };
+
+    // Cargar voces inmediatamente y también cuando estén disponibles
+    loadVoices();
+    
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -56,10 +90,16 @@ const Chatbot: React.FC = () => {
   }, [messages]);
 
   useEffect(() => {
-    // Limpiar reconocimiento al desmontar
+    // Limpiar recursos al desmontar
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (activeSynthesisRef.current) {
+        window.speechSynthesis.cancel();
       }
     };
   }, []);
@@ -71,7 +111,15 @@ const Chatbot: React.FC = () => {
   // Solicitar permiso para capturar pantalla
   const requestScreenPermission = async () => {
     try {
-      await navigator.mediaDevices.getDisplayMedia({ video: true });
+      const stream = await navigator.mediaDevices.getDisplayMedia({ 
+        video: { 
+          displaySurface: "monitor",
+          logicalSurface: true,
+          cursor: "always"
+        }
+      });
+      
+      streamRef.current = stream;
       setHasScreenPermission(true);
       setShowPermissionDialog(false);
       toast.success("Permiso de pantalla concedido");
@@ -90,8 +138,22 @@ const Chatbot: React.FC = () => {
         return null;
       }
 
-      // Obtener una captura de la pantalla visible mediante getDisplayMedia
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      // Si ya tenemos un stream activo, lo usamos
+      let stream = streamRef.current;
+      
+      // Si no hay stream activo, solicitamos uno nuevo
+      if (!stream) {
+        stream = await navigator.mediaDevices.getDisplayMedia({ 
+          video: { 
+            displaySurface: "monitor",
+            logicalSurface: true,
+            cursor: "always"
+          }
+        });
+        streamRef.current = stream;
+      }
+
+      // Creamos un video element para capturar el frame
       const video = document.createElement('video');
       video.srcObject = stream;
       
@@ -106,13 +168,11 @@ const Chatbot: React.FC = () => {
             
             const ctx = canvas.getContext('2d');
             if (!ctx) {
-              stream.getTracks().forEach(track => track.stop());
               resolve(null);
               return;
             }
             
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            stream.getTracks().forEach(track => track.stop());
             
             const dataUrl = canvas.toDataURL('image/png');
             resolve(dataUrl);
@@ -135,8 +195,8 @@ const Chatbot: React.FC = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.lang = 'es-ES';
-    recognitionRef.current.continuous = false;
-    recognitionRef.current.interimResults = false;
+    recognitionRef.current.continuous = true;
+    recognitionRef.current.interimResults = true;
 
     recognitionRef.current.onstart = () => {
       setIsListening(true);
@@ -144,11 +204,13 @@ const Chatbot: React.FC = () => {
     };
 
     recognitionRef.current.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
+      const transcript = event.results[event.results.length - 1][0].transcript;
       setMessage(transcript);
-      setIsListening(false);
-      // Enviar mensaje automáticamente cuando se reconoce la voz
-      handleSendVoiceMessage(transcript);
+      
+      // Si es un resultado final y contiene texto significativo, enviar automáticamente
+      if (event.results[event.results.length - 1].isFinal && transcript.trim().length > 5) {
+        handleSendVoiceMessage(transcript);
+      }
     };
 
     recognitionRef.current.onerror = (event) => {
@@ -158,7 +220,16 @@ const Chatbot: React.FC = () => {
     };
 
     recognitionRef.current.onend = () => {
-      setIsListening(false);
+      // Reiniciar el reconocimiento si estamos en modo listening
+      if (isListening) {
+        setTimeout(() => {
+          if (recognitionRef.current) {
+            recognitionRef.current.start();
+          }
+        }, 300);
+      } else {
+        setIsListening(false);
+      }
     };
 
     recognitionRef.current.start();
@@ -172,18 +243,36 @@ const Chatbot: React.FC = () => {
     }
   };
 
-  // Función para sintetizar voz
+  // Función para sintetizar voz con la voz de Puck
   const speakText = (text: string) => {
     if ('speechSynthesis' in window) {
-      const synthesis = window.speechSynthesis;
+      // Cancelar cualquier síntesis en curso
+      window.speechSynthesis.cancel();
+      
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'es-ES';
-      synthesis.speak(utterance);
+      
+      // Aplicar voz seleccionada
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+      
+      // Ajustar tono y velocidad para que suene como "Puck"
+      utterance.pitch = 1.1;  // Ligeramente más agudo
+      utterance.rate = 1.05;  // Ligeramente más rápido
+      
+      activeSynthesisRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
+      
+      utterance.onend = () => {
+        activeSynthesisRef.current = null;
+      };
     }
   };
 
   const handleSendVoiceMessage = async (transcript: string) => {
     if (transcript.trim()) {
+      setMessage('');
       await handleSendMessage(transcript);
     }
   };
@@ -218,9 +307,9 @@ const Chatbot: React.FC = () => {
         // Capturar la pantalla
         const screenshot = await captureScreenshot();
         
-        // Configurar el modelo de Gemini
+        // Configurar el modelo de Gemini usando el modelo Flash Live
         const model = genAI.getGenerativeModel({ 
-          model: "gemini-1.5-pro-latest",
+          model: "models/gemini-2.0-flash-live-001",
           generationConfig: {
             temperature: 0.4,
             topK: 32,
@@ -248,10 +337,11 @@ const Chatbot: React.FC = () => {
         });
 
         // Indicaciones del sistema para el asistente
-        const systemPrompt = `Eres un asistente virtual profesional y amable para la plataforma de Avalia de Grupo AVAL.
-Tu trabajo es ayudar a los usuarios a navegar por la aplicación y resolver sus dudas.
-Responde de manera concisa y útil, y utiliza la información visual de la pantalla para proporcionar ayuda contextual.
-Habla en español y sé cordial pero profesional.`;
+        const systemPrompt = `Eres Puck, un asistente virtual amigable y carismático con personalidad alegre y servicial.
+Tu trabajo es ayudar a los usuarios a navegar por la aplicación y resolver sus dudas en tiempo real.
+Responde siempre en español, de manera concisa y útil, con un toque de personalidad amistosa pero profesional.
+Utiliza la información visual de la pantalla para proporcionar ayuda contextual precisa.
+Cuando el usuario tenga una duda sobre algo que está viendo en pantalla, analiza la captura y describe lo que ves.`;
 
         // Crear la solicitud para el chat
         const chat = model.startChat({
@@ -278,13 +368,16 @@ Habla en español y sé cordial pero profesional.`;
           parts.push({ text: "Analiza la captura de pantalla y ayuda al usuario a entender lo que ve y cómo puede interactuar con la interfaz." });
         }
 
-        // Enviar el mensaje y procesar la respuesta
+        // Enviar el mensaje y procesar la respuesta en streaming
         const result = await chat.sendMessageStream(parts);
         let fullResponse = "";
+        let partialResponse = "";
+        let lastSpeakTime = 0;
 
         for await (const chunk of result.stream) {
           const chunkText = chunk.text();
           fullResponse += chunkText;
+          partialResponse += chunkText;
           
           // Actualizar el mensaje del bot con la respuesta parcial
           setMessages(prev => 
@@ -294,6 +387,14 @@ Habla en español y sé cordial pero profesional.`;
                 : msg
             )
           );
+
+          // Hablar en voz alta cada fragmento significativo (cada 15-20 palabras aproximadamente)
+          const now = Date.now();
+          if (partialResponse.split(' ').length > 15 && now - lastSpeakTime > 1500) {
+            speakText(partialResponse);
+            partialResponse = "";
+            lastSpeakTime = now;
+          }
         }
 
         // Actualizar el mensaje del bot con la respuesta completa
@@ -305,8 +406,10 @@ Habla en español y sé cordial pero profesional.`;
           )
         );
         
-        // Leer la respuesta en voz alta
-        speakText(fullResponse);
+        // Leer cualquier texto restante
+        if (partialResponse.trim()) {
+          speakText(partialResponse);
+        }
       } catch (error) {
         console.error('Error al procesar la respuesta:', error);
         
@@ -359,7 +462,7 @@ Habla en español y sé cordial pero profesional.`;
         <Card className="fixed bottom-20 right-4 w-80 sm:w-96 h-[500px] flex flex-col bg-white shadow-xl rounded-lg overflow-hidden border z-50">
           {/* Encabezado del chat */}
           <div className="p-3 bg-primary text-white flex justify-between items-center">
-            <h3 className="font-medium">Asistente Virtual</h3>
+            <h3 className="font-medium">Puck - Asistente Virtual</h3>
             <Button variant="ghost" size="icon" onClick={toggleChat} className="text-white hover:bg-primary/90">
               <X className="h-5 w-5" />
             </Button>
@@ -399,7 +502,7 @@ Habla en español y sé cordial pero profesional.`;
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Escribe tu mensaje..."
-              disabled={isLoading || isListening}
+              disabled={isLoading}
               className="flex-1"
             />
             <Button
@@ -408,6 +511,7 @@ Habla en español y sé cordial pero profesional.`;
               disabled={isLoading}
               size="icon"
               variant={isListening ? "destructive" : "outline"}
+              title={isListening ? "Detener reconocimiento de voz" : "Iniciar reconocimiento de voz"}
             >
               {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </Button>
@@ -421,7 +525,12 @@ Habla en español y sé cordial pero profesional.`;
             >
               <ScreenShare className="h-5 w-5" />
             </Button>
-            <Button type="submit" disabled={isLoading || isListening || !message.trim()} size="icon">
+            <Button 
+              type="submit" 
+              disabled={isLoading || !message.trim()} 
+              size="icon"
+              title="Enviar mensaje"
+            >
               <Send className="h-5 w-5" />
             </Button>
           </form>
@@ -453,4 +562,3 @@ Habla en español y sé cordial pero profesional.`;
 };
 
 export default Chatbot;
-
