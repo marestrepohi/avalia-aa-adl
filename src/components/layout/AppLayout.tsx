@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
@@ -54,6 +55,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           {children}
         </div>
       </main>
+      
+      {/* Chatbot component */}
       <Chatbot />
     </div>
   );
