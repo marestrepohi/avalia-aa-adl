@@ -56,7 +56,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </div>
       </main>
       
-      {/* Chatbot component */}
+      {/* Floating screen capture button */}
       <Chatbot />
     </div>
   );
