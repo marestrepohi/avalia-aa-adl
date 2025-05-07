@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, User, Monitor, Mic, Volume2, VolumeX } from 'lucide-react';
+import { MessageSquare, X, Send, User, Monitor, Mic, Volume2, VolumeX, Minimize2, Maximize2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -74,6 +74,7 @@ const Chatbot: React.FC = () => {
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const webSocketRef = useRef<WebSocket | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -135,7 +136,6 @@ const Chatbot: React.FC = () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: { 
-          // Remove 'cursor' property and use a valid property
           displaySurface: 'monitor' as MediaTrackConstraints['displaySurface'],
         },
         audio: false,
@@ -304,6 +304,10 @@ const Chatbot: React.FC = () => {
     setIsOpen(!isOpen);
   };
 
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   const addUserMessage = (text: string, isScreenCapture = false) => {
     const newMessage: Message = {
       id: messages.length + 1,
@@ -367,52 +371,78 @@ const Chatbot: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <Card className="w-full max-w-2xl h-[80vh] flex flex-col bg-white shadow-xl rounded-lg overflow-hidden">
+    <div className="fixed bottom-6 right-6 z-50">
+      <Card className={`flex flex-col bg-white shadow-xl rounded-lg overflow-hidden transition-all duration-300
+        ${isExpanded ? 'w-96 h-[500px]' : 'w-80 h-[400px]'}`}
+      >
         {/* Chat header */}
-        <div className="flex items-center justify-between border-b p-4">
+        <div className="flex items-center justify-between border-b p-2">
           <div className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">Asistente Virtual</h3>
+            <MessageSquare className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-medium">Asistente Virtual</h3>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="icon" 
+              className="h-7 w-7" 
               onClick={() => isCapturingScreen ? stopScreenCapture() : startScreenCapture()} 
-              className={isCapturingScreen ? "bg-red-100 text-red-600 hover:bg-red-200" : ""}
             >
-              <Monitor className="h-5 w-5" />
+              <Monitor className={`h-4 w-4 ${isCapturingScreen ? "text-red-500" : ""}`} />
             </Button>
-            <Button variant="outline" size="icon" onClick={startListening} disabled={isListening}>
-              <Mic className={`h-5 w-5 ${isListening ? "text-primary animate-pulse" : ""}`} />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7" 
+              onClick={startListening} 
+              disabled={isListening}
+            >
+              <Mic className={`h-4 w-4 ${isListening ? "text-primary animate-pulse" : ""}`} />
             </Button>
-            <Button variant="outline" size="icon" onClick={toggleSpeech}>
-              {isSpeaking ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7" 
+              onClick={toggleSpeech}
+            >
+              {isSpeaking ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
             </Button>
-            <Button variant="outline" size="icon" onClick={toggleChat}>
-              <X className="h-5 w-5" />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7" 
+              onClick={toggleExpand}
+            >
+              {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7" 
+              onClick={toggleChat}
+            >
+              <X className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
         {/* Messages area */}
-        <div className="flex-grow overflow-y-auto p-4 space-y-4">
+        <div className="flex-grow overflow-y-auto p-3 space-y-3 bg-slate-50">
           {messages.map((msg) => (
             <div
               key={msg.id}
               className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`rounded-lg p-3 max-w-[80%] ${
+                className={`rounded-lg p-2 max-w-[85%] text-sm ${
                   msg.sender === 'user'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted'
                 }`}
               >
-                {msg.isScreenCapture && <p className="font-medium mb-1">📷 Captura de pantalla</p>}
-                <p>{msg.text}</p>
-                <p className="text-xs opacity-70 text-right mt-1">
+                {msg.isScreenCapture && <p className="font-medium mb-1 text-xs">📷 Captura de pantalla</p>}
+                <p className="break-words">{msg.text}</p>
+                <p className="text-xs opacity-70 text-right mt-0.5">
                   {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
@@ -422,15 +452,15 @@ const Chatbot: React.FC = () => {
 
         {/* Screen preview area */}
         {isCapturingScreen && (
-          <div className="border-t p-2">
-            <div className="relative w-full h-32 bg-black/10 rounded flex items-center justify-center">
+          <div className="border-t p-1">
+            <div className="relative w-full h-20 bg-black/10 rounded flex items-center justify-center">
               <video
                 ref={videoRef}
                 autoPlay
                 muted
                 className="max-h-full max-w-full rounded"
               />
-              <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+              <div className="absolute top-1 left-1 bg-red-600 text-white text-[10px] px-1 py-0.5 rounded-full animate-pulse">
                 Grabando
               </div>
             </div>
@@ -438,15 +468,15 @@ const Chatbot: React.FC = () => {
         )}
 
         {/* Input area */}
-        <form onSubmit={handleSend} className="border-t p-4 flex gap-2">
+        <form onSubmit={handleSend} className="border-t p-2 flex gap-2">
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Escribe un mensaje..."
-            className="flex-grow"
+            className="flex-grow text-sm h-8"
           />
-          <Button type="submit" size="icon">
-            <Send className="h-5 w-5" />
+          <Button type="submit" size="sm" className="px-2 h-8">
+            <Send className="h-3 w-3" />
           </Button>
         </form>
       </Card>
