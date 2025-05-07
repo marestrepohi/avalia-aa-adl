@@ -6,6 +6,51 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 
+// Define necessary types for Speech Recognition
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionResultList {
+  readonly length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  readonly length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal?: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onstart: (event: Event) => void;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onerror: (event: Event & { error: string }) => void;
+  onend: (event: Event) => void;
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognition;
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  }
+}
+
 type Message = {
   id: number;
   text: string;
@@ -90,7 +135,8 @@ const Chatbot: React.FC = () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: { 
-          cursor: "always" as MediaTrackConstraints['cursor'],
+          // Remove 'cursor' property and use a valid property
+          displaySurface: 'monitor' as MediaTrackConstraints['displaySurface'],
         },
         audio: false,
       });
@@ -172,8 +218,9 @@ const Chatbot: React.FC = () => {
   // Handle speech recognition
   const startListening = () => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
+      // Properly access the speech recognition constructor
+      const SpeechRecognitionConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognitionConstructor();
       
       recognition.lang = 'es-ES';
       recognition.continuous = false;
