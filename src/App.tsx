@@ -23,7 +23,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <DashboardProvider>
-        <WebSocketProvider url="ws://localhost:9084/ws">
+        <WebSocketProvider url="ws://gemini-service-294010717824.us-east1.run.app/">
           <Toaster />
           <Sonner />
           <BrowserRouter>
