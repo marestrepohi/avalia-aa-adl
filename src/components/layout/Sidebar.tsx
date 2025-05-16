@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { LayoutDashboard, Users, Megaphone, UserSquare2, MessageSquare, ChevronDown, PanelLeft, ChevronRight, X, PhoneCall, BarChart, HeartPulse } from "lucide-react";
 import { useDashboard } from "../../contexts/DashboardContext";
@@ -126,18 +127,38 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
           ${isMobile ? 'shadow-xl' : ''}
         `}
       >
-        {isMobile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-2"
-            onClick={() => setIsOpen(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
+        {/* Header controls */}
+        <div className="flex items-center justify-between mb-6">
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-2"
+              onClick={() => setIsOpen(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+          
+          {!isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="ml-auto"
+              onClick={() => {
+                setIsCollapsed(!isCollapsed);
+                // Si contraemos el sidebar, cerramos los submenús abiertos
+                if (!isCollapsed) {
+                  setOpenSubMenu(null);
+                }
+              }}
+            >
+              <PanelLeft className={`h-5 w-5 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
+            </Button>
+          )}
+        </div>
         
-        <nav className="space-y-1 mt-6">
+        <nav className="space-y-1">
           <SidebarItem 
             icon={<LayoutDashboard className="h-5 w-5" />} 
             text="Resumen General" 
@@ -242,23 +263,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             )}
           </div>
         </nav>
-
-        {!isMobile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute bottom-4 left-4"
-            onClick={() => {
-              setIsCollapsed(!isCollapsed);
-              // Si contraemos el sidebar, cerramos los submenús abiertos
-              if (!isCollapsed) {
-                setOpenSubMenu(null);
-              }
-            }}
-          >
-            <PanelLeft className={`h-5 w-5 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
-          </Button>
-        )}
       </aside>
     </>
   );
