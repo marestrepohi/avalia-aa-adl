@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Monitor, X } from 'lucide-react';
+import { HelpCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ScreenShare from './ScreenShare';
@@ -13,9 +14,9 @@ const Chatbot: React.FC = () => {
         <Button
           onClick={() => setIsOpen(true)}
           className="bg-primary text-white rounded-full p-4 shadow-lg hover:bg-primary/90 transition-colors"
-          aria-label="Iniciar Compartir Pantalla"
+          aria-label="Empezar Conversación"
         >
-          <Monitor className="h-6 w-6" />
+          <HelpCircle className="h-6 w-6" />
         </Button>
       ) : (
         <Card className="w-64 h-[30vh] overflow-auto">
