@@ -1,145 +1,121 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { ScrollArea } from "./ui/scroll-area";
-import { Avatar } from "./ui/avatar";
-import { AvatarImage } from "@radix-ui/react-avatar";
-import { useWebSocket } from "./WebSocketProvider";
-import AudioPlayer from "./AudioPlayer";
+
+import React, { useState, useEffect } from 'react';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar } from "@/components/ui/avatar";
+import { Send } from 'lucide-react';
+import { useWebSocket } from './WebSocketProvider';
 
 interface Message {
+  id: string;
   text: string;
-  sender: "User" | "Gemini";
-  timestamp: number;
-  isComplete: boolean;
-  type: "text" | "audio";
-  audioData?: string;
+  sender: 'user' | 'assistant';
+  timestamp: Date;
 }
 
 const Chat: React.FC = () => {
-  const [inputText, setInputText] = useState("");
-  const { sendMessage, lastTranscription, lastAudioData } = useWebSocket();
   const [messages, setMessages] = useState<Message[]>([]);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputText(event.target.value);
-  };
-
-  const handleSendMessage = () => {
-    if (inputText.trim() !== "") {
-      sendMessage({ type: "text", data: { text: inputText } });
-      setInputText("");
-    }
-  };
-
-  // Handle transcription updates
+  const [input, setInput] = useState('');
+  const { sendMessage, lastTranscription } = useWebSocket();
+  
+  // Add message effect
   useEffect(() => {
-    if (lastTranscription) {
+    if (lastTranscription && lastTranscription.text) {
+      const newMessage: Message = {
+        id: `msg-${Date.now()}`,
+        text: lastTranscription.text,
+        sender: lastTranscription.sender === 'Gemini' ? 'assistant' : 'user',
+        timestamp: new Date()
+      };
+      
+      // Check if we should update the last message or add a new one
       setMessages(prev => {
-        const lastMessage = prev.findLast(m => m.type === 'text'); // Find the last text message
+        const lastMessage = prev.length > 0 ? prev[prev.length - 1] : null;
         
-        // Check if the last text message is from the same sender and is incomplete
-        const shouldUpdateLast = lastMessage && 
-                               lastMessage.sender === lastTranscription.sender &&
-                               !lastMessage.isComplete;
-
-        if (shouldUpdateLast) {
-          // Update the last message by appending new text and updating completion status
-          const updatedMessages = prev.map(msg => 
-            msg === lastMessage 
-              ? { ...lastMessage, text: lastMessage.text + lastTranscription.text, isComplete: lastTranscription.finished === true } // Append
-              : msg
-          );
+        if (lastMessage && lastMessage.sender === newMessage.sender && !lastTranscription.finished) {
+          // Update the last message
+          const updatedMessages = [...prev];
+          updatedMessages[updatedMessages.length - 1] = {
+            ...lastMessage,
+            text: newMessage.text
+          };
           return updatedMessages;
+        } else {
+          // Add new message
+          return [...prev, newMessage];
         }
-        
-        // Otherwise, add a new message entry
-        const newMessage = {
-          text: lastTranscription.text,
-          sender: lastTranscription.sender,
-          timestamp: Date.now(),
-          isComplete: lastTranscription.finished === true,
-          type: "text" as const // Explicitly type as "text"
-        };
-        return [...prev, newMessage];
       });
     }
   }, [lastTranscription]);
-
-  // Handle audio data
-  useEffect(() => {
-    if (lastAudioData) {
-      setMessages(prev => [...prev, {
-        text: "",
-        sender: "Gemini",
-        timestamp: Date.now(),
-        isComplete: true,
-        type: "audio",
-        audioData: lastAudioData
-      }]);
-    }
-  }, [lastAudioData]);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    
+    // Add user message
+    const newMessage: Message = {
+      id: `msg-${Date.now()}`,
+      text: input,
+      sender: 'user',
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, newMessage]);
+    
+    // Send to WebSocket
+    sendMessage({
+      message: {
+        text: input
+      }
+    });
+    
+    setInput('');
+  };
+  
   return (
     <div className="flex flex-col h-full">
-      <ScrollArea className="flex-1 p-4 space-y-4">
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${
-              message.sender === "Gemini"
-                ? "justify-start"
-                : "justify-end"
-            } items-start space-x-2`}
-          >
-            {message.sender === "Gemini" && (
-              <Avatar>
-                <AvatarImage src="/placeholder-avatar.jpg" />
-              </Avatar>
-            )}
-            <div
-              className={`p-3 rounded-lg max-w-[70%] ${
-                message.sender === "Gemini"
-                  ? "bg-gray-100 text-gray-800"
-                  : "bg-blue-500 text-white"
-              }`}
+      <ScrollArea className="flex-1 p-4">
+        <div className="space-y-4">
+          {messages.map((message) => (
+            <div 
+              key={message.id}
+              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {message.type === "text" && (
-                <>
+              <div className={`flex items-start gap-2 max-w-[80%] ${
+                message.sender === 'user' ? 'flex-row-reverse' : ''}`}
+              >
+                <Avatar>
+                  <div className="bg-primary text-primary-foreground w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium">
+                    {message.sender === 'user' ? 'U' : 'AI'}
+                  </div>
+                </Avatar>
+                <div className={`rounded-lg py-2 px-3 ${
+                  message.sender === 'user' 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-muted'}`}
+                >
                   <p>{message.text}</p>
-                  {!message.isComplete && (
-                    <span className="text-xs text-gray-500">(typing...)</span>
-                  )}
-                </>
-              )}
-              {message.type === "audio" && message.audioData && (
-                <AudioPlayer base64Audio={message.audioData} />
-              )}
+                  <p className="text-xs opacity-70 mt-1">
+                    {message.timestamp.toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
             </div>
-            {message.sender !== "Gemini" && (
-              <Avatar>
-                <AvatarImage src="/user-avatar.jpg" />
-              </Avatar>
-            )}
-          </div>
-        ))}
-        <div ref={chatEndRef} />
+          ))}
+        </div>
       </ScrollArea>
       
-      <div className="p-4 border-t flex space-x-2">
-        <Input
-          value={inputText}
-          onChange={handleInputChange}
-          onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+      <form onSubmit={handleSubmit} className="border-t p-4 flex gap-2">
+        <Input 
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
           placeholder="Type a message..."
+          className="flex-1"
         />
-        <Button onClick={handleSendMessage}>Send</Button>
-      </div>
+        <Button type="submit" size="icon">
+          <Send className="h-4 w-4" />
+        </Button>
+      </form>
     </div>
   );
 };

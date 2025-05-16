@@ -218,7 +218,6 @@ const ScreenShare: React.FC = () => {
                 <Progress 
                   value={Math.max(audioLevel, playbackAudioLevel)} 
                   className="h-1 bg-white" 
-                  indicatorClassName="bg-black" 
                 />
               </div>
             )}
