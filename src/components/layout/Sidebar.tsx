@@ -1,6 +1,6 @@
 
 import React, { useEffect } from "react";
-import { LayoutDashboard, Users, Megaphone, UserSquare2, MessageSquare, ChevronDown, PanelLeft, ChevronRight, X, PhoneCall, BarChart, HeartPulse } from "lucide-react";
+import { LayoutDashboard, Users, Megaphone, UserSquare2, MessageSquare, ChevronDown, PanelLeft, ChevronRight, X, PhoneCall, BarChart, HeartPulse, Brain } from "lucide-react";
 import { useDashboard } from "../../contexts/DashboardContext";
 import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/use-mobile";
@@ -262,6 +262,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
               </div>
             )}
           </div>
+
+          {/* Casos de Uso */}
+          <SidebarItem 
+            icon={<Brain className="h-5 w-5" />} 
+            text="Casos de Uso" 
+            isActive={activeView === "casosUso"}
+            onClick={() => handleViewChange("casosUso")} 
+            collapsed={isCollapsed}
+          />
         </nav>
       </aside>
     </>

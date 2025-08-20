@@ -8,6 +8,7 @@ import InformacionBancaria from './dashboard/InformacionBancaria';
 import AnalisisLlamadas from './dashboard/AnalisisLlamadas';
 import Asistentes from './dashboard/Asistentes';
 import Audiencias from './dashboard/Audiencias';
+import CasosUso from './dashboard/CasosUso';
 import { useDashboard } from '../contexts/DashboardContext';
 
 const Index = () => {
@@ -28,6 +29,7 @@ const Index = () => {
       {activeView === 'callAnalysis' && <AnalisisLlamadas />}
       {activeView === 'asistentes' && <Asistentes />}
       {activeView === 'audiencias' && <Audiencias />}
+      {activeView === 'casosUso' && <CasosUso />}
     </AppLayout>
   );
 };
