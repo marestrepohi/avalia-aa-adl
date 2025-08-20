@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { TrendingUp, TrendingDown, DollarSign, Users, Target, Cpu, BarChart3, Zap, Activity, Clock, CheckCircle, AlertCircle, CreditCard, Home, Car, Building } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
@@ -13,6 +14,24 @@ interface CasoUsoProps {
 
 const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
   const [modeloSeleccionado, setModeloSeleccionado] = useState('tarjeta-credito');
+  // Función para exportar datos a CSV
+  const exportToCsv = (filename: string, rows: Record<string, any>[]) => {
+    if (!rows || !rows.length) return;
+    const headers = Object.keys(rows[0]);
+    const csv = [
+      headers.join(','),
+      ...rows.map(row =>
+        headers.map(h => JSON.stringify(row[h] == null ? '' : row[h])).join(',')
+      )
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
   
   const casosInfo = {
     churn: {
@@ -202,8 +221,8 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
           ))}
         </div>
 
-        {/* Sección especial para NBA - Modelos de crédito */}
-        {tipoMetrica === 'negocio' && tipo === 'nba' && (
+  {/* Sección especial para NBA - Modelos de crédito */}
+  {tipoMetrica === 'tecnicas' && tipo === 'nba' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
@@ -280,6 +299,22 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
                 <CardDescription>Rendimiento actual de todos los modelos de productos</CardDescription>
               </CardHeader>
               <CardContent>
+              {/* Botón para descargar comparativa */}
+              <div className="flex justify-end mb-2">
+                <Button onClick={() => exportToCsv(
+                  'comparativa_modelos.csv',
+                  Object.entries(modelos).map(([key, m]) => ({
+                    Modelo: m.nombre,
+                    Precision: m.metricas.precision,
+                    Recall: m.metricas.recall,
+                    'F1-Score': m.metricas.f1Score,
+                    AUC: m.metricas.auc,
+                    Latencia: m.metricas.latencia
+                  }))
+                )}>
+                  Descargar CSV
+                </Button>
+              </div>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -474,6 +509,20 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
             <CardDescription>Comparación con benchmarks de la industria</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Botón para descargar métricas detalladas */}
+            <div className="flex justify-end mb-2">
+              <Button onClick={() => exportToCsv(
+                'metricas_detalladas.csv',
+                datosTabla.map(row => ({
+                  Metrica: row.metrica,
+                  ValorActual: row.valor,
+                  Benchmark: row.benchmark,
+                  Estado: row.estado
+                }))
+              )}>
+                Descargar Métricas Detalladas
+              </Button>
+            </div>
             <Table>
               <TableHeader>
                 <TableRow>
