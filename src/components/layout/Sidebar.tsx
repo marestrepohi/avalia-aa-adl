@@ -1,6 +1,6 @@
 
 import React, { useEffect } from "react";
-import { LayoutDashboard, Users, Megaphone, UserSquare2, MessageSquare, ChevronDown, PanelLeft, ChevronRight, X, PhoneCall, BarChart, HeartPulse, Brain } from "lucide-react";
+import { LayoutDashboard, Users, Megaphone, UserSquare2, MessageSquare, ChevronDown, PanelLeft, ChevronRight, X, PhoneCall, BarChart, HeartPulse, Brain, TrendingDown, Target, Zap } from "lucide-react";
 import { useDashboard } from "../../contexts/DashboardContext";
 import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/use-mobile";
@@ -263,14 +263,41 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             )}
           </div>
 
-          {/* Casos de Uso */}
-          <SidebarItem 
-            icon={<Brain className="h-5 w-5" />} 
-            text="Casos de Uso" 
-            isActive={activeView === "casosUso"}
-            onClick={() => handleViewChange("casosUso")} 
-            collapsed={isCollapsed}
-          />
+          {/* Casos de Uso con subopciones */}
+          <div>
+            <SidebarItem 
+              icon={<Brain className="h-5 w-5" />} 
+              text="Casos de Uso" 
+              isActive={activeView === "churn" || activeView === "tc" || activeView === "nba"}
+              hasChildren={!isCollapsed}
+              isOpen={openSubMenu === "casosuso"}
+              onClick={() => isCollapsed ? handleViewChange("churn") : toggleSubMenu("casosuso")} 
+              collapsed={isCollapsed}
+            />
+            
+            {openSubMenu === "casosuso" && !isCollapsed && (
+              <div className="mt-1 ml-1 space-y-1 border-l-2 border-muted pl-1">
+                <SubMenuItem
+                  icon={<TrendingDown className="h-4 w-4" />}
+                  text="Churn Prediction"
+                  isActive={activeView === "churn"}
+                  onClick={() => handleViewChange("churn")}
+                />
+                <SubMenuItem
+                  icon={<Target className="h-4 w-4" />}
+                  text="Top Customers"
+                  isActive={activeView === "tc"}
+                  onClick={() => handleViewChange("tc")}
+                />
+                <SubMenuItem
+                  icon={<Zap className="h-4 w-4" />}
+                  text="Next Best Action"
+                  isActive={activeView === "nba"}
+                  onClick={() => handleViewChange("nba")}
+                />
+              </div>
+            )}
+          </div>
         </nav>
       </aside>
     </>

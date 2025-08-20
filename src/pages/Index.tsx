@@ -8,7 +8,9 @@ import InformacionBancaria from './dashboard/InformacionBancaria';
 import AnalisisLlamadas from './dashboard/AnalisisLlamadas';
 import Asistentes from './dashboard/Asistentes';
 import Audiencias from './dashboard/Audiencias';
-import CasosUso from './dashboard/CasosUso';
+import Churn from './dashboard/Churn';
+import TopCustomers from './dashboard/TopCustomers';
+import NextBestAction from './dashboard/NextBestAction';
 import { useDashboard } from '../contexts/DashboardContext';
 
 const Index = () => {
@@ -29,7 +31,9 @@ const Index = () => {
       {activeView === 'callAnalysis' && <AnalisisLlamadas />}
       {activeView === 'asistentes' && <Asistentes />}
       {activeView === 'audiencias' && <Audiencias />}
-      {activeView === 'casosUso' && <CasosUso />}
+      {activeView === 'churn' && <Churn />}
+      {activeView === 'tc' && <TopCustomers />}
+      {activeView === 'nba' && <NextBestAction />}
     </AppLayout>
   );
 };
