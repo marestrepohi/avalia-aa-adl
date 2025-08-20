@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { TrendingUp, TrendingDown, DollarSign, Users, Target, Cpu, BarChart3, Zap, Activity, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TrendingUp, TrendingDown, DollarSign, Users, Target, Cpu, BarChart3, Zap, Activity, Clock, CheckCircle, AlertCircle, CreditCard, Home, Car, Building } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 interface CasoUsoProps {
@@ -11,6 +12,8 @@ interface CasoUsoProps {
 }
 
 const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
+  const [modeloSeleccionado, setModeloSeleccionado] = useState('tarjeta-credito');
+  
   const casosInfo = {
     churn: {
       nombre: 'Churn Prediction',
@@ -50,6 +53,90 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
     ]
   };
 
+  // Modelos específicos para NBA
+  const modelos = {
+    'tarjeta-credito': {
+      nombre: 'Tarjeta de Crédito',
+      icono: CreditCard,
+      metricas: {
+        precision: '96.4%',
+        recall: '93.2%',
+        f1Score: '94.8%',
+        auc: '0.967',
+        latencia: '32ms',
+        throughput: '15.2k/min'
+      },
+      datos: [
+        { mes: 'Ene', precision: 95.1, recall: 92.8, f1: 93.9 },
+        { mes: 'Feb', precision: 95.8, recall: 93.1, f1: 94.4 },
+        { mes: 'Mar', precision: 96.2, recall: 93.0, f1: 94.6 },
+        { mes: 'Abr', precision: 96.0, recall: 93.5, f1: 94.7 },
+        { mes: 'May', precision: 96.3, recall: 93.2, f1: 94.7 },
+        { mes: 'Jun', precision: 96.4, recall: 93.2, f1: 94.8 }
+      ]
+    },
+    'libranza': {
+      nombre: 'Libranza',
+      icono: Building,
+      metricas: {
+        precision: '94.7%',
+        recall: '91.8%',
+        f1Score: '93.2%',
+        auc: '0.952',
+        latencia: '28ms',
+        throughput: '18.5k/min'
+      },
+      datos: [
+        { mes: 'Ene', precision: 93.8, recall: 91.2, f1: 92.5 },
+        { mes: 'Feb', precision: 94.1, recall: 91.5, f1: 92.8 },
+        { mes: 'Mar', precision: 94.3, recall: 91.6, f1: 92.9 },
+        { mes: 'Abr', precision: 94.5, recall: 91.7, f1: 93.1 },
+        { mes: 'May', precision: 94.6, recall: 91.8, f1: 93.2 },
+        { mes: 'Jun', precision: 94.7, recall: 91.8, f1: 93.2 }
+      ]
+    },
+    'hipotecario': {
+      nombre: 'Hipotecario',
+      icono: Home,
+      metricas: {
+        precision: '92.1%',
+        recall: '89.4%',
+        f1Score: '90.7%',
+        auc: '0.934',
+        latencia: '45ms',
+        throughput: '8.2k/min'
+      },
+      datos: [
+        { mes: 'Ene', precision: 91.2, recall: 88.9, f1: 90.0 },
+        { mes: 'Feb', precision: 91.5, recall: 89.1, f1: 90.3 },
+        { mes: 'Mar', precision: 91.8, recall: 89.2, f1: 90.5 },
+        { mes: 'Abr', precision: 91.9, recall: 89.3, f1: 90.6 },
+        { mes: 'May', precision: 92.0, recall: 89.4, f1: 90.7 },
+        { mes: 'Jun', precision: 92.1, recall: 89.4, f1: 90.7 }
+      ]
+    },
+    'credito-vehiculos': {
+      nombre: 'Crédito Vehículos',
+      icono: Car,
+      metricas: {
+        precision: '93.8%',
+        recall: '90.6%',
+        f1Score: '92.2%',
+        auc: '0.946',
+        latencia: '38ms',
+        throughput: '12.1k/min'
+      },
+      datos: [
+        { mes: 'Ene', precision: 93.1, recall: 90.1, f1: 91.6 },
+        { mes: 'Feb', precision: 93.3, recall: 90.3, f1: 91.8 },
+        { mes: 'Mar', precision: 93.5, recall: 90.4, f1: 91.9 },
+        { mes: 'Abr', precision: 93.6, recall: 90.5, f1: 92.0 },
+        { mes: 'May', precision: 93.7, recall: 90.6, f1: 92.1 },
+        { mes: 'Jun', precision: 93.8, recall: 90.6, f1: 92.2 }
+      ]
+    }
+  };
+
   // Datos para gráficos de series de tiempo
   const seriesTemporales = [
     { fecha: 'Ene', precision: 92.1, latencia: 48, roi: 320 },
@@ -86,12 +173,12 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
     { metrica: 'AUC-ROC', valor: '0.952', benchmark: '0.900', estado: 'Excelente' }
   ];
 
-  const renderMetricas = (tipo: 'financieras' | 'negocio' | 'tecnicas') => {
+  const renderMetricas = (tipoMetrica: 'financieras' | 'negocio' | 'tecnicas') => {
     return (
       <div className="space-y-6">
         {/* KPIs principales */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {metricas[tipo].map((metrica, index) => (
+          {metricas[tipoMetrica].map((metrica, index) => (
             <Card key={index} className="p-4">
               <CardContent className="p-0">
                 <div className="flex items-center justify-between">
@@ -115,153 +202,270 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
           ))}
         </div>
 
-        {/* Gráficos según el tipo */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {tipo === 'financieras' && (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>ROI Evolutivo</CardTitle>
-                  <CardDescription>Retorno de inversión por mes</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={seriesTemporales}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="fecha" />
-                      <YAxis />
-                      <Tooltip />
-                      <Area type="monotone" dataKey="roi" stroke="#10b981" fill="#10b981" fillOpacity={0.3} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+        {/* Sección especial para NBA - Modelos de crédito */}
+        {tipoMetrica === 'negocio' && tipo === 'nba' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Modelos de Productos Financieros</h3>
+                <p className="text-muted-foreground">Métricas técnicas por tipo de producto</p>
+              </div>
+              <Select value={modeloSeleccionado} onValueChange={setModeloSeleccionado}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Seleccionar modelo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(modelos).map(([key, modelo]) => {
+                    const IconComponent = modelo.icono;
+                    return (
+                      <SelectItem key={key} value={key}>
+                        <div className="flex items-center space-x-2">
+                          <IconComponent className="h-4 w-4" />
+                          <span>{modelo.nombre}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Distribución de Costos</CardTitle>
-                  <CardDescription>Desglose de inversión</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { name: 'Infraestructura', value: 35, color: '#3b82f6' },
-                          { name: 'Desarrollo', value: 45, color: '#10b981' },
-                          { name: 'Mantenimiento', value: 20, color: '#f59e0b' }
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="value"
-                        label
-                      >
-                        {[
-                          { name: 'Infraestructura', value: 35, color: '#3b82f6' },
-                          { name: 'Desarrollo', value: 45, color: '#10b981' },
-                          { name: 'Mantenimiento', value: 20, color: '#f59e0b' }
-                        ].map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </>
-          )}
+            {/* Métricas del modelo seleccionado */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.entries(modelos[modeloSeleccionado].metricas).map(([key, valor]) => (
+                <Card key={key} className="p-4">
+                  <CardContent className="p-0">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground capitalize">
+                          {key.replace(/([A-Z])/g, ' $1').trim()}
+                        </p>
+                        <p className="text-xl font-bold">{valor as string}</p>
+                      </div>
+                      <BarChart3 className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
-          {tipo === 'negocio' && (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Precisión del Modelo</CardTitle>
-                  <CardDescription>Evolución mensual de la precisión</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={seriesTemporales}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="fecha" />
-                      <YAxis domain={[90, 96]} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="precision" stroke="#10b981" strokeWidth={3} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+            {/* Gráfico del modelo seleccionado */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  {React.createElement(modelos[modeloSeleccionado].icono, { className: "h-5 w-5" })}
+                  <span>Evolución - {modelos[modeloSeleccionado].nombre}</span>
+                </CardTitle>
+                <CardDescription>Métricas técnicas mensuales del modelo</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={modelos[modeloSeleccionado].datos}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mes" />
+                    <YAxis domain={[85, 100]} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="precision" stroke="#10b981" strokeWidth={2} name="Precision" />
+                    <Line type="monotone" dataKey="recall" stroke="#3b82f6" strokeWidth={2} name="Recall" />
+                    <Line type="monotone" dataKey="f1" stroke="#f59e0b" strokeWidth={2} name="F1-Score" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Predicciones vs Correctas</CardTitle>
-                  <CardDescription>Comparación mensual</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={datosBarras}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="mes" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="predicciones" fill="#3b82f6" name="Total Predicciones" />
-                      <Bar dataKey="correctas" fill="#10b981" name="Predicciones Correctas" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </>
-          )}
+            {/* Tabla comparativa de todos los modelos */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Comparativa de Modelos</CardTitle>
+                <CardDescription>Rendimiento actual de todos los modelos de productos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Modelo</TableHead>
+                      <TableHead>Precisión</TableHead>
+                      <TableHead>Recall</TableHead>
+                      <TableHead>F1-Score</TableHead>
+                      <TableHead>AUC</TableHead>
+                      <TableHead>Latencia</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Object.entries(modelos).map(([key, modelo]) => {
+                      const IconComponent = modelo.icono;
+                      return (
+                        <TableRow key={key} className={modeloSeleccionado === key ? 'bg-muted/50' : ''}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center space-x-2">
+                              <IconComponent className="h-4 w-4" />
+                              <span>{modelo.nombre}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{modelo.metricas.precision}</TableCell>
+                          <TableCell>{modelo.metricas.recall}</TableCell>
+                          <TableCell>{modelo.metricas.f1Score}</TableCell>
+                          <TableCell>{modelo.metricas.auc}</TableCell>
+                          <TableCell>{modelo.metricas.latencia}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-          {tipo === 'tecnicas' && (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Latencia API</CardTitle>
-                  <CardDescription>Tiempo de respuesta promedio</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={seriesTemporales}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="fecha" />
-                      <YAxis domain={[40, 50]} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="latencia" stroke="#ef4444" strokeWidth={3} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+        {/* Gráficos según el tipo - Solo si NO es NBA con métricas de negocio */}
+        {!(tipoMetrica === 'negocio' && tipo === 'nba') && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {tipoMetrica === 'financieras' && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>ROI Evolutivo</CardTitle>
+                    <CardDescription>Retorno de inversión por mes</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <AreaChart data={seriesTemporales}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="fecha" />
+                        <YAxis />
+                        <Tooltip />
+                        <Area type="monotone" dataKey="roi" stroke="#10b981" fill="#10b981" fillOpacity={0.3} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Distribución de Predicciones</CardTitle>
-                  <CardDescription>Exactitud del modelo</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={datosPie}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}%`}
-                      >
-                        {datosPie.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </>
-          )}
-        </div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Distribución de Costos</CardTitle>
+                    <CardDescription>Desglose de inversión</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'Infraestructura', value: 35, color: '#3b82f6' },
+                            { name: 'Desarrollo', value: 45, color: '#10b981' },
+                            { name: 'Mantenimiento', value: 20, color: '#f59e0b' }
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          dataKey="value"
+                          label
+                        >
+                          {[
+                            { name: 'Infraestructura', value: 35, color: '#3b82f6' },
+                            { name: 'Desarrollo', value: 45, color: '#10b981' },
+                            { name: 'Mantenimiento', value: 20, color: '#f59e0b' }
+                          ].map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            {tipoMetrica === 'negocio' && tipo !== 'nba' && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Precisión del Modelo</CardTitle>
+                    <CardDescription>Evolución mensual de la precisión</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={seriesTemporales}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="fecha" />
+                        <YAxis domain={[90, 96]} />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="precision" stroke="#10b981" strokeWidth={3} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Predicciones vs Correctas</CardTitle>
+                    <CardDescription>Comparación mensual</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={datosBarras}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="mes" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="predicciones" fill="#3b82f6" name="Total Predicciones" />
+                        <Bar dataKey="correctas" fill="#10b981" name="Predicciones Correctas" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            {tipoMetrica === 'tecnicas' && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Latencia API</CardTitle>
+                    <CardDescription>Tiempo de respuesta promedio</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={seriesTemporales}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="fecha" />
+                        <YAxis domain={[40, 50]} />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="latencia" stroke="#ef4444" strokeWidth={3} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Distribución de Predicciones</CardTitle>
+                    <CardDescription>Exactitud del modelo</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={datosPie}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          dataKey="value"
+                          label={({ name, value }) => `${name}: ${value}%`}
+                        >
+                          {datosPie.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Tabla de métricas detalladas */}
         <Card>
