@@ -11,8 +11,8 @@ import Audiencias from './dashboard/Audiencias';
 import Churn from './dashboard/Churn';
 import TopCustomers from './dashboard/TopCustomers';
 import NextBestAction from './dashboard/NextBestAction';
-import { useDashboard } from '../contexts/DashboardContext';
 import AumentoUso from './dashboard/AumentoUso';
+import { useDashboard } from '../contexts/DashboardContext';
 
 const Index = () => {
   const { activeView, setActiveView } = useDashboard();

@@ -9,11 +9,12 @@ import { TrendingUp, TrendingDown, DollarSign, Users, Target, Cpu, BarChart3, Za
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 interface CasoUsoProps {
-  tipo: 'churn' | 'tc' | 'nba';
+  tipo: 'churn' | 'tc' | 'nba' | 'aumento-uso';
 }
 
 const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
   const [modeloSeleccionado, setModeloSeleccionado] = useState('tarjeta-credito');
+  const [filtroUsuario, setFiltroUsuario] = useState<'activos' | 'durmientes'>('activos');
   // Función para exportar datos a CSV
   const exportToCsv = (filename: string, rows: Record<string, any>[]) => {
     if (!rows || !rows.length) return;
@@ -48,6 +49,11 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
       nombre: 'Next Best Action',
       descripcion: 'Próxima mejor acción comercial',
       color: 'bg-blue-500'
+    },
+    'aumento-uso': {
+      nombre: 'Aumento de Uso',
+      descripcion: 'Incremento en utilización de productos',
+      color: 'bg-purple-500'
     }
   };
 
@@ -190,6 +196,25 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
     { metrica: 'Recall', valor: '89.4%', benchmark: '85.0%', estado: 'Bueno' },
     { metrica: 'F1-Score', valor: '91.0%', benchmark: '86.5%', estado: 'Excelente' },
     { metrica: 'AUC-ROC', valor: '0.952', benchmark: '0.900', estado: 'Excelente' }
+  ];
+
+  // Datos para series de tiempo Aumento de Uso
+  const activosTimeSeriesData = [
+    { periodo: 'May-25', contactables: 79.14, compra: 20.05, efectividad: 20.05 },
+    { periodo: 'Abr-25', contactables: 77.06, compra: 17.25, efectividad: 17.25 },
+    { periodo: 'Mar-25', contactables: 76.12, compra: 20.08, efectividad: 20.08 },
+    { periodo: 'Feb-25', contactables: 70.83, compra: 12.54, efectividad: 12.54 },
+    { periodo: 'Ene-25', contactables: 75.51, compra: 19.51, efectividad: 19.51 },
+    { periodo: 'Dic-24', contactables: 73.84, compra: 14.27, efectividad: 14.27 }
+  ];
+
+  const durmientesTimeSeriesData = [
+    { periodo: 'May-Jul 25', contactables: 66, compra: 23, efectividad: 23.12 },
+    { periodo: 'Mar-May 25', contactables: 58, compra: 24, efectividad: 24.26 },
+    { periodo: 'Feb-Abr 25', contactables: 61, compra: 24, efectividad: 24.06 },
+    { periodo: 'Ene-Mar 25', contactables: 44, compra: 15, efectividad: 15.20 },
+    { periodo: 'Dic-Feb 25', contactables: 53, compra: 20, efectividad: 19.73 },
+    { periodo: 'Nov-Ene 25', contactables: 47, compra: 31, efectividad: 30.58 }
   ];
 
   const renderMetricas = (tipoMetrica: 'financieras' | 'negocio' | 'tecnicas') => {
@@ -352,8 +377,326 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
           </div>
         )}
 
-        {/* Gráficos según el tipo - Solo si NO es NBA con métricas de negocio */}
-        {!(tipoMetrica === 'negocio' && tipo === 'nba') && (
+        {/* Sección especial para Aumento de Uso - Filtro Activos/Durmientes */}
+        {tipoMetrica === 'negocio' && tipo === 'aumento-uso' && (
+          <div className="space-y-6">
+            {/* Filtro Activos/Durmientes */}
+            <div className="flex gap-4 items-center">
+              <label className="text-sm font-medium">Tipo de Usuario:</label>
+              <div className="flex gap-2">
+                <Button 
+                  variant={filtroUsuario === 'activos' ? 'default' : 'outline'} 
+                  onClick={() => setFiltroUsuario('activos')}
+                  size="sm"
+                >
+                  Activos
+                </Button>
+                <Button 
+                  variant={filtroUsuario === 'durmientes' ? 'default' : 'outline'} 
+                  onClick={() => setFiltroUsuario('durmientes')}
+                  size="sm"
+                >
+                  Durmientes
+                </Button>
+              </div>
+            </div>
+
+            {/* KPIs basados en datos CSV */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card className="p-4">
+                <CardContent className="p-0">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Usuarios Contactables</p>
+                      <p className="text-2xl font-bold">{filtroUsuario === 'activos' ? '34,197' : '9,871'}</p>
+                    </div>
+                    <Users className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <p className="text-xs text-green-600 mt-2">{filtroUsuario === 'activos' ? '79.14%' : '66%'}</p>
+                </CardContent>
+              </Card>
+              <Card className="p-4">
+                <CardContent className="p-0">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Usuarios Compra</p>
+                      <p className="text-2xl font-bold">{filtroUsuario === 'activos' ? '6,855' : '2,224'}</p>
+                    </div>
+                    <Target className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <p className="text-xs text-green-600 mt-2">{filtroUsuario === 'activos' ? '20.05%' : '23%'}</p>
+                </CardContent>
+              </Card>
+              <Card className="p-4">
+                <CardContent className="p-0">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Efectividad</p>
+                      <p className="text-2xl font-bold">{filtroUsuario === 'activos' ? '20.05%' : '23.12%'}</p>
+                    </div>
+                    <TrendingUp className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <p className="text-xs text-green-600 mt-2">+2.1%</p>
+                </CardContent>
+              </Card>
+              <Card className="p-4">
+                <CardContent className="p-0">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Cuota Promedio</p>
+                      <p className="text-2xl font-bold">{filtroUsuario === 'activos' ? '$11.21' : '$14.45'}</p>
+                    </div>
+                    <DollarSign className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <p className="text-xs text-green-600 mt-2">+$1.2</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Serie de tiempo de evolución */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Evolución de Métricas - Usuarios {filtroUsuario}</CardTitle>
+                <CardDescription>Tendencias temporales de las métricas principales</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={filtroUsuario === 'activos' ? activosTimeSeriesData : durmientesTimeSeriesData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="periodo" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="contactables" stroke="#8884d8" strokeWidth={2} name="Contactables %" />
+                    <Line type="monotone" dataKey="compra" stroke="#82ca9d" strokeWidth={2} name="Compra %" />
+                    <Line type="monotone" dataKey="efectividad" stroke="#ffc658" strokeWidth={2} name="Efectividad %" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Tabla de métricas detalladas */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Métricas Detalladas - {filtroUsuario}</CardTitle>
+                <CardDescription>Datos históricos comparativos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-end mb-2">
+                  <Button onClick={() => exportToCsv(
+                    `aumento-uso-${filtroUsuario}.csv`,
+                    (filtroUsuario === 'activos' ? 
+                      [
+                        { periodo: 'May-25', iniciales: '43,211', contactables: '34,197', pctContactables: '79.14%', compras: '6,855', pctCompras: '20.05%', efectividad: '20.05%' },
+                        { periodo: 'Abr-25', iniciales: '42,649', contactables: '32,864', pctContactables: '77.06%', compras: '5,669', pctCompras: '17.25%', efectividad: '17.25%' },
+                        { periodo: 'Mar-25', iniciales: '43,624', contactables: '33,206', pctContactables: '76.12%', compras: '6,667', pctCompras: '20.08%', efectividad: '20.08%' }
+                      ] : 
+                      [
+                        { periodo: 'May-Jul 25', iniciales: '15,069', contactables: '9,871', pctContactables: '66%', compras: '2,224', pctCompras: '23%', efectividad: '23.12%' },
+                        { periodo: 'Mar-May 25', iniciales: '7,290', contactables: '4,193', pctContactables: '58%', compras: '980', pctCompras: '24%', efectividad: '24.26%' },
+                        { periodo: 'Feb-Abr 25', iniciales: '8,842', contactables: '5,379', pctContactables: '61%', compras: '1,294', pctCompras: '24%', efectividad: '24.06%' }
+                      ]
+                    )
+                  )}>
+                    Descargar CSV
+                  </Button>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Período</TableHead>
+                      <TableHead>Usuarios Iniciales</TableHead>
+                      <TableHead>Contactables</TableHead>
+                      <TableHead>% Contactables</TableHead>
+                      <TableHead>Compras</TableHead>
+                      <TableHead>% Compras</TableHead>
+                      <TableHead>Efectividad</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(filtroUsuario === 'activos' ? 
+                      [
+                        { periodo: 'May-25', iniciales: '43,211', contactables: '34,197', pctContactables: '79.14%', compras: '6,855', pctCompras: '20.05%', efectividad: '20.05%' },
+                        { periodo: 'Abr-25', iniciales: '42,649', contactables: '32,864', pctContactables: '77.06%', compras: '5,669', pctCompras: '17.25%', efectividad: '17.25%' },
+                        { periodo: 'Mar-25', iniciales: '43,624', contactables: '33,206', pctContactables: '76.12%', compras: '6,667', pctCompras: '20.08%', efectividad: '20.08%' }
+                      ] : 
+                      [
+                        { periodo: 'May-Jul 25', iniciales: '15,069', contactables: '9,871', pctContactables: '66%', compras: '2,224', pctCompras: '23%', efectividad: '23.12%' },
+                        { periodo: 'Mar-May 25', iniciales: '7,290', contactables: '4,193', pctContactables: '58%', compras: '980', pctCompras: '24%', efectividad: '24.26%' },
+                        { periodo: 'Feb-Abr 25', iniciales: '8,842', contactables: '5,379', pctContactables: '61%', compras: '1,294', pctCompras: '24%', efectividad: '24.06%' }
+                      ]
+                    ).map((row, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium">{row.periodo}</TableCell>
+                        <TableCell>{row.iniciales}</TableCell>
+                        <TableCell>{row.contactables}</TableCell>
+                        <TableCell>{row.pctContactables}</TableCell>
+                        <TableCell>{row.compras}</TableCell>
+                        <TableCell>{row.pctCompras}</TableCell>
+                        <TableCell>{row.efectividad}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Sección especial para Aumento de Uso - Métricas Financieras */}
+        {tipoMetrica === 'financieras' && tipo === 'aumento-uso' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="p-4">
+                <CardContent className="p-0">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">ROI TDC</p>
+                      <p className="text-2xl font-bold">572%</p>
+                    </div>
+                    <TrendingUp className="h-4 w-4 text-green-500" />
+                  </div>
+                  <p className="text-xs text-green-600 mt-2">+45%</p>
+                </CardContent>
+              </Card>
+              <Card className="p-4">
+                <CardContent className="p-0">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Margen Incremental</p>
+                      <p className="text-2xl font-bold">$2.5M</p>
+                    </div>
+                    <DollarSign className="h-4 w-4 text-green-500" />
+                  </div>
+                  <p className="text-xs text-green-600 mt-2">+15%</p>
+                </CardContent>
+              </Card>
+              <Card className="p-4">
+                <CardContent className="p-0">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Costo por Activación</p>
+                      <p className="text-2xl font-bold">$4.80</p>
+                    </div>
+                    <DollarSign className="h-4 w-4 text-green-500" />
+                  </div>
+                  <p className="text-xs text-green-600 mt-2">-$0.50</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Evolución Financiera TDC</CardTitle>
+                  <CardDescription>Margen anual por aumento de uso</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <AreaChart data={[
+                      { año: '2020', margen: 1357 },
+                      { año: '2021', margen: 2504 },
+                      { año: '2022', margen: 2504 },
+                      { año: '2023', margen: 2504 },
+                      { año: '2024', margen: 5073 }
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="año" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [`$${value}K`, 'Margen']} />
+                      <Area type="monotone" dataKey="margen" stroke="#8884d8" fill="#8884d8" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Distribución de Impacto</CardTitle>
+                  <CardDescription>Por tipo de producto</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Tarjetas de Crédito', value: 45, fill: '#8884d8' },
+                          { name: 'Cuentas Ahorro', value: 25, fill: '#82ca9d' },
+                          { name: 'CDT', value: 20, fill: '#ffc658' },
+                          { name: 'Otros Productos', value: 10, fill: '#ff7300' }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        dataKey="value"
+                        label
+                      />
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Tabla específica del caso TDC */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Detalle Financiero - Aumento de uso TDC</CardTitle>
+                <CardDescription>Basado en registro L5;Popular;572809;Aumento de uso TDC</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-end mb-2">
+                  <Button onClick={() => exportToCsv(
+                    'detalle_financiero_tdc.csv',
+                    [
+                      { metrica: 'Cantidad Productos', '2020': '26,241', '2021': '116,742', '2022-2024': '116,742', 'Proyección 2025': '150,000' },
+                      { metrica: 'Margen (Miles $)', '2020': '$1,357', '2021': '$2,504', '2022-2024': '$2,504', 'Proyección 2025': '$5,073' },
+                      { metrica: 'ROI', '2020': '345%', '2021': '572%', '2022-2024': '572%', 'Proyección 2025': '750%' }
+                    ]
+                  )}>
+                    Descargar Detalle Financiero
+                  </Button>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Métrica</TableHead>
+                      <TableHead>2020</TableHead>
+                      <TableHead>2021</TableHead>
+                      <TableHead>2022-2024</TableHead>
+                      <TableHead>Proyección 2025</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">Cantidad Productos</TableCell>
+                      <TableCell>26,241</TableCell>
+                      <TableCell>116,742</TableCell>
+                      <TableCell>116,742</TableCell>
+                      <TableCell>150,000</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Margen (Miles $)</TableCell>
+                      <TableCell>$1,357</TableCell>
+                      <TableCell>$2,504</TableCell>
+                      <TableCell>$2,504</TableCell>
+                      <TableCell>$5,073</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">ROI</TableCell>
+                      <TableCell>345%</TableCell>
+                      <TableCell>572%</TableCell>
+                      <TableCell>572%</TableCell>
+                      <TableCell>750%</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Gráficos según el tipo - Solo si NO es NBA con métricas de negocio ni Aumento de Uso */}
+        {!(tipoMetrica === 'negocio' && (tipo === 'nba' || tipo === 'aumento-uso')) && !(tipoMetrica === 'financieras' && tipo === 'aumento-uso') && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {tipoMetrica === 'financieras' && (
               <>
