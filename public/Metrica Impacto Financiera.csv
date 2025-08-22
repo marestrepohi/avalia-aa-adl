@@ -1,0 +1,26 @@
+﻿Estado;Entidad;PROJECT_ID;Caso;Q productos_2018;Desembolso / facturación_2018;Cartera_2018;Stock_2018;Q productos_2019;Desembolso / facturación_2019;Cartera_2019;Stock_2019;Q productos_2020;Desembolso / facturación_2020;Cartera (millones de $)_2020;Stock_2020;Q productos_2021;Desembolso / facturación (millones de $)_2021;Cartera (millones de $)_2021;Stock_2021;Q productos_2022;Desembolso / facturación (millones de $)_2022;Cartera (millones de $)_2022;Stock_2022;Q productos_2023;Desembolso / facturación_2023;Cartera_2023;Stock_2023;Q productos_2024;Desembolso / facturación_2024;Cartera_2024;Stock_2024;Q productos_2025;Desembolso / facturación_2025;Cartera_2025;Stock_2025;Unidades;2018;2019;2020;2021;2022;2023;2024;2025;2026;2027
+L3;Occidente;69863;Propensión Cupo;;;;; 244 ; 11,487 ; 11,487 ; 244 ; 244 ; 11,487 ; 22,974 ; 488 ; 244 ; 11,487 ; 34,461 ; 732 ; 244 ; 11,487 ; 45,948 ; 976 ; 244 ; 11,487 ; 57,435 ; 1,220 ;;;;;;;;;Ingresos Netos despues de provision;;;2300;2300; 2,300 ;2300; 2,300 ; 2,300 ;;
+L3;Occidente;516123;Cobranza Occ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 16,591 ; 21,869 ;;;;;;;;
+L3;Occidente;721770;NBA Personas;;;;;;;;;;;;;; 154 ;;;; 308 ;;;; 462 ;;;; 616 ;;;;;;;Utilidad antes de impuestos;;; 911 ; 977 ; 1,323 ; 3,211 ; 6,502,275 ; 13,173,609,150 ;;
+L3;Occidente;298010;NBA Empresas;;;;;;;;;;;;;; 477 ;;;; 954 ;;;; 1,432 ;;;; 1,909 ;;;;;;;Utilidad antes de impuestos;;;; 321 ; 485 ; 1,107 ; 2,241,675 ; 4,541,633,550 ;;
+L3;Occidente;396544;Retención Poscrisis;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;LTV;;;;; 430 ;;;;;
+L3;Occidente;319205;Pricing BDO;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 900 ; 11,100 ; 16,200 ; 17,000 ;;;;;
+L0;Occidente;887993;Otorgamiento Pymes Fase 2;;;;;;;;;;;;;;;;; 235 ; 51,310 ; 47,391 ; 235 ; 235 ; 102,620 ; 94,245 ; 470 ; 304 ; 164,925 ; 151,605 ; 774 ; 304 ; 227,231 ; 208,718 ; 1,078 ;Utilidad antes de impuestos;;;;;;;;;;
+L3;Occidente;26747;Otorgamiento Pymes;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Utilidad antes de impuestos;;;; 1,692 ; 10,285 ;;;;;
+L3;Popular;351269;Cobranzas Pop;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 50,530 ; 31,403 ;;;;;;;;
+L5;Popular;14115;Propension Libranza;;;;;;;;; 4,559 ; 121,933 ; 332,668 ;; 2,181 ; 62,460 ; 954,540 ;; 2,227 ; 56,209 ; 1,440,911 ;;;;;;;;;;;;;;;;; 3,118 ; 3,118 ; 3,118 ; 6,310,832 ; 12,779,434,800 ; 25,891,134,904,800 ;;
+L5;Popular;895810;Adquisición TC;;;;;;;;;;;;; 8,074 ;; 604 ;; 5,102 ;; 20,912 ;;;;;;;;;;;;;;Ingresos adicionales (hasta);;;; 362 ; 362 ; 362 ; 733,050 ; 1,485,159,300 ;;
+L2;Popular;228117;Score Fraude transaccional TC;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+L2;Popular;228117;Score Fraude transaccional TD;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+L5;Popular;801214;Churn Libranza;;;;;;;;; 1,842 ; 103,093 ; 246,364 ;; 1,628 ; 65,706 ; 2,012,009 ;; 1,666 ; 74,499 ; 2,200,426 ;;;;;;;;;;;;;;Margen Neto;;; 2,131 ; 2,131 ; 2,131 ; 4,313,144 ; 8,734,116,600 ; 17,695,320,231,600 ;;
+L5;Popular;572809;Aumento de uso TDC;;;;;;;;;;;;;; 26,241 ;;;; 116,742 ;;;;;;;;;;;;;;;Margen;;;; 1,357 ; 2,504 ; 2,504 ; 2,504 ; 5,073,104 ;;
+L3;Popular;158120;Banca Seguros;;;;;;;;;;;;;;;; 3,751 ; 4,295 ;;; 8,075 ; 6,751 ;;; 12,182 ; 8,113 ;;;;;;;;Margen Neto sin inversión inicial;;;;; 85 ; 541 ; 863 ; 841 ;;
+L2;Popular;104210;Perfil Digital Bpop;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Margen Neto sin inversión ;;;;;; 258 ; 707 ; 1,109 ;$1,197;$567
+L3;Popular;883668;Pricing Pop;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 2,636 ; 3,605 ; 3,784 ; 7,658,816 ; 15,509,102,400 ; 31,421,441,462,400 ;;
+L1;Popular;526464;Propensión Hipotecario;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Utilidad Antes de impuestos;;;; 1,174 ; 1,174 ; 1,174 ;;;;
+L1;Popular;721770;NBA Personas;;;;;;;;;;;;;;;;;;;;; 4,469 ; 42,895 ; 41,344 ;; 4,984 ; 42,242 ; 83,235 ;; 5,522 ; 51,607 ; 125,135 ;;Margen Neto sin inversión inicial;;;;;;;; 1,297 ; 1,982 ; 2,322 
+L3;Popular;799127;Data no Estructurada;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Margen Neto sin inversión inicial, solo videos;;;;;; 900 ; 900 ; 900 ;;
+L0;Popular;391004;Ecosistemas Empresas;;;;;;;;;;;;;;;;;;;;; 88 ; 22,941 ; 18,034 ;; 92 ; 23,981 ; 32,950 ;; 96 ; 25,135 ; 44,725 ;;Margen Neto;;;;;;;; 195 ; 556 ; 917 
+L1;Popular;510037;Push inteligente  de uso TD y TC;;;;;;;;;;;;;;;;;;;;;; 34,910 ;;;; 34,910 ;;;; 34,910 ;;;Margen Neto sin inversión inicial, solo videos;;;;;; 218 ; 2,614 ; 2,614 ; 2,396 ;
+L2;Popular;469944;Winback Libranzas;;;;;;;;;;;;;;;;;;;;; 1,215 ; 47,893 ; 42,081 ;; 1,215 ; 47,893 ; 69,863 ;; 1,215 ; 47,893 ; 80,440 ;;Margen Neto sin inversión ;;;;;; 385 ; 1,457 ; 1,220 ;;
+L2;Popular;424137;Retención Personas;;;;;;;;;;;;;;;;;;;;; 1,643 ;; 10,677 ;; 1,676 ;; 20,609 ;; 1,709 ;; 29,785 ;;Margen Neto sin inversión inicial, solo videos;;;;;;;; 525 ;855.8194597;1013.756773

@@ -12,6 +12,7 @@ import Churn from './dashboard/Churn';
 import TopCustomers from './dashboard/TopCustomers';
 import NextBestAction from './dashboard/NextBestAction';
 import { useDashboard } from '../contexts/DashboardContext';
+import AumentoUso from './dashboard/AumentoUso';
 
 const Index = () => {
   const { activeView, setActiveView } = useDashboard();
@@ -33,7 +34,8 @@ const Index = () => {
       {activeView === 'audiencias' && <Audiencias />}
       {activeView === 'churn' && <Churn />}
       {activeView === 'tc' && <TopCustomers />}
-      {activeView === 'nba' && <NextBestAction />}
+  {activeView === 'nba' && <NextBestAction />}
+  {activeView === 'aumento-uso' && <AumentoUso />}
     </AppLayout>
   );
 };

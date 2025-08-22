@@ -1,6 +1,6 @@
 
 import React, { useEffect } from "react";
-import { LayoutDashboard, Users, Megaphone, UserSquare2, MessageSquare, ChevronDown, PanelLeft, ChevronRight, X, PhoneCall, BarChart, HeartPulse, Brain, TrendingDown, Target, Zap } from "lucide-react";
+import { LayoutDashboard, Users, Megaphone, UserSquare2, MessageSquare, ChevronDown, PanelLeft, ChevronRight, X, PhoneCall, BarChart, BarChart3, HeartPulse, Brain, TrendingDown, Target, Zap } from "lucide-react";
 import { useDashboard } from "../../contexts/DashboardContext";
 import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/use-mobile";
@@ -268,10 +268,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             <SidebarItem 
               icon={<Brain className="h-5 w-5" />} 
               text="Casos de Uso" 
-              isActive={activeView === "churn" || activeView === "tc" || activeView === "nba"}
+              isActive={
+                activeView === "churn" 
+                || activeView === "tc" 
+                || activeView === "nba" 
+                || activeView === "aumento-uso"
+              }
               hasChildren={!isCollapsed}
               isOpen={openSubMenu === "casosuso"}
-              onClick={() => isCollapsed ? handleViewChange("churn") : toggleSubMenu("casosuso")} 
+              onClick={() => {
+                if (isCollapsed) {
+                  // en estado colapsado, navegar a churn
+                  handleViewChange("churn");
+                } else {
+                  const willOpen = openSubMenu !== "casosuso";
+                  toggleSubMenu("casosuso");
+                  // si se abre el submenu, navegar a la primera opción
+                  if (willOpen) {
+                    handleViewChange("churn");
+                  }
+                }
+              }}
               collapsed={isCollapsed}
             />
             
@@ -294,6 +311,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
                   text="Next Best Action"
                   isActive={activeView === "nba"}
                   onClick={() => handleViewChange("nba")}
+                />
+                <SubMenuItem
+                  icon={<BarChart3 className="h-4 w-4" />}
+                  text="Aumento de Uso"
+                  isActive={activeView === "aumento-uso"}
+                  onClick={() => handleViewChange("aumento-uso")}
                 />
               </div>
             )}
