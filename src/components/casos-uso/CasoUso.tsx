@@ -189,6 +189,43 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
     { name: 'Falsos Negativos', value: 2.0, color: '#ef4444' }
   ];
 
+  // Datos técnicos específicos de Aumento de Uso basados en CSV
+  const aumentoUsoTechnicalData = {
+    durmientes: {
+      modelo: 'Clasificación reactivación uso TC',
+      metricas: {
+        precision: '0.9%',
+        recall: '24.2%',
+        ks: '68.8%',
+        auc: '84.9%',
+        psi: '0.153',
+        tasaVO: '0.3%'
+      },
+      estado: 'Operativizado en seguimiento',
+      frecuenciaRecalibracion: '1 mes',
+      ultimaRecalibracion: '26/3/2025',
+      ultimaEjecucion: '26/4/2025'
+    },
+    activos: {
+      segmentacion: [
+        { modelo: 'TC Tradicional', inercia: '1,107,721' },
+        { modelo: 'TC Express', inercia: '214,905' },
+        { modelo: 'TC La 14', inercia: '5,577' },
+        { modelo: 'TC Cero', inercia: '215,780' },
+        { modelo: 'TC Copa', inercia: '254,665' },
+        { modelo: 'TC Zafiro', inercia: '12,675' }
+      ],
+      recomendacion: [
+        { modelo: 'TC Tradicional', rmse: '0.5578' },
+        { modelo: 'TC Express', rmse: '0.5349' },
+        { modelo: 'TC La 14', rmse: 'Sin población' },
+        { modelo: 'TC Cero', rmse: '0.5515' },
+        { modelo: 'TC Copa', rmse: '0.5479' },
+        { modelo: 'TC Zafiro', rmse: '0.5358' }
+      ]
+    }
+  };
+
   // Datos para tabla de rendimiento
   const datosTabla = [
     { metrica: 'Accuracy', valor: '94.2%', benchmark: '90.0%', estado: 'Excelente' },
@@ -695,8 +732,264 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
           </div>
         )}
 
+        {/* Sección especial para Aumento de Uso - Métricas Técnicas */}
+        {tipoMetrica === 'tecnicas' && tipo === 'aumento-uso' && (
+          <div className="space-y-6">
+            {/* Filtro Activos/Durmientes para métricas técnicas */}
+            <div className="flex gap-4 items-center">
+              <label className="text-sm font-medium">Tipo de Usuario:</label>
+              <div className="flex gap-2">
+                <Button 
+                  variant={filtroUsuario === 'activos' ? 'default' : 'outline'} 
+                  onClick={() => setFiltroUsuario('activos')}
+                  size="sm"
+                >
+                  Activos
+                </Button>
+                <Button 
+                  variant={filtroUsuario === 'durmientes' ? 'default' : 'outline'} 
+                  onClick={() => setFiltroUsuario('durmientes')}
+                  size="sm"
+                >
+                  Durmientes
+                </Button>
+              </div>
+            </div>
+
+            {filtroUsuario === 'durmientes' && (
+              <div className="space-y-6">
+                {/* KPIs para modelo de durmientes */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <Card className="p-4">
+                    <CardContent className="p-0">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Precisión</p>
+                          <p className="text-2xl font-bold">{aumentoUsoTechnicalData.durmientes.metricas.precision}</p>
+                        </div>
+                        <Target className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="p-4">
+                    <CardContent className="p-0">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Recall</p>
+                          <p className="text-2xl font-bold">{aumentoUsoTechnicalData.durmientes.metricas.recall}</p>
+                        </div>
+                        <BarChart3 className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="p-4">
+                    <CardContent className="p-0">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">AUC</p>
+                          <p className="text-2xl font-bold">{aumentoUsoTechnicalData.durmientes.metricas.auc}</p>
+                        </div>
+                        <Activity className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="p-4">
+                    <CardContent className="p-0">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">KS Test</p>
+                          <p className="text-2xl font-bold">{aumentoUsoTechnicalData.durmientes.metricas.ks}</p>
+                        </div>
+                        <Cpu className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Información del modelo de durmientes */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Modelo de Clasificación - Reactivación Uso TC</CardTitle>
+                    <CardDescription>Estado operativo y configuración del modelo para usuarios durmientes</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="flex justify-between">
+                          <span className="font-medium">Estado:</span>
+                          <Badge variant="default">{aumentoUsoTechnicalData.durmientes.estado}</Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Frecuencia Recalibración:</span>
+                          <span>{aumentoUsoTechnicalData.durmientes.frecuenciaRecalibracion}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Última Recalibración:</span>
+                          <span>{aumentoUsoTechnicalData.durmientes.ultimaRecalibracion}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Última Ejecución:</span>
+                          <span>{aumentoUsoTechnicalData.durmientes.ultimaEjecucion}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex justify-between">
+                          <span className="font-medium">PSI:</span>
+                          <Badge variant="outline">{aumentoUsoTechnicalData.durmientes.metricas.psi}</Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Tasa V.O.:</span>
+                          <Badge variant="secondary">{aumentoUsoTechnicalData.durmientes.metricas.tasaVO}</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Gráfico de evolución temporal para durmientes */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Evolución de Métricas - Modelo Durmientes</CardTitle>
+                    <CardDescription>Tendencia histórica de performance</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={[
+                        { fecha: 'Ene', precision: 0.8, recall: 22.1, auc: 82.3 },
+                        { fecha: 'Feb', precision: 0.85, recall: 23.5, auc: 83.8 },
+                        { fecha: 'Mar', precision: 0.9, recall: 24.2, auc: 84.9 },
+                        { fecha: 'Abr', precision: 0.9, recall: 24.2, auc: 84.9 },
+                        { fecha: 'May', precision: 0.9, recall: 24.2, auc: 84.9 }
+                      ]}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="fecha" />
+                        <YAxis />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="precision" stroke="#8884d8" strokeWidth={2} name="Precisión %" />
+                        <Line type="monotone" dataKey="recall" stroke="#82ca9d" strokeWidth={2} name="Recall %" />
+                        <Line type="monotone" dataKey="auc" stroke="#ffc658" strokeWidth={2} name="AUC %" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {filtroUsuario === 'activos' && (
+              <div className="space-y-6">
+                {/* Modelos de Segmentación */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Modelos K-means - Segmentación por Tipo de TC</CardTitle>
+                    <CardDescription>Inercia de cada modelo de segmentación por tipo de tarjeta</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex justify-end mb-2">
+                      <Button onClick={() => exportToCsv(
+                        'segmentacion_tc_activos.csv',
+                        aumentoUsoTechnicalData.activos.segmentacion.map(s => ({
+                          Modelo: s.modelo,
+                          Inercia: s.inercia
+                        }))
+                      )}>
+                        Descargar Segmentación
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      {aumentoUsoTechnicalData.activos.segmentacion.map((seg, i) => (
+                        <Card key={i} className="p-4">
+                          <CardContent className="p-0">
+                            <div className="text-center">
+                              <p className="text-sm font-medium text-muted-foreground">{seg.modelo}</p>
+                              <p className="text-xl font-bold">{seg.inercia}</p>
+                              <p className="text-xs text-muted-foreground">Inercia</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={aumentoUsoTechnicalData.activos.segmentacion.map(s => ({
+                        modelo: s.modelo.replace('TC ', ''),
+                        inercia: parseFloat(s.inercia.replace(',', ''))
+                      }))}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="modelo" angle={-45} textAnchor="end" height={80} />
+                        <YAxis />
+                        <Tooltip formatter={(value) => [value.toLocaleString(), 'Inercia']} />
+                        <Bar dataKey="inercia" fill="#8884d8" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                {/* Modelos de Recomendación */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Modelos Sistema de Recomendación - Propensión Uso TC</CardTitle>
+                    <CardDescription>RMSE (Root Mean Square Error) por tipo de tarjeta</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex justify-end mb-2">
+                      <Button onClick={() => exportToCsv(
+                        'recomendacion_tc_activos.csv',
+                        aumentoUsoTechnicalData.activos.recomendacion.map(r => ({
+                          Modelo: r.modelo,
+                          RMSE: r.rmse
+                        }))
+                      )}>
+                        Descargar Recomendación
+                      </Button>
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Tipo de TC</TableHead>
+                          <TableHead>RMSE</TableHead>
+                          <TableHead>Estado</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {aumentoUsoTechnicalData.activos.recomendacion.map((rec, i) => (
+                          <TableRow key={i}>
+                            <TableCell className="font-medium">{rec.modelo}</TableCell>
+                            <TableCell>{rec.rmse}</TableCell>
+                            <TableCell>
+                              <Badge variant={rec.rmse === 'Sin población' ? 'secondary' : 'default'}>
+                                {rec.rmse === 'Sin población' ? 'Sin datos' : 'Operativo'}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    
+                    {/* Gráfico RMSE */}
+                    <div className="mt-6">
+                      <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={aumentoUsoTechnicalData.activos.recomendacion
+                          .filter(r => r.rmse !== 'Sin población')
+                          .map(r => ({
+                            modelo: r.modelo.replace('TC ', ''),
+                            rmse: parseFloat(r.rmse)
+                          }))}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="modelo" angle={-45} textAnchor="end" height={80} />
+                          <YAxis domain={[0.5, 0.6]} />
+                          <Tooltip formatter={(value) => [value, 'RMSE']} />
+                          <Bar dataKey="rmse" fill="#82ca9d" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Gráficos según el tipo - Solo si NO es NBA con métricas de negocio ni Aumento de Uso */}
-        {!(tipoMetrica === 'negocio' && (tipo === 'nba' || tipo === 'aumento-uso')) && !(tipoMetrica === 'financieras' && tipo === 'aumento-uso') && (
+        {!(tipoMetrica === 'negocio' && (tipo === 'nba' || tipo === 'aumento-uso')) && !(tipoMetrica === 'financieras' && tipo === 'aumento-uso') && !(tipoMetrica === 'tecnicas' && tipo === 'aumento-uso') && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {tipoMetrica === 'financieras' && (
               <>
@@ -845,13 +1138,14 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
           </div>
         )}
 
-        {/* Tabla de métricas detalladas */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Métricas Detalladas</CardTitle>
-            <CardDescription>Comparación con benchmarks de la industria</CardDescription>
-          </CardHeader>
-          <CardContent>
+        {/* Tabla de métricas detalladas - NO mostrar para aumento-uso en financieras */}
+        {!(tipo === 'aumento-uso' && tipoMetrica === 'financieras') && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Métricas Detalladas</CardTitle>
+              <CardDescription>Comparación con benchmarks de la industria</CardDescription>
+            </CardHeader>
+            <CardContent>
             {/* Botón para descargar métricas detalladas */}
             <div className="flex justify-end mb-2">
               <Button onClick={() => exportToCsv(
@@ -897,6 +1191,7 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
             </Table>
           </CardContent>
         </Card>
+        )}
       </div>
     );
   };
