@@ -17,18 +17,24 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-64 bg-white p-4 border-r border-gray-200">
-      <h3 className="text-lg font-semibold mb-4">Nodos</h3>
-      <div className="space-y-2">
+    <aside
+      className="relative bg-white md:w-64 w-full md:h-full md:border-r border-b border-gray-200 md:p-4 p-3"
+    >
+      <h3 className="md:text-lg text-base font-semibold md:mb-4 mb-2">Nodos</h3>
+      {/* Mobile: horizontal scroll row; Desktop: vertical list */}
+      <div
+        className="flex md:block gap-2 md:gap-0 overflow-x-auto md:overflow-visible pb-2 md:pb-0"
+        role="list"
+      >
         {nodeTypes.map((node) => (
           <div
             key={node.type + node.label}
-            className="p-3 border border-gray-300 rounded-lg flex items-center gap-3 cursor-grab hover:bg-gray-100 transition-colors"
+            className="shrink-0 md:shrink md:w-full min-w-[140px] md:min-w-0 md:mb-2 md:last:mb-0 md:p-3 p-2 border border-gray-300 rounded-md md:rounded-lg flex items-center gap-2 md:gap-3 cursor-grab hover:bg-gray-50 transition-colors"
             onDragStart={(event) => onDragStart(event, node.type)}
             draggable
           >
             {node.icon}
-            <span className="font-medium">{node.label}</span>
+            <span className="font-medium text-sm md:text-base">{node.label}</span>
           </div>
         ))}
       </div>

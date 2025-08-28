@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +49,8 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
   const [activeTab, setActiveTab] = useState("detalles");
   const [editDescription, setEditDescription] = useState(asistente?.descripcion || '');
   const [editTemperature, setEditTemperature] = useState(70);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
@@ -90,6 +92,21 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
     }
   };
 
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [mensajes]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      // Submit if not empty
+      if (mensaje.trim()) {
+        handleSend(e as any);
+      }
+    }
+  };
+
   const handleOpenEditPanel = () => {
     setIsEditPanelOpen(true);
     setEditDescription(asistente?.descripcion || '');
@@ -100,28 +117,25 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
     setIsEditPanelOpen(false);
   };
   if (!asistente) return null;
-  return <div className="grid grid-cols-[auto,1fr] h-[calc(100vh-4rem)]">
-      <ConversacionesSidebar asistenteId={asistente.id} />
+  return <div className="grid grid-cols-1 md:grid-cols-[280px,1fr] h-screen w-full min-h-0 overflow-hidden">
+      <div className="hidden md:block h-full min-h-0 overflow-hidden border-r bg-gradient-to-b from-white to-muted/40">
+        <ConversacionesSidebar asistenteId={asistente.id} />
+      </div>
       
-      <Card className="border-0 rounded-none">
-        <div className="flex flex-col h-full w-full bg-background rounded-lg shadow-card overflow-hidden">
-          {/* Header fijo */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b bg-white sticky top-0 z-10 shadow-sm">
+      <Card className="border-0 rounded-none h-full">
+        <div className="flex flex-col h-full w-full bg-background overflow-hidden min-h-0">
+          {/* Header */}
+          <div className="flex items-center gap-3 px-4 py-3 sticky top-0 z-10 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
             <Button variant="ghost" size="icon" className="md:hidden" onClick={onClose}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full flex items-center justify-center bg-white border shadow" style={{
-              background: asistente.color + '22'
-            }}>
-                {asistente.icono && <span className="text-xl" style={{
-                color: asistente.color
-              }}>{/* render icono aquí */}</span>}
+              <div className="relative h-10 w-10 rounded-full flex items-center justify-center bg-white border shadow" style={{ background: asistente.color + '22' }}>
+                {asistente.icono && <span className="text-xl" style={{ color: asistente.color }}>{/* icon */}</span>}
+                <span className="absolute -bottom-0 -right-0 h-3 w-3 rounded-full bg-green-500 ring-2 ring-white" />
               </div>
               <div>
-                <div className="font-semibold text-base" style={{
-                color: asistente.color
-              }}>{asistente.nombre}</div>
+                <div className="font-semibold text-base" style={{ color: asistente.color }}>{asistente.nombre}</div>
                 <div className="text-xs text-muted-foreground">{asistente.descripcion}</div>
               </div>
             </div>
@@ -133,41 +147,63 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
               <Button variant="outline" size="sm" onClick={onClose}>Volver</Button>
             </div>
           </div>
-          {/* Área de mensajes con scroll, fondo tipo chatgpt */}
-          <div className="flex-1 flex flex-col overflow-y-auto bg-gradient-to-b from-muted/60 to-background px-0 py-[25px] md:px-[30px]">
-            <div className="flex flex-col gap-4 w-full max-w-2xl mx-auto">
-              {mensajes.map(msg => <div key={msg.id} className={`flex ${msg.emisor === 'usuario' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] p-4 rounded-2xl shadow-sm text-sm break-words ${msg.emisor === 'usuario' ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-white border rounded-bl-md'}`}>
-                    <p>{msg.contenido}</p>
-                    {msg.archivos && <div className="mt-2 space-y-1">
-                        {msg.archivos.map((archivo, index) => <div key={index} className="flex items-center gap-2 text-xs">
-                            {archivo.tipo.startsWith('image/') ? <img src={archivo.url} alt={archivo.nombre} className="max-w-xs rounded" /> : <span>{archivo.nombre}</span>}
-                          </div>)}
-                      </div>}
-                    <span className="text-xs opacity-50 mt-1 block text-right">
-                      {format(msg.timestamp, 'HH:mm')}
-                    </span>
+          {/* Mensajes */}
+          <div ref={scrollRef} className="flex-1 flex flex-col overflow-y-auto bg-gradient-to-b from-muted/60 to-background px-2 py-4 md:px-4">
+            <div className="flex flex-col gap-4 w-full mx-auto">
+              {mensajes.map(msg => (
+                <div key={msg.id} className={`flex items-end ${msg.emisor === 'usuario' ? 'justify-end' : 'justify-start'}`}>
+                  {msg.emisor === 'asistente' && (
+                    <div className="mr-2 h-8 w-8 rounded-full bg-primary/10 border flex items-center justify-center text-[10px] font-semibold text-primary">AI</div>
+                  )}
+                  <div className={`max-w-[85%] md:max-w-[75%] p-3 md:p-4 rounded-2xl shadow-sm text-sm break-words ${msg.emisor === 'usuario' ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-white border rounded-bl-md'}`}>
+                    <p className="whitespace-pre-wrap">{msg.contenido}</p>
+                    {msg.archivos && (
+                      <div className="mt-2 space-y-1">
+                        {msg.archivos.map((archivo, index) => (
+                          <div key={index} className="flex items-center gap-2 text-xs">
+                            {archivo.tipo.startsWith('image/') ? (
+                              <img src={archivo.url} alt={archivo.nombre} className="max-w-xs rounded" />
+                            ) : (
+                              <span>{archivo.nombre}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <span className="text-xs opacity-50 mt-1 block text-right">{format(msg.timestamp, 'HH:mm')}</span>
                   </div>
-                </div>)}
+                  {msg.emisor === 'usuario' && (
+                    <div className="ml-2 h-8 w-8 rounded-full bg-secondary/50 border flex items-center justify-center text-[10px] font-semibold text-secondary-foreground">Tú</div>
+                  )}
+                </div>
+              ))}
+              <div ref={endRef} />
             </div>
           </div>
-          {/* Input fijo abajo */}
-          <form onSubmit={handleSend} className="flex items-center gap-2 px-4 py-3 border-t bg-white sticky bottom-0 z-10 shadow-inner">
-            <Input value={mensaje} onChange={e => setMensaje(e.target.value)} placeholder="Escribe tu mensaje..." className="flex-1 rounded-full bg-muted/60 border-none focus:ring-2 focus:ring-primary" autoFocus />
-            <Button type="submit" size="icon" className="rounded-full" style={{
-            backgroundColor: asistente.color
-          }}>
-              <Send className="h-4 w-4" />
-            </Button>
-            <input type="file" id="file-upload" className="hidden" multiple onChange={handleFileUpload} />
-            <Button type="button" variant="outline" size="icon" onClick={() => document.getElementById('file-upload')?.click()} className="rounded-full">
-              <Paperclip className="h-4 w-4" />
-            </Button>
+          {/* Input */}
+          <form onSubmit={handleSend} className="px-3 md:px-4 py-3 border-t bg-white sticky bottom-0 z-10">
+            <div className="flex items-end gap-2">
+              <Textarea
+                value={mensaje}
+                onChange={e => setMensaje(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Escribe un mensaje (Shift+Enter para nueva línea)"
+                rows={1}
+                className="flex-1 resize-none bg-muted/60 border-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
+              />
+              <input type="file" id="file-upload" className="hidden" multiple onChange={handleFileUpload} />
+              <Button type="button" variant="outline" size="icon" onClick={() => document.getElementById('file-upload')?.click()} className="rounded-xl">
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              <Button type="submit" size="icon" disabled={!mensaje.trim()} className="rounded-xl" style={{ backgroundColor: asistente.color }}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </form>
         </div>
       </Card>
 
-      {/* Edit Panel */}
+  {/* Edit Panel */}
       <SlidePanel
         isOpen={isEditPanelOpen}
         onClose={() => setIsEditPanelOpen(false)}

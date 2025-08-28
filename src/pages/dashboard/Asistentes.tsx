@@ -356,7 +356,7 @@ const Asistentes: React.FC = () => {
   // If chat assistant is selected, show chat interface
   if (selectedChatAssistant) {
     return (
-      <div className="flex flex-col h-[calc(100vh-4rem)] w-full max-w-7xl mx-auto px-2 md:px-6 py-4">
+  <div className="flex flex-col h-[calc(100vh-4rem)] w-full overflow-hidden min-h-0 -m-4 sm:-m-6">
         <AnimatePresence mode="wait">
           <motion.div
             key="asistente-chat"
