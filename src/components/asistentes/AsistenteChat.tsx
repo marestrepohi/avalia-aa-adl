@@ -2,10 +2,14 @@ import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Paperclip } from 'lucide-react';
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, Send, Paperclip, Settings } from 'lucide-react';
 import { format } from 'date-fns';
 import ConversacionesSidebar from './ConversacionesSidebar';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import SlidePanel from '../ui/dashboard/SlidePanel';
+import FuentesDocumentos from './FuentesDocumentos';
+import { Tabs } from '../ui/dashboard/FormControls';
 interface Asistente {
   id: string;
   nombre: string;
@@ -41,6 +45,10 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
     emisor: 'asistente',
     timestamp: new Date()
   }]);
+  const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("detalles");
+  const [editDescription, setEditDescription] = useState(asistente?.descripcion || '');
+  const [editTemperature, setEditTemperature] = useState(70);
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
@@ -81,6 +89,16 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
       }, 1000);
     }
   };
+
+  const handleOpenEditPanel = () => {
+    setIsEditPanelOpen(true);
+    setEditDescription(asistente?.descripcion || '');
+  };
+
+  const handleSaveEditPanel = () => {
+    console.log('Saving edits:', { editDescription, editTemperature });
+    setIsEditPanelOpen(false);
+  };
   if (!asistente) return null;
   return <div className="grid grid-cols-[auto,1fr] h-[calc(100vh-4rem)]">
       <ConversacionesSidebar asistenteId={asistente.id} />
@@ -107,7 +125,11 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
                 <div className="text-xs text-muted-foreground">{asistente.descripcion}</div>
               </div>
             </div>
-            <div className="ml-auto hidden md:block">
+            <div className="ml-auto flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleOpenEditPanel} className="hidden md:flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Editar
+              </Button>
               <Button variant="outline" size="sm" onClick={onClose}>Volver</Button>
             </div>
           </div>
@@ -144,6 +166,90 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
           </form>
         </div>
       </Card>
+
+      {/* Edit Panel */}
+      <SlidePanel
+        isOpen={isEditPanelOpen}
+        onClose={() => setIsEditPanelOpen(false)}
+        title="Editar Asistente"
+        width="lg"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsEditPanelOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveEditPanel}>
+              Guardar Cambios
+            </Button>
+          </div>
+        }
+      >
+        <Tabs
+          tabs={[
+            { id: "detalles", label: "Detalles" },
+            { id: "configuracion", label: "Configuración" },
+            { id: "fuentes", label: "Fuentes" }
+          ]}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+        />
+
+        <div className="space-y-6 mt-6">
+          {activeTab === "detalles" && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Nombre del Asistente</label>
+                <Input value={asistente?.nombre || ''} disabled className="bg-muted" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Descripción</label>
+                <Textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="Describe el propósito y funcionalidad del asistente..."
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === "configuracion" && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Modelo de Lenguaje</label>
+                <Input value="GPT-4" disabled className="bg-muted" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Instrucciones del Sistema</label>
+                <Textarea
+                  placeholder="Define el comportamiento y personalidad del asistente..."
+                  rows={6}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Temperatura: {editTemperature}%
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={editTemperature}
+                  onChange={(e) => setEditTemperature(parseInt(e.target.value))}
+                  className="w-full"
+                />
+                <div className="text-xs text-muted-foreground mt-1">
+                  Controla la creatividad de las respuestas
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "fuentes" && (
+            <FuentesDocumentos asistenteId={asistente?.id || "current"} />
+          )}
+        </div>
+      </SlidePanel>
     </div>;
 };
 export default AsistenteChat;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusCircle, Edit, Copy, Trash2, Filter, Bot, MessageSquare, PlayCircle, Settings } from "lucide-react";
+import { PlusCircle, Edit, Copy, Trash2, Filter, Bot, MessageSquare, PlayCircle, Settings, ChevronDown, MessageCircle, Users, Slack, Send, Code } from "lucide-react";
 import DataTable from "../../components/ui/dashboard/DataTable";
 import SlidePanel from "../../components/ui/dashboard/SlidePanel";
 import { Button, Input, Textarea, Select, Toggle, Tabs } from "../../components/ui/dashboard/FormControls";
@@ -8,6 +8,7 @@ import BarChart from "../../components/ui/dashboard/BarChart";
 import AsistenteChat from '@/components/asistentes/AsistenteChat';
 import FuentesDocumentos from "../../components/asistentes/FuentesDocumentos";
 import { AnimatePresence, motion } from "framer-motion";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // Define AssistantText type
 interface AssistantText {
@@ -109,6 +110,9 @@ const Asistentes: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedChatAssistant, setSelectedChatAssistant] = useState<any>(null);
   const [temperature, setTemperature] = useState(70);
+  const [isEditChatOpen, setIsEditChatOpen] = useState(false);
+  const [editDescription, setEditDescription] = useState('');
+  const [editTemperature, setEditTemperature] = useState(70);
 
   // --- Handlers ---
   const handleCreateClick = () => {
@@ -167,6 +171,25 @@ const Asistentes: React.FC = () => {
     setSelectedChatAssistant(null);
   };
 
+  const handleEditInChat = () => {
+    if (selectedChatAssistant) {
+      setEditDescription(selectedChatAssistant.descripcion || '');
+      setEditTemperature(selectedChatAssistant.temperatura || 70);
+      setIsEditChatOpen(true);
+    }
+  };
+
+  const handleSaveEditInChat = () => {
+    // Save changes logic here
+    console.log('Saving chat edits:', { editDescription, editTemperature });
+    setIsEditChatOpen(false);
+  };
+
+  const handleChannelAction = (channel: string, row: AssistantText) => {
+    console.log(`Deploying assistant ${row.nombre} to ${channel}`);
+    // Implementation for each channel
+  };
+
   // --- Table Columns ---
   const columns = [
     {
@@ -221,6 +244,38 @@ const Asistentes: React.FC = () => {
             <Edit className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
             <span className="tooltip -bottom-8">Editar</span>
           </button>
+          {/* Channel Deployment Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="icon-button group">
+                <Send className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
+                <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors duration-200 ml-1" />
+                <span className="tooltip -bottom-8">Desplegar</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-background border border-border shadow-lg">
+              <DropdownMenuItem onClick={() => handleChannelAction('whatsapp', row)}>
+                <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+                WhatsApp
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleChannelAction('teams', row)}>
+                <Users className="h-4 w-4 mr-2 text-blue-600" />
+                Microsoft Teams
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleChannelAction('slack', row)}>
+                <Slack className="h-4 w-4 mr-2 text-purple-600" />
+                Slack
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleChannelAction('telegram', row)}>
+                <Send className="h-4 w-4 mr-2 text-blue-500" />
+                Telegram
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleChannelAction('api', row)}>
+                <Code className="h-4 w-4 mr-2 text-gray-600" />
+                API
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {/* Delete Button */}
           <button
             className="icon-button group"
@@ -362,6 +417,7 @@ const Asistentes: React.FC = () => {
           tabs={[
             { id: "detalles", label: "Detalles" },
             { id: "configuracion", label: "Configuración" },
+            { id: "flujos", label: "Flujos" },
             { id: "fuentes", label: "Fuentes" }
           ]}
           activeTab={activeTab}
@@ -423,6 +479,52 @@ const Asistentes: React.FC = () => {
                 />
                 <div className="text-xs text-muted-foreground mt-1">
                   Controla la creatividad de las respuestas
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "flujos" && (
+            <div className="space-y-4">
+              <div className="border border-border rounded-lg p-6 bg-muted/20">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium">Editor de Flujos de Conversación</h3>
+                  <button className="px-4 py-2 bg-primary text-white rounded-md text-sm hover:bg-primary/90 transition">
+                    Abrir Editor Visual
+                  </button>
+                </div>
+                <p className="text-muted-foreground text-sm mb-4">
+                  Define el flujo de conversación y las respuestas automáticas del asistente.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-lg border border-border">
+                    <h4 className="font-medium mb-2">Mensaje de Bienvenida</h4>
+                    <Textarea 
+                      placeholder="Ej: ¡Hola! Soy tu asistente de ventas. ¿En qué puedo ayudarte hoy?"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border border-border">
+                    <h4 className="font-medium mb-2">Mensaje de Despedida</h4>
+                    <Textarea 
+                      placeholder="Ej: ¡Gracias por usar nuestro servicio! ¿Hay algo más en lo que pueda ayudarte?"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border border-border">
+                    <h4 className="font-medium mb-2">Respuesta No Entendido</h4>
+                    <Textarea 
+                      placeholder="Ej: No estoy seguro de entender tu consulta. ¿Podrías reformularla?"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border border-border">
+                    <h4 className="font-medium mb-2">Escalamiento Humano</h4>
+                    <Textarea 
+                      placeholder="Ej: Te voy a conectar con uno de nuestros especialistas humanos."
+                      rows={3}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
