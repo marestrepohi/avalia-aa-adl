@@ -1,9 +1,7 @@
 import React from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Book, Plus } from 'lucide-react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import FuentesDocumentos from './FuentesDocumentos';
+import { Plus } from 'lucide-react';
 interface Conversacion {
   id: string;
   titulo: string;
@@ -57,24 +55,7 @@ const ConversacionesSidebar = ({
             </Button>)}
         </div>
       </ScrollArea>
-      <div className="p-4 border-t mt-auto py-[12px]">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <Book className="h-4 w-4" />
-              Fuentes de Conocimiento
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-[400px] sm:w-[540px]">
-            <SheetHeader>
-              <SheetTitle>Fuentes de Conocimiento</SheetTitle>
-            </SheetHeader>
-            <div className="mt-4">
-              <FuentesDocumentos asistenteId={asistenteId} />
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
+  {/* Botón de Fuentes de Conocimiento eliminado por solicitud */}
     </div>;
 };
 export default ConversacionesSidebar;

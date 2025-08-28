@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { PlusCircle, Edit, Copy, Trash2, Filter, Bot, MessageSquare, PlayCircle, Settings, ChevronDown, MessageCircle, Users, Slack, Send, Code } from "lucide-react";
+import { PlusCircle, Edit, Copy, Trash2, Filter, Bot, MessageSquare, PlayCircle, Settings, ChevronDown, MessageCircle, Users, Slack, Send, Code, Share2 } from "lucide-react";
+import ReactFlow, { addEdge, applyEdgeChanges, applyNodeChanges, Background, Node, Edge } from 'reactflow';
+import 'reactflow/dist/style.css';
 import DataTable from "../../components/ui/dashboard/DataTable";
 import SlidePanel from "../../components/ui/dashboard/SlidePanel";
 import { Button, Input, Textarea, Select, Toggle, Tabs } from "../../components/ui/dashboard/FormControls";
@@ -9,6 +11,7 @@ import AsistenteChat from '@/components/asistentes/AsistenteChat';
 import FuentesDocumentos from "../../components/asistentes/FuentesDocumentos";
 import { AnimatePresence, motion } from "framer-motion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+ 
 
 // Define AssistantText type
 interface AssistantText {
@@ -113,7 +116,19 @@ const Asistentes: React.FC = () => {
   const [isEditChatOpen, setIsEditChatOpen] = useState(false);
   const [editDescription, setEditDescription] = useState('');
   const [editTemperature, setEditTemperature] = useState(70);
-
+  const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
+  // Flow editor state (text assistant)
+  const [nodes, setNodes] = useState<Node[]>([{ id: '1', type: 'default', position: { x: 0, y: 0 }, data: { label: 'Inicio' } }]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+  const onNodesChange = (changes: any) => setNodes((nds) => applyNodeChanges(changes, nds));
+  const onEdgesChange = (changes: any) => setEdges((eds) => applyEdgeChanges(changes, eds));
+  const onConnect = (connection: any) => setEdges((eds) => addEdge(connection, eds));
+  const onNodeDoubleClick = (_: any, node: Node) => {
+    const newLabel = window.prompt('Etiqueta del nodo:', node.data.label);
+    if (newLabel) {
+      setNodes((nds) => nds.map(n => n.id === node.id ? { ...n, data: { label: newLabel } } : n));
+    }
+  };
   // --- Handlers ---
   const handleCreateClick = () => {
     setSelectedAssistant(null);
@@ -417,7 +432,6 @@ const Asistentes: React.FC = () => {
           tabs={[
             { id: "detalles", label: "Detalles" },
             { id: "configuracion", label: "Configuración" },
-            { id: "flujos", label: "Flujos" },
             { id: "fuentes", label: "Fuentes" }
           ]}
           activeTab={activeTab}
@@ -450,91 +464,90 @@ const Asistentes: React.FC = () => {
           )}
 
           {activeTab === "configuracion" && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <Select
                 label="Modelo de Lenguaje"
                 options={[
                   { value: "gpt-4", label: "GPT-4" },
                   { value: "gpt-3.5", label: "GPT-3.5 Turbo" },
-                  { value: "claude", label: "Claude" }
+                  { value: "claude-2", label: "Claude 2" },
                 ]}
-                defaultValue={selectedAssistant?.modelo}
-              />
-              <Textarea
-                label="Instrucciones del Sistema"
-                placeholder="Define el comportamiento y personalidad del asistente..."
-                rows={6}
+                defaultValue={selectedAssistant?.modelo || "gpt-4"}
               />
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Temperatura: {temperature}%
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={temperature}
-                  onChange={(e) => setTemperature(parseInt(e.target.value))}
-                  className="w-full"
-                />
-                <div className="text-xs text-muted-foreground mt-1">
-                  Controla la creatividad de las respuestas
+                <label className="block text-sm font-medium text-gray-700 mb-2">Temperatura</label>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={temperature}
+                    onChange={(e) => setTemperature(Number(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <span className="text-sm font-semibold text-gray-600 w-12 text-center">{temperature / 100}</span>
                 </div>
+                <p className="text-xs text-gray-500 mt-1">Controla la creatividad. Más bajo para respuestas predecibles, más alto para respuestas variadas.</p>
+              </div>
+              <div className="bg-muted/40 rounded-lg p-4 flex items-center justify-between">
+                <div>
+                  <h4 className="text-md font-semibold mb-1">Flujo Conversacional</h4>
+                  <p className="text-sm text-muted-foreground">Configura el flujo del asistente con el editor visual.</p>
+                </div>
+                <button
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-border bg-white text-primary hover:bg-primary/10 transition text-sm"
+                  onClick={() => setIsFlowModalOpen(true)}
+                >
+                  <Share2 className="h-4 w-4" />
+                  Editar Flujo
+                </button>
               </div>
             </div>
           )}
 
-          {activeTab === "flujos" && (
-            <div className="space-y-4">
-              <div className="border border-border rounded-lg p-6 bg-muted/20">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium">Editor de Flujos de Conversación</h3>
-                  <button className="px-4 py-2 bg-primary text-white rounded-md text-sm hover:bg-primary/90 transition">
-                    Abrir Editor Visual
-                  </button>
-                </div>
-                <p className="text-muted-foreground text-sm mb-4">
-                  Define el flujo de conversación y las respuestas automáticas del asistente.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white p-4 rounded-lg border border-border">
-                    <h4 className="font-medium mb-2">Mensaje de Bienvenida</h4>
-                    <Textarea 
-                      placeholder="Ej: ¡Hola! Soy tu asistente de ventas. ¿En qué puedo ayudarte hoy?"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="bg-white p-4 rounded-lg border border-border">
-                    <h4 className="font-medium mb-2">Mensaje de Despedida</h4>
-                    <Textarea 
-                      placeholder="Ej: ¡Gracias por usar nuestro servicio! ¿Hay algo más en lo que pueda ayudarte?"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="bg-white p-4 rounded-lg border border-border">
-                    <h4 className="font-medium mb-2">Respuesta No Entendido</h4>
-                    <Textarea 
-                      placeholder="Ej: No estoy seguro de entender tu consulta. ¿Podrías reformularla?"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="bg-white p-4 rounded-lg border border-border">
-                    <h4 className="font-medium mb-2">Escalamiento Humano</h4>
-                    <Textarea 
-                      placeholder="Ej: Te voy a conectar con uno de nuestros especialistas humanos."
-                      rows={3}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          
 
           {activeTab === "fuentes" && (
-            <FuentesDocumentos asistenteId={selectedAssistant?.id.toString() || "new"} />
+            <FuentesDocumentos />
           )}
         </div>
       </SlidePanel>
+
+      {/* Flow Editor Modal */}
+      <Modal
+        isOpen={isFlowModalOpen}
+        onClose={() => setIsFlowModalOpen(false)}
+        title={selectedAssistant ? `Editor de Flujo - ${selectedAssistant.nombre}` : 'Editor de Flujo'}
+        size="xl"
+        footer={
+          <div className="flex justify-end gap-2">
+            <button className="px-4 py-2 rounded-md border border-border bg-muted text-muted-foreground hover:bg-muted/70 transition" onClick={() => setIsFlowModalOpen(false)}>Cancelar</button>
+            <button className="px-4 py-2 rounded-md bg-primary text-white font-semibold shadow hover:bg-primary/90 transition" onClick={() => setIsFlowModalOpen(false)}>Guardar Flujo</button>
+          </div>
+        }
+      >
+        <div className="space-y-3">
+          <div className="mb-2">
+            <button className="px-3 py-1 bg-primary text-white rounded" onClick={() => {
+              const id = `${nodes.length + 1}`;
+              setNodes([...nodes, { id, type: 'default', position: { x: Math.random() * 400, y: Math.random() * 400 }, data: { label: `Paso ${id}` } }]);
+            }}>Agregar Nodo</button>
+          </div>
+          <div style={{ height: 520 }}>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onNodeDoubleClick={onNodeDoubleClick}
+              fitView
+            >
+              <Background />
+            </ReactFlow>
+          </div>
+        </div>
+      </Modal>
 
       {/* Delete Confirmation Modal */}
       <Modal
