@@ -508,7 +508,7 @@ const Asistentes: React.FC = () => {
           
 
           {activeTab === "fuentes" && (
-            <FuentesDocumentos asistenteId={editingAssistant?.id || "temp"} />
+            <FuentesDocumentos asistenteId={selectedAssistant?.id?.toString() || "temp"} />
           )}
         </div>
       </SlidePanel>
