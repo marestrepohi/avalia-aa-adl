@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlusCircle, Edit, Copy, Trash2, Filter, Bot, MessageSquare, PlayCircle, Settings, ChevronDown, MessageCircle, Users, Slack, Send, Code, Share2 } from "lucide-react";
 import ReactFlow, { addEdge, applyEdgeChanges, applyNodeChanges, Background, Node, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -11,6 +11,8 @@ import AsistenteChat from '@/components/asistentes/AsistenteChat';
 import FuentesDocumentos from "../../components/asistentes/FuentesDocumentos";
 import { AnimatePresence, motion } from "framer-motion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useAssistants, type Assistant } from '@/hooks/useAssistants';
+import { toast } from 'sonner';
  
 
 // Define AssistantText type
@@ -117,6 +119,62 @@ const Asistentes: React.FC = () => {
   const [editDescription, setEditDescription] = useState('');
   const [editTemperature, setEditTemperature] = useState(70);
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
+  const [realAssistants, setRealAssistants] = useState<Assistant[]>([]);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    model: 'gemini-1.5-flash',
+    temperature: 0.7,
+    system_prompt: '',
+    status: 'active'
+  });
+
+  const { 
+    loading: assistantsLoading, 
+    error, 
+    getAssistants, 
+    createAssistant, 
+    updateAssistant, 
+    deleteAssistant 
+  } = useAssistants();
+
+  // Load assistants on component mount
+  useEffect(() => {
+    loadAssistants();
+  }, []);
+
+  const loadAssistants = async () => {
+    try {
+      const assistants = await getAssistants();
+      setRealAssistants(assistants);
+    } catch (err) {
+      console.error('Error loading assistants:', err);
+      toast.error('Error al cargar los asistentes');
+    }
+  };
+
+  // Convert real assistants to display format
+  const displayAssistants: AssistantText[] = realAssistants.map(assistant => ({
+    id: parseInt(assistant.id.substring(0, 8), 16), // Convert UUID to number for display
+    nombre: assistant.name,
+    descripcion: assistant.description || '',
+    estado: assistant.status === 'active' ? 'Activo' : 'Inactivo',
+    conversaciones: Math.floor(Math.random() * 1000) + 100, // Mock data for now
+    fecha: new Date(assistant.created_at).toLocaleDateString('es-ES'),
+    modelo: assistant.model,
+    temperatura: Math.round(assistant.temperature * 100),
+    mensajes: Math.floor(Math.random() * 15000) + 5000,
+    tiempoRespuesta: parseFloat((Math.random() * 2 + 0.5).toFixed(1)),
+    satisfaccion: parseFloat((Math.random() * 0.3 + 0.7).toFixed(2)),
+    tasaResolucion: parseFloat((Math.random() * 0.4 + 0.5).toFixed(2)),
+    fuentes: Math.floor(Math.random() * 20) + 5,
+    icono: "Bot",
+    color: "#9b87f5"
+  }));
+
+  // Use real assistants if available, otherwise fallback to sample data
+  const assistantsToDisplay = realAssistants.length > 0 ? displayAssistants : assistantsData;
+
   // Flow editor state (text assistant)
   const [nodes, setNodes] = useState<Node[]>([{ id: '1', type: 'default', position: { x: 0, y: 0 }, data: { label: 'Inicio' } }]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -149,9 +207,10 @@ const Asistentes: React.FC = () => {
   };
 
   const handleTestClick = (assistant: AssistantText) => {
-    // Convert to the format expected by AsistenteChat
+    // Find the real assistant ID if it exists
+    const realAssistant = realAssistants.find(ra => ra.name === assistant.nombre);
     const chatAssistant = {
-      id: assistant.id.toString(),
+      id: realAssistant?.id || assistant.id.toString(),
       nombre: assistant.nombre,
       descripcion: assistant.descripcion,
       icono: assistant.icono || "Bot",
@@ -400,7 +459,7 @@ const Asistentes: React.FC = () => {
 
       <DataTable
         columns={columns}
-        data={assistantsData}
+        data={assistantsToDisplay}
         renderExpandedRow={renderAssistantMetrics}
       />
 
