@@ -197,7 +197,30 @@ const Asistentes: React.FC = () => {
   const handleEditClick = (assistant: AssistantText) => {
     setSelectedAssistant(assistant);
     setActiveTab("detalles");
-    setTemperature(assistant.temperatura || 70);
+    
+    // Find the real assistant to populate form
+    const realAssistant = realAssistants.find(ra => ra.name === assistant.nombre);
+    if (realAssistant) {
+      setFormData({
+        name: realAssistant.name,
+        description: realAssistant.description || '',
+        model: realAssistant.model,
+        temperature: realAssistant.temperature,
+        system_prompt: realAssistant.system_prompt || '',
+        status: realAssistant.status
+      });
+    } else {
+      // Fallback to display data
+      setFormData({
+        name: assistant.nombre,
+        description: assistant.descripcion,
+        model: assistant.modelo || 'gemini-1.5-flash',
+        temperature: (assistant.temperatura || 70) / 100,
+        system_prompt: '',
+        status: assistant.estado === 'Activo' ? 'active' : 'inactive'
+      });
+    }
+    
     setIsPanelOpen(true);
   };
 
@@ -221,24 +244,91 @@ const Asistentes: React.FC = () => {
     setSelectedChatAssistant(chatAssistant);
   };
 
-  const handleConfirmDelete = () => {
-    console.log("Eliminar asistente:", selectedAssistant?.nombre);
+  const handleConfirmDelete = async () => {
+    if (!selectedAssistant) return;
+    
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const realAssistant = realAssistants.find(ra => ra.name === selectedAssistant.nombre);
+      if (realAssistant) {
+        const success = await deleteAssistant(realAssistant.id);
+        if (success) {
+          toast.success('Asistente eliminado correctamente');
+          loadAssistants(); // Reload the list
+        } else {
+          toast.error('Error al eliminar el asistente');
+        }
+      }
+    } catch (err) {
+      console.error('Error deleting assistant:', err);
+      toast.error('Error al eliminar el asistente');
+    } finally {
       setIsLoading(false);
       setIsDeleteModalOpen(false);
       setSelectedAssistant(null);
-    }, 1000);
+    }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsLoading(true);
-    console.log("Guardando asistente");
-    setTimeout(() => {
-      setIsLoading(false);
+    
+    try {
+      if (selectedAssistant) {
+        // Update existing assistant
+        const realAssistant = realAssistants.find(ra => ra.name === selectedAssistant.nombre);
+        if (realAssistant) {
+          await updateAssistant(realAssistant.id, {
+            name: formData.name || selectedAssistant.nombre,
+            description: formData.description || selectedAssistant.descripcion,
+            model: formData.model,
+            temperature: formData.temperature,
+            system_prompt: formData.system_prompt,
+            status: formData.status
+          });
+          toast.success('Asistente actualizado correctamente');
+        }
+      } else {
+        // Create new assistant
+        if (!formData.name.trim()) {
+          toast.error('El nombre del asistente es requerido');
+          return;
+        }
+        
+        const newAssistant = await createAssistant({
+          name: formData.name,
+          description: formData.description,
+          model: formData.model,
+          temperature: formData.temperature,
+          system_prompt: formData.system_prompt,
+          status: formData.status
+        });
+        
+        if (newAssistant) {
+          toast.success('Asistente creado correctamente');
+          loadAssistants(); // Reload the list
+        } else {
+          toast.error('Error al crear el asistente');
+          return;
+        }
+      }
+      
       setIsPanelOpen(false);
       setSelectedAssistant(null);
-    }, 1500);
+      // Reset form
+      setFormData({
+        name: '',
+        description: '',
+        model: 'gemini-1.5-flash',
+        temperature: 0.7,
+        system_prompt: '',
+        status: 'active'
+      });
+    } catch (err) {
+      console.error('Error saving assistant:', err);
+      toast.error('Error al guardar el asistente');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCloseChat = () => {
@@ -503,21 +593,34 @@ const Asistentes: React.FC = () => {
               <Input
                 label="Nombre del Asistente"
                 placeholder="Ej: Asistente de Ventas"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 defaultValue={selectedAssistant?.nombre}
               />
               <Textarea
                 label="Descripción"
                 placeholder="Describe el propósito y funcionalidad del asistente..."
                 rows={3}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 defaultValue={selectedAssistant?.descripcion}
+              />
+              <Textarea
+                label="Prompt del Sistema"
+                placeholder="Eres un asistente especializado en..."
+                rows={4}
+                value={formData.system_prompt}
+                onChange={(e) => setFormData({ ...formData, system_prompt: e.target.value })}
               />
               <Select
                 label="Estado"
                 options={[
-                  { value: "activo", label: "Activo" },
-                  { value: "inactivo", label: "Inactivo" }
+                  { value: "active", label: "Activo" },
+                  { value: "inactive", label: "Inactivo" }
                 ]}
-                defaultValue={selectedAssistant?.estado.toLowerCase()}
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                defaultValue={selectedAssistant?.estado === 'Activo' ? 'active' : 'inactive'}
               />
             </div>
           )}
@@ -527,11 +630,13 @@ const Asistentes: React.FC = () => {
               <Select
                 label="Modelo de Lenguaje"
                 options={[
-                  { value: "gpt-4", label: "GPT-4" },
-                  { value: "gpt-3.5", label: "GPT-3.5 Turbo" },
-                  { value: "claude-2", label: "Claude 2" },
+                  { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash" },
+                  { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro" },
+                  { value: "gemini-pro", label: "Gemini Pro" },
                 ]}
-                defaultValue={selectedAssistant?.modelo || "gpt-4"}
+                value={formData.model}
+                onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                defaultValue={selectedAssistant?.modelo || "gemini-1.5-flash"}
               />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Temperatura</label>
@@ -540,11 +645,11 @@ const Asistentes: React.FC = () => {
                     type="range"
                     min="0"
                     max="100"
-                    value={temperature}
-                    onChange={(e) => setTemperature(Number(e.target.value))}
+                    value={formData.temperature * 100}
+                    onChange={(e) => setFormData({ ...formData, temperature: Number(e.target.value) / 100 })}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   />
-                  <span className="text-sm font-semibold text-gray-600 w-12 text-center">{temperature / 100}</span>
+                  <span className="text-sm font-semibold text-gray-600 w-12 text-center">{formData.temperature.toFixed(1)}</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Controla la creatividad. Más bajo para respuestas predecibles, más alto para respuestas variadas.</p>
               </div>
