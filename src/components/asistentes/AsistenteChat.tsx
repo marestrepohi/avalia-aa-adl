@@ -109,7 +109,24 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
     setMensaje('');
 
     try {
-      // Send message to backend
+      // For sample conversations, add a mock response
+      if (currentConversationId?.startsWith('sample-')) {
+        // Simulate AI thinking time
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          conversation_id: currentConversationId,
+          role: 'assistant',
+          content: getSampleResponse(mensaje),
+          created_at: new Date().toISOString()
+        };
+        
+        setMensajes(prev => [...prev, assistantMessage]);
+        return;
+      }
+
+      // Send message to backend for real conversations
       const response = await sendMessage(
         asistente.id,
         mensaje,
@@ -139,6 +156,16 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
       console.error('Error sending message:', err);
       toast.error('Error al comunicarse con el asistente');
     }
+  };
+
+  const getSampleResponse = (userMessage: string): string => {
+    const responses = [
+      `Entiendo tu consulta sobre "${userMessage}". Te puedo ayudar con información detallada al respecto.`,
+      `Gracias por tu pregunta. En base a lo que me comentas sobre "${userMessage}", puedo ofrecerte algunas opciones.`,
+      `Es una excelente pregunta. Déjame explicarte más sobre "${userMessage}" y cómo podemos ayudarte.`,
+      `Me da mucho gusto poder asistirte con tu consulta. Sobre "${userMessage}", tengo varias recomendaciones para ti.`
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
   };
 
   // Auto-scroll to bottom when messages change
@@ -307,8 +334,9 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
   if (!asistente) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[280px,1fr] h-screen w-full min-h-0 overflow-hidden">
-      <div className="hidden md:block h-full min-h-0 overflow-hidden border-r bg-gradient-to-b from-white to-muted/40">
+    <div className="flex h-screen w-full overflow-hidden bg-background">
+      {/* Sidebar - Solo visible en desktop */}
+      <div className="hidden lg:block w-80 border-r bg-gradient-to-b from-white to-muted/40 flex-shrink-0">
         <ConversacionesSidebar 
           asistenteId={asistente.id} 
           onConversationSelect={loadConversation}
@@ -317,86 +345,97 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
         />
       </div>
       
-      <Card className="border-0 rounded-none h-full">
-        <div className="flex flex-col h-full w-full bg-background overflow-hidden min-h-0">
-          {/* Header */}
-          <div className="flex items-center gap-3 px-4 py-3 sticky top-0 z-10 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={onClose}>
-              <ArrowLeft className="h-5 w-5" />
+      {/* Chat Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Header - Fixed */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b bg-white/95 backdrop-blur-sm z-10 flex-shrink-0">
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="relative h-10 w-10 rounded-full flex items-center justify-center bg-white border shadow flex-shrink-0" style={{ background: asistente.color + '22' }}>
+              <span className="text-xl" style={{ color: asistente.color }}>🤖</span>
+              <span className="absolute -bottom-0 -right-0 h-3 w-3 rounded-full bg-green-500 ring-2 ring-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold text-base truncate" style={{ color: asistente.color }}>
+                {assistant?.name || asistente.nombre}
+              </div>
+              <div className="text-xs text-muted-foreground truncate">
+                {assistant?.description || asistente.descripcion}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button variant="outline" size="sm" onClick={handleOpenEditPanel} className="hidden md:flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Editar
             </Button>
-            <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 rounded-full flex items-center justify-center bg-white border shadow" style={{ background: asistente.color + '22' }}>
-                <span className="text-xl" style={{ color: asistente.color }}>🤖</span>
-                <span className="absolute -bottom-0 -right-0 h-3 w-3 rounded-full bg-green-500 ring-2 ring-white" />
-              </div>
-              <div>
-                <div className="font-semibold text-base" style={{ color: asistente.color }}>
-                  {assistant?.name || asistente.nombre}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {assistant?.description || asistente.descripcion}
-                </div>
-              </div>
-            </div>
-            <div className="ml-auto flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleOpenEditPanel} className="hidden md:flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Editar
-              </Button>
-              <Button variant="outline" size="sm" onClick={onClose}>Volver</Button>
-            </div>
           </div>
+        </div>
 
-          {/* Messages */}
-          <div ref={scrollRef} className="flex-1 flex flex-col overflow-y-auto bg-gradient-to-b from-muted/60 to-background px-2 py-4 md:px-4">
-            <div className="flex flex-col gap-4 w-full mx-auto">
-              {mensajes.map(msg => (
-                <div key={msg.id} className={`flex items-end ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  {msg.role === 'assistant' && (
-                    <div className="mr-2 h-8 w-8 rounded-full bg-primary/10 border flex items-center justify-center text-[10px] font-semibold text-primary">AI</div>
-                  )}
-                  <div className={`max-w-[85%] md:max-w-[75%] p-3 md:p-4 rounded-2xl shadow-sm text-sm break-words ${
-                    msg.role === 'user' 
-                      ? 'bg-primary text-primary-foreground rounded-br-md' 
-                      : 'bg-white border rounded-bl-md'
-                  }`}>
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
-                    <span className="text-xs opacity-50 mt-1 block text-right">
-                      {format(new Date(msg.created_at), 'HH:mm')}
-                    </span>
-                  </div>
-                  {msg.role === 'user' && (
-                    <div className="ml-2 h-8 w-8 rounded-full bg-secondary/50 border flex items-center justify-center text-[10px] font-semibold text-secondary-foreground">Tú</div>
-                  )}
+        {/* Messages Area - Scrollable */}
+        <div className="flex-1 overflow-y-auto bg-gradient-to-b from-muted/60 to-background p-4 min-h-0">
+          <div className="max-w-4xl mx-auto space-y-4">
+            {mensajes.map(msg => (
+              <div key={msg.id} className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                {/* Avatar */}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 ${
+                  msg.role === 'user' 
+                    ? 'bg-secondary/50 border text-secondary-foreground' 
+                    : 'bg-primary/10 border text-primary'
+                }`}>
+                  {msg.role === 'user' ? 'Tú' : 'AI'}
                 </div>
-              ))}
-              {loading && (
-                <div className="flex items-end justify-start">
-                  <div className="mr-2 h-8 w-8 rounded-full bg-primary/10 border flex items-center justify-center text-[10px] font-semibold text-primary">AI</div>
-                  <div className="max-w-[75%] p-4 rounded-2xl shadow-sm bg-white border rounded-bl-md">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm text-muted-foreground">Escribiendo...</span>
-                    </div>
+                
+                {/* Message Bubble */}
+                <div className={`max-w-[70%] sm:max-w-[60%] p-3 rounded-2xl shadow-sm text-sm break-words ${
+                  msg.role === 'user' 
+                    ? 'bg-primary text-primary-foreground rounded-tr-md' 
+                    : 'bg-white border rounded-tl-md'
+                }`}>
+                  <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                  <span className="text-xs opacity-70 mt-2 block text-right">
+                    {format(new Date(msg.created_at), 'HH:mm')}
+                  </span>
+                </div>
+              </div>
+            ))}
+            
+            {/* Loading indicator */}
+            {loading && (
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/10 border flex items-center justify-center text-xs font-semibold text-primary flex-shrink-0">AI</div>
+                <div className="max-w-[60%] p-3 rounded-2xl shadow-sm bg-white border rounded-tl-md">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">Escribiendo...</span>
                   </div>
                 </div>
-              )}
-              <div ref={endRef} />
-            </div>
+              </div>
+            )}
+            
+            {/* Scroll anchor */}
+            <div ref={endRef} className="h-1" />
           </div>
+        </div>
 
-          {/* Input */}
-          <form onSubmit={handleSend} className="px-3 md:px-4 py-3 border-t bg-white sticky bottom-0 z-10">
-            <div className="flex items-end gap-2">
+        {/* Input Area - Fixed */}
+        <form onSubmit={handleSend} className="p-4 border-t bg-white/95 backdrop-blur-sm flex-shrink-0">
+          <div className="max-w-4xl mx-auto flex items-end gap-3">
+            <div className="flex-1 min-w-0">
               <Textarea
                 value={mensaje}
                 onChange={e => setMensaje(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Escribe un mensaje (Shift+Enter para nueva línea)"
+                placeholder="Escribe un mensaje... (Shift+Enter para nueva línea)"
                 rows={1}
-                className="flex-1 resize-none bg-muted/60 border-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
+                className="resize-none bg-muted/60 border-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl min-h-[40px] max-h-32"
                 disabled={loading}
               />
+            </div>
+            
+            <div className="flex items-center gap-2 flex-shrink-0">
               <input type="file" id="file-upload" className="hidden" multiple onChange={handleFileUpload} />
               <Button 
                 type="button" 
@@ -418,9 +457,9 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>
-          </form>
-        </div>
-      </Card>
+          </div>
+        </form>
+      </div>
 
       {/* Edit Panel */}
       <SlidePanel

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, Check, ChevronDown, ChevronUp } from "lucide-react";
 import {
@@ -56,32 +55,30 @@ const DataTable: React.FC<DataTableProps> = ({
   };
 
   const toggleSelectRow = (id: string | number) => {
-    setSelectedRows(prev => ({
+    setSelectedRows((prev) => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }));
   };
 
   const toggleExpandRow = (id: string | number) => {
-    setExpandedRows(prev => ({
+    setExpandedRows((prev) => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }));
   };
 
-  const areAllSelected = paginatedData.length > 0 && 
-    paginatedData.every((row, index) => selectedRows[row.id || index]);
+  const selectedCount = Object.values(selectedRows).filter(Boolean).length;
+  const areAllSelected = selectedCount === paginatedData.length && paginatedData.length > 0;
 
   return (
-    <div className={`bg-white rounded-lg shadow-card overflow-hidden card-hover ${className}`}>
-      <div className="overflow-x-auto">
+    <div className={`w-full ${className}`}>
+      <div className="bg-white rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
               {renderExpandedRow && (
-                <TableHead className="w-10 px-2">
-                  <span className="sr-only">Expandir</span>
-                </TableHead>
+                <TableHead className="w-10 px-2"></TableHead>
               )}
               {showCheckboxes && (
                 <TableHead className="w-10">
@@ -176,33 +173,41 @@ const DataTable: React.FC<DataTableProps> = ({
         </Table>
       </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-2 border-t border-border gap-4">
-          <div className="text-sm text-muted-foreground text-center sm:text-left">
-            Mostrando {startIndex + 1} a{" "}
-            {Math.min(startIndex + itemsPerPage, data.length)} de {data.length}{" "}
-            resultados
+        <div className="flex items-center justify-between px-2 py-3">
+          <div className="text-sm text-muted-foreground">
+            {selectedCount > 0 && (
+              <span className="font-medium">
+                {selectedCount} de {paginatedData.length} filas seleccionadas.
+              </span>
+            )}
           </div>
-          <div className="flex items-center justify-center sm:justify-end space-x-2">
-            <button
-              className="icon-button"
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <span className="text-sm text-muted-foreground">
-              Página {currentPage} de {totalPages}
-            </span>
-            <button
-              className="icon-button"
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
+          <div className="flex items-center space-x-6 lg:space-x-8">
+            <div className="flex items-center space-x-2">
+              <p className="text-sm font-medium">Página</p>
+              <p className="text-sm text-muted-foreground">
+                {currentPage} de {totalPages}
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                className="h-8 w-8 flex items-center justify-center border rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                className="h-8 w-8 flex items-center justify-center border rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}

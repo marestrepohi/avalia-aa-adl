@@ -121,7 +121,7 @@ const ConversacionesSidebar: React.FC<ConversacionesSidebarProps> = ({
   };
 
   return (
-    <div className="w-full max-w-xs md:w-72 border-r border-border h-full flex flex-col bg-gradient-to-b from-white to-muted/40">
+    <div className="w-full max-w-xs md:w-72 border-r border-border h-full flex flex-col bg-gradient-to-b from-white to-muted/40 flex-shrink-0">
       <div className="p-4 border-b flex items-center justify-between gap-2 bg-slate-100 rounded-none py-[12px]">
         <h3 className="font-semibold text-lg flex-1 truncate">Conversaciones</h3>
         <Button 
