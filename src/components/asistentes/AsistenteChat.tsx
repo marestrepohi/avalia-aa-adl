@@ -185,6 +185,15 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
 
   const loadConversation = async (conversationId: string) => {
     try {
+      // Handle sample conversations
+      if (conversationId.startsWith('sample-')) {
+        const sampleMessages = getSampleMessages(conversationId);
+        setMensajes(sampleMessages);
+        setCurrentConversationId(conversationId);
+        return;
+      }
+
+      // Load real conversation
       const messages = await getMessages(conversationId);
       setMensajes(messages);
       setCurrentConversationId(conversationId);
@@ -194,12 +203,118 @@ const AsistenteChat: React.FC<AsistenteChatProps> = ({
     }
   };
 
+  const getSampleMessages = (conversationId: string): Message[] => {
+    const sampleConversations: { [key: string]: Message[] } = {
+      'sample-1': [
+        {
+          id: 'sample-1-1',
+          conversation_id: conversationId,
+          role: 'user',
+          content: '¿Cuáles son las tasas de interés actuales para préstamos personales?',
+          created_at: new Date(2025, 3, 20, 14, 30).toISOString()
+        },
+        {
+          id: 'sample-1-2',
+          conversation_id: conversationId,
+          role: 'assistant',
+          content: 'Hola! Me da mucho gusto ayudarte con información sobre nuestros préstamos personales. Actualmente manejamos las siguientes tasas:\n\n• Préstamos hasta $50,000: 12.5% - 18.5% anual\n• Préstamos de $50,001 a $200,000: 11.0% - 16.5% anual\n• Préstamos superiores a $200,000: 9.5% - 14.0% anual\n\nLas tasas específicas dependen de tu historial crediticio, ingresos comprobables y el monto solicitado. ¿Te gustaría que revisemos qué tasa podrías obtener según tu perfil?',
+          created_at: new Date(2025, 3, 20, 14, 31).toISOString()
+        },
+        {
+          id: 'sample-1-3',
+          conversation_id: conversationId,
+          role: 'user',
+          content: 'Sí, me interesa un préstamo de $80,000. ¿Qué documentos necesito?',
+          created_at: new Date(2025, 3, 20, 14, 32).toISOString()
+        },
+        {
+          id: 'sample-1-4',
+          conversation_id: conversationId,
+          role: 'assistant',
+          content: 'Perfecto! Para un préstamo de $80,000 necesitarás:\n\n📋 **Documentos requeridos:**\n• Identificación oficial vigente\n• Comprobante de domicilio (no mayor a 3 meses)\n• Comprobantes de ingresos (últimos 3 meses)\n• Estados de cuenta bancarios (últimos 3 meses)\n• RFC con homoclave\n• CURP\n\n💰 **Para tu monto de $80,000:**\n• Tasa estimada: 11.0% - 16.5% anual\n• Plazo: hasta 48 meses\n• Pago mensual aproximado: $2,100 - $2,400\n\n¿Te gustaría agendar una cita para iniciar el proceso?',
+          created_at: new Date(2025, 3, 20, 14, 33).toISOString()
+        }
+      ],
+      'sample-2': [
+        {
+          id: 'sample-2-1',
+          conversation_id: conversationId,
+          role: 'user',
+          content: 'Me interesa abrir una cuenta de ahorros con alto rendimiento',
+          created_at: new Date(2025, 3, 19, 16, 45).toISOString()
+        },
+        {
+          id: 'sample-2-2',
+          conversation_id: conversationId,
+          role: 'assistant',
+          content: '¡Excelente decisión! Tenemos varias opciones de cuentas de ahorro que te pueden convenir:\n\n🏆 **Cuenta Premium Plus:**\n• Rendimiento: 8.5% anual\n• Saldo mínimo: $100,000\n• Sin comisiones por manejo\n\n💎 **Cuenta Inversión Smart:**\n• Rendimiento: 7.2% anual\n• Saldo mínimo: $25,000\n• Acceso a instrumentos de inversión\n\n🌟 **Cuenta Ahorro Dinámico:**\n• Rendimiento: 6.0% anual\n• Saldo mínimo: $5,000\n• Tarjeta de débito incluida\n\n¿Con qué monto inicial estarías pensando abrir tu cuenta?',
+          created_at: new Date(2025, 3, 19, 16, 46).toISOString()
+        }
+      ],
+      'sample-3': [
+        {
+          id: 'sample-3-1',
+          conversation_id: conversationId,
+          role: 'user',
+          content: 'No puedo acceder a mi cuenta desde la aplicación móvil',
+          created_at: new Date(2025, 3, 18, 10, 15).toISOString()
+        },
+        {
+          id: 'sample-3-2',
+          conversation_id: conversationId,
+          role: 'assistant',
+          content: 'Lamento que tengas problemas para acceder a tu cuenta. Te ayudo a resolverlo paso a paso:\n\n🔧 **Soluciones comunes:**\n\n1. **Verifica tu conexión a internet**\n2. **Actualiza la app** desde tu tienda de aplicaciones\n3. **Reinicia la aplicación** completamente\n4. **Verifica tus credenciales** (usuario y contraseña)\n\n📱 **Si el problema persiste:**\n• ¿Qué mensaje de error ves exactamente?\n• ¿Has cambiado tu contraseña recientemente?\n• ¿Tienes la versión más reciente de la app?\n\n¿Podrías contarme qué sucede cuando intentas ingresar?',
+          created_at: new Date(2025, 3, 18, 10, 16).toISOString()
+        }
+      ],
+      'sample-4': [
+        {
+          id: 'sample-4-1',
+          conversation_id: conversationId,
+          role: 'user',
+          content: '¿Qué opciones de inversión recomiendan para un perfil conservador?',
+          created_at: new Date(2025, 3, 17, 11, 20).toISOString()
+        },
+        {
+          id: 'sample-4-2',
+          conversation_id: conversationId,
+          role: 'assistant',
+          content: 'Para un perfil conservador, tenemos excelentes opciones que priorizan la seguridad y estabilidad:\n\n🛡️ **Inversiones de Bajo Riesgo:**\n\n• **Certificados de Depósito (CEDES)**\n  - Rendimiento: 9.5% - 11.0% anual\n  - Plazo: 28 días a 3 años\n  - Capital garantizado\n\n• **Fondos de Inversión Conservadores**\n  - Rendimiento histórico: 8.0% - 10.5% anual\n  - Diversificación automática\n  - Liquidez diaria\n\n• **Pagarés Bancarios**\n  - Rendimiento: 8.8% - 10.2% anual\n  - Plazo fijo\n  - Respaldado por el banco\n\n💡 **Recomendación:** Para iniciar, sugiero una combinación de 60% CEDES y 40% fondos conservadores.\n\n¿Con qué monto estarías pensando comenzar a invertir?',
+          created_at: new Date(2025, 3, 17, 11, 21).toISOString()
+        }
+      ]
+    };
+
+    return sampleConversations[conversationId] || [];
+  };
+
+  const handleNewConversation = () => {
+    setMensajes([]);
+    setCurrentConversationId(null);
+    
+    // Add welcome message for new conversation
+    const welcomeMessage: Message = {
+      id: 'welcome-new',
+      conversation_id: '',
+      role: 'assistant',
+      content: `¡Hola! Soy ${asistente?.nombre}. ¿En qué puedo ayudarte hoy?`,
+      created_at: new Date().toISOString()
+    };
+    setMensajes([welcomeMessage]);
+    toast.success('Nueva conversación iniciada');
+  };
+
   if (!asistente) return null;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[280px,1fr] h-screen w-full min-h-0 overflow-hidden">
       <div className="hidden md:block h-full min-h-0 overflow-hidden border-r bg-gradient-to-b from-white to-muted/40">
-        <ConversacionesSidebar asistenteId={asistente.id} />
+        <ConversacionesSidebar 
+          asistenteId={asistente.id} 
+          onConversationSelect={loadConversation}
+          onNewConversation={handleNewConversation}
+          currentConversationId={currentConversationId}
+        />
       </div>
       
       <Card className="border-0 rounded-none h-full">
