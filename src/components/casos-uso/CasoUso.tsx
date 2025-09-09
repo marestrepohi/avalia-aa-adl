@@ -9,10 +9,11 @@ import { TrendingUp, TrendingDown, DollarSign, Users, Target, Cpu, BarChart3, Za
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 interface CasoUsoProps {
-  tipo: 'churn' | 'tc' | 'nba' | 'aumento-uso';
+  tipo: 'churn' | 'tc' | 'nba' | 'aumento-uso' | 'generico';
+  displayTitle?: string; // título temporal personalizado
 }
 
-const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
+const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle }) => {
   const [modeloSeleccionado, setModeloSeleccionado] = useState('tarjeta-credito');
   const [filtroUsuario, setFiltroUsuario] = useState<'activos' | 'durmientes'>('activos');
   // Función para exportar datos a CSV
@@ -54,6 +55,11 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
       nombre: 'Aumento de Uso',
       descripcion: 'Incremento en utilización de productos',
       color: 'bg-purple-500'
+    },
+    generico: {
+      nombre: 'Caso de Uso Genérico',
+      descripcion: 'Vista temporal basada en plantilla Churn',
+      color: 'bg-slate-500'
     }
   };
 
@@ -1196,7 +1202,8 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
     );
   };
 
-  const casoInfo = casosInfo[tipo];
+  const casoInfo = casosInfo[tipo] || casosInfo['churn'];
+  const tituloVisible = displayTitle || casoInfo.nombre;
 
   return (
     <div className="container mx-auto p-6 space-y-6 h-full">
@@ -1204,8 +1211,8 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo }) => {
         <div className="flex items-center space-x-4">
           <div className={`w-4 h-4 rounded-full ${casoInfo.color}`} />
           <div>
-            <h1 className="text-3xl font-bold">{casoInfo.nombre}</h1>
-            <p className="text-muted-foreground">{casoInfo.descripcion}</p>
+            <h1 className="text-3xl font-bold" title={casoInfo.nombre}>{tituloVisible}</h1>
+            <p className="text-muted-foreground">{displayTitle ? `Vista temporal basada en plantilla ${casoInfo.nombre}` : casoInfo.descripcion}</p>
           </div>
           <Badge variant="outline" className="text-green-600 border-green-600 ml-auto">
             Activo
