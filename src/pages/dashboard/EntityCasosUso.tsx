@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Brain, TrendingDown, Target, Zap, BarChart3, Building2, Users, Clock, TrendingUp } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Plus, Brain, TrendingDown, Target, Zap, BarChart3, Building2 } from 'lucide-react';
 import { useDashboard } from '@/contexts/DashboardContext';
 import { supabase } from '@/integrations/supabase/client';
 import CasoUso from '@/components/casos-uso/CasoUso';
@@ -33,24 +34,13 @@ const EntityCasosUso = () => {
   const [selectedCaso, setSelectedCaso] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Mapeo de casos de uso para métricas simuladas
-  const getMetricasCaso = (proyecto: string) => {
-    const proyectoLower = proyecto?.toLowerCase() || '';
-    
-    if (proyectoLower.includes('churn')) {
-      return { precision: 0.85, recall: 0.78, clientes_riesgo: 1250, ahorro_estimado: '$2.5M' };
-    } else if (proyectoLower.includes('cobranza')) {
-      return { precision: 0.92, recall: 0.88, efectividad: 0.65, recuperacion: '$4.2M' };
-    } else if (proyectoLower.includes('fraude')) {
-      return { precision: 0.94, recall: 0.82, alertas_dia: 45, fraudes_evitados: '$1.8M' };
-    } else if (proyectoLower.includes('cupo') || proyectoLower.includes('empresarial')) {
-      return { precision: 0.87, recall: 0.83, empresas_objetivo: 320, incremento_cupo: '$15.6M' };
-    } else if (proyectoLower.includes('nba') || proyectoLower.includes('pasivos')) {
-      return { precision: 0.89, recall: 0.85, conversiones: 892, ingresos: '$3.7M' };
-    }
-    
-    return { precision: 0.86, recall: 0.81, impacto: 'Alto', valor: '$2.1M' };
-  };
+  // Casos de uso disponibles para agregar
+  const casosDisponibles = [
+    { id: 'churn', nombre: 'Churn Prediction', descripcion: 'Predicción de abandono de clientes', icono: TrendingDown, color: 'bg-red-500' },
+    { id: 'tc', nombre: 'Top Customers', descripcion: 'Identificación de mejores clientes', icono: Target, color: 'bg-green-500' },
+    { id: 'nba', nombre: 'Next Best Action', descripcion: 'Próxima mejor acción comercial', icono: Zap, color: 'bg-blue-500' },
+    { id: 'aumento-uso', nombre: 'Aumento de Uso', descripcion: 'Incremento en utilización de productos', icono: BarChart3, color: 'bg-purple-500' }
+  ];
 
   useEffect(() => {
     const selectedEntityData = localStorage.getItem('selectedEntity');
@@ -164,13 +154,13 @@ const EntityCasosUso = () => {
           <div className="flex items-center space-x-4">
             <div 
               className="w-12 h-12 rounded-lg flex items-center justify-center p-2"
-              style={{ backgroundColor: entidad.color }}
+              style={{ backgroundColor: `${entidad.color}20` }}
             >
               {entidad.logo_url ? (
                 <img 
                   src={entidad.logo_url} 
                   alt={`Logo ${entidad.id_nombre}`}
-                  className="w-full h-full object-contain brightness-0 invert"
+                  className="w-full h-full object-contain"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                     const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
@@ -179,8 +169,9 @@ const EntityCasosUso = () => {
                 />
               ) : null}
               <Building2 
-                className="w-6 h-6 text-white" 
+                className="w-6 h-6" 
                 style={{ 
+                  color: entidad.color,
                   display: entidad.logo_url ? 'none' : 'flex'
                 }} 
               />
@@ -194,118 +185,135 @@ const EntityCasosUso = () => {
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Casos de Uso</h3>
-          <p className="text-muted-foreground">
-            Selecciona un caso de uso para ver sus métricas detalladas y configuración
-          </p>
-        </div>
+      <Tabs defaultValue="casos" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="casos">Casos de Uso</TabsTrigger>
+          <TabsTrigger value="disponibles">Casos Disponibles</TabsTrigger>
+        </TabsList>
 
-        {casosUso.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {casosUso.map((caso) => {
-              const IconComponent = getCasoIcon(caso['Tipo Proyecto']);
-              const estadoBadge = getEstadoBadge(caso.Estado);
-              const metricas = getMetricasCaso(caso.Proyecto || caso['Tipo Proyecto'] || '');
+        <TabsContent value="casos" className="space-y-6">
+          {casosUso.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {casosUso.map((caso) => {
+                const IconComponent = getCasoIcon(caso['Tipo Proyecto']);
+                const estadoBadge = getEstadoBadge(caso.Estado);
 
-              return (
-                <Card 
-                  key={caso.PROJECT_ID} 
-                  className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-2 hover:border-primary/20"
-                  onClick={() => {
-                    // Determinar el tipo de caso basado en el nombre del proyecto
-                    const proyecto = caso.Proyecto?.toLowerCase() || caso['Tipo Proyecto']?.toLowerCase() || '';
-                    let tipoRuta = 'churn'; // default
-                    
-                    if (proyecto.includes('churn')) tipoRuta = 'churn';
-                    else if (proyecto.includes('cobranza')) tipoRuta = 'churn';
-                    else if (proyecto.includes('fraude')) tipoRuta = 'churn';
-                    else if (proyecto.includes('cupo') || proyecto.includes('empresarial')) tipoRuta = 'aumento-uso';
-                    else if (proyecto.includes('nba') || proyecto.includes('pasivos')) tipoRuta = 'nba';
-                    else if (proyecto.includes('top') || proyecto.includes('customer')) tipoRuta = 'tc';
-                    else if (proyecto.includes('aumento') || proyecto.includes('uso')) tipoRuta = 'aumento-uso';
-                    
-                    handleCasoClick(tipoRuta);
-                  }}
-                >
-                  <CardHeader className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <IconComponent className="w-6 h-6 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <CardTitle className="text-lg leading-tight">{caso.Proyecto || caso['Tipo Proyecto']}</CardTitle>
-                          <Badge {...estadoBadge} className="mt-1">{estadoBadge.label}</Badge>
+                return (
+                  <Card 
+                    key={caso.PROJECT_ID} 
+                    className="group hover:shadow-lg transition-all duration-300 cursor-pointer"
+                    onClick={() => {
+                      // Determinar el tipo de caso basado en el nombre del proyecto
+                      const proyecto = caso.Proyecto?.toLowerCase() || caso['Tipo Proyecto']?.toLowerCase() || '';
+                      let tipoRuta = 'churn'; // default
+                      
+                      if (proyecto.includes('churn')) tipoRuta = 'churn';
+                      else if (proyecto.includes('top') || proyecto.includes('customer')) tipoRuta = 'tc';
+                      else if (proyecto.includes('next') || proyecto.includes('action')) tipoRuta = 'nba';
+                      else if (proyecto.includes('aumento') || proyecto.includes('uso')) tipoRuta = 'aumento-uso';
+                      
+                      handleCasoClick(tipoRuta);
+                    }}
+                  >
+                    <CardHeader className="space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <IconComponent className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">{caso.Proyecto || caso['Tipo Proyecto']}</CardTitle>
+                            <Badge {...estadoBadge}>{estadoBadge.label}</Badge>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardHeader>
+                    </CardHeader>
 
-                  <CardContent className="space-y-4">
-                    {/* Métricas principales */}
-                    <div className="grid grid-cols-2 gap-3 text-center bg-muted/30 rounded-lg p-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-center">
-                          <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-                          <span className="text-lg font-semibold">{(metricas.precision * 100).toFixed(0)}%</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">Precisión</p>
+                    <CardContent className="space-y-3">
+                      <div className="space-y-2 text-sm">
+                        {caso.DS1 && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Data Scientist:</span>
+                            <span>{caso.DS1}</span>
+                          </div>
+                        )}
+                        {caso.Etapa && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Etapa:</span>
+                            <span>{caso.Etapa}</span>
+                          </div>
+                        )}
                       </div>
                       
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-center">
-                          <Target className="w-4 h-4 text-blue-600 mr-1" />
-                          <span className="text-lg font-semibold">{(metricas.recall * 100).toFixed(0)}%</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">Recall</p>
-                      </div>
-                    </div>
-
-                    {/* Información del proyecto */}
-                    <div className="space-y-2 text-sm">
-                      {caso.DS1 && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Data Scientist:</span>
-                          <span className="font-medium">{caso.DS1}</span>
-                        </div>
-                      )}
-                      {caso.Etapa && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Etapa:</span>
-                          <span className="font-medium">{caso.Etapa}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Impacto:</span>
-                        <span className="font-medium text-green-600">{Object.values(metricas)[3] || 'Alto'}</span>
-                      </div>
-                    </div>
-                    
-                    <Button variant="ghost" size="sm" className="w-full group-hover:bg-primary/10">
-                      <Brain className="w-4 h-4 mr-2" />
-                      Ver métricas completas
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        ) : (
-          <Card className="p-12 text-center">
-            <div className="space-y-4">
-              <Brain className="w-16 h-16 text-muted-foreground mx-auto" />
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">No hay casos de uso configurados</h3>
-                <p className="text-muted-foreground">
-                  Esta entidad aún no tiene casos de uso registrados en el sistema.
-                </p>
-              </div>
+                      <Button variant="ghost" size="sm" className="w-full group-hover:bg-primary/10">
+                        Ver métricas
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
-          </Card>
-        )}
-      </div>
+          ) : (
+            <Card className="p-12 text-center">
+              <div className="space-y-4">
+                <Brain className="w-16 h-16 text-muted-foreground mx-auto" />
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">No hay casos de uso configurados</h3>
+                  <p className="text-muted-foreground">
+                    Esta entidad aún no tiene casos de uso. Explora los casos disponibles para comenzar.
+                  </p>
+                </div>
+                <Button variant="outline">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Agregar caso de uso
+                </Button>
+              </div>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="disponibles" className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Casos de Uso Disponibles</h3>
+              <p className="text-muted-foreground">
+                Selecciona un caso de uso para ver sus métricas y configuración
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {casosDisponibles.map((caso) => {
+                const IconComponent = caso.icono;
+                return (
+                  <Card 
+                    key={caso.id}
+                    className="group hover:shadow-lg transition-all duration-300 cursor-pointer"
+                    onClick={() => handleCasoClick(caso.id)}
+                  >
+                    <CardHeader className="space-y-4">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-12 h-12 rounded-lg ${caso.color} flex items-center justify-center`}>
+                          <IconComponent className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{caso.nombre}</CardTitle>
+                          <CardDescription>{caso.descripcion}</CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent>
+                      <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground">
+                        Ver métricas y configurar
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
