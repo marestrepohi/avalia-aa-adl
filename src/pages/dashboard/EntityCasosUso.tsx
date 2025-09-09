@@ -152,8 +152,8 @@ const EntityCasosUso = () => {
         </Button>
         <div className="flex items-center space-x-4">
           <div 
-            className="w-12 h-12 rounded-lg flex items-center justify-center p-2"
-            style={{ backgroundColor: `${entidad.color}20` }}
+            className="w-12 h-12 rounded-lg flex items-center justify-center p-2 bg-white border shadow-sm"
+            style={{ backgroundColor: '#ffffff' }}
           >
             {entidad.logo_url ? (
               <img 
