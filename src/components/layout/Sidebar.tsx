@@ -263,64 +263,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, onCollapsedChange 
             )}
           </div>
 
-          {/* Casos de Uso con subopciones */}
-          <div>
-            <SidebarItem 
-              icon={<Brain className="h-5 w-5" />} 
-              text="Casos de Uso" 
-              isActive={
-                activeView === "churn" 
-                || activeView === "tc" 
-                || activeView === "nba" 
-                || activeView === "aumento-uso"
-              }
-              hasChildren={!isCollapsed}
-              isOpen={openSubMenu === "casosuso"}
-              onClick={() => {
-                if (isCollapsed) {
-                  // en estado colapsado, navegar a churn
-                  handleViewChange("churn");
-                } else {
-                  const willOpen = openSubMenu !== "casosuso";
-                  toggleSubMenu("casosuso");
-                  // si se abre el submenu, navegar a la primera opción
-                  if (willOpen) {
-                    handleViewChange("churn");
-                  }
-                }
-              }}
-              collapsed={isCollapsed}
-            />
-            
-            {openSubMenu === "casosuso" && !isCollapsed && (
-              <div className="mt-1 ml-1 space-y-1 border-l-2 border-muted pl-1">
-                <SubMenuItem
-                  icon={<TrendingDown className="h-4 w-4" />}
-                  text="Churn Prediction"
-                  isActive={activeView === "churn"}
-                  onClick={() => handleViewChange("churn")}
-                />
-                <SubMenuItem
-                  icon={<Target className="h-4 w-4" />}
-                  text="Top Customers"
-                  isActive={activeView === "tc"}
-                  onClick={() => handleViewChange("tc")}
-                />
-                <SubMenuItem
-                  icon={<Zap className="h-4 w-4" />}
-                  text="Next Best Action"
-                  isActive={activeView === "nba"}
-                  onClick={() => handleViewChange("nba")}
-                />
-                <SubMenuItem
-                  icon={<BarChart3 className="h-4 w-4" />}
-                  text="Aumento de Uso"
-                  isActive={activeView === "aumento-uso"}
-                  onClick={() => handleViewChange("aumento-uso")}
-                />
-              </div>
-            )}
-          </div>
+          {/* Casos de Uso */}
+          <SidebarItem 
+            icon={<Brain className="h-5 w-5" />} 
+            text="Casos de Uso" 
+            isActive={activeView === "casosUso" || activeView === "entityCasosUso"}
+            onClick={() => handleViewChange("casosUso")} 
+            collapsed={isCollapsed}
+          />
         </nav>
       </aside>
     </>

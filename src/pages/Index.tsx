@@ -12,6 +12,8 @@ import Churn from './dashboard/Churn';
 import TopCustomers from './dashboard/TopCustomers';
 import NextBestAction from './dashboard/NextBestAction';
 import AumentoUso from './dashboard/AumentoUso';
+import CasosUso from './dashboard/CasosUso';
+import EntityCasosUso from './dashboard/EntityCasosUso';
 import { useDashboard } from '../contexts/DashboardContext';
 
 const Index = () => {
@@ -32,10 +34,12 @@ const Index = () => {
       {activeView === 'callAnalysis' && <AnalisisLlamadas />}
       {activeView === 'asistentes' && <Asistentes />}
       {activeView === 'audiencias' && <Audiencias />}
+      {activeView === 'casosUso' && <CasosUso />}
+      {activeView === 'entityCasosUso' && <EntityCasosUso />}
       {activeView === 'churn' && <Churn />}
       {activeView === 'tc' && <TopCustomers />}
-  {activeView === 'nba' && <NextBestAction />}
-  {activeView === 'aumento-uso' && <AumentoUso />}
+      {activeView === 'nba' && <NextBestAction />}
+      {activeView === 'aumento-uso' && <AumentoUso />}
     </AppLayout>
   );
 };
