@@ -26,7 +26,7 @@ const BarChart: React.FC<BarChartProps> = ({ data, title, subtitle }) => {
           <Tooltip
             contentStyle={{ border: "none", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", borderRadius: "0.375rem" }}
           />
-          <Bar dataKey="value" fill="#6941C6" barSize={30} radius={[4, 4, 0, 0]} />
+          <Bar dataKey="value" fill="#4A3EF9" barSize={30} radius={[4, 4, 0, 0]} />
         </RechartsBarChart>
       </ResponsiveContainer>
     </div>

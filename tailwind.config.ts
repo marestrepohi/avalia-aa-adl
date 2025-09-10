@@ -35,10 +35,10 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#6941C6',
+						DEFAULT: '#4A3EF9',
 					foreground: '#FFFFFF',
-					hover: '#5D37B0',
-					light: '#F9F5FF',
+						hover: '#3E35E3',
+						light: '#F3F4FF',
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -87,7 +87,7 @@ export default {
 				sidebar: {
 					DEFAULT: '#F9FAFB',
 					foreground: '#6B7280',
-					active: '#6941C6',
+						active: '#4A3EF9',
 					hover: '#E5E7EB',
 					border: '#E5E7EB',
 				}

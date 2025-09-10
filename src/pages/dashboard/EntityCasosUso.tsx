@@ -262,7 +262,7 @@ const EntityCasosUso = () => {
               <img 
                 src={entidad.logo_url} 
                 alt={`Logo ${entidad.id_nombre}`}
-                className="w-full h-full object-contain brightness-0"
+                className="w-full h-full object-contain"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                   const nextElement = e.currentTarget.nextElementSibling as HTMLElement;

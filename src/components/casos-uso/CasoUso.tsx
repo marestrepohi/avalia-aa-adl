@@ -1209,14 +1209,20 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle }) => {
     <div className="container mx-auto p-6 space-y-6 h-full">
       <div className="flex flex-col space-y-4">
         <div className="flex items-center space-x-4">
-          <div className={`w-4 h-4 rounded-full ${casoInfo.color}`} />
-          <div>
-            <h1 className="text-3xl font-bold" title={casoInfo.nombre}>{tituloVisible}</h1>
-            <p className="text-muted-foreground">{displayTitle ? `Vista temporal basada en plantilla ${casoInfo.nombre}` : casoInfo.descripcion}</p>
-          </div>
-          <Badge variant="outline" className="text-green-600 border-green-600 ml-auto">
-            Activo
-          </Badge>
+          {!displayTitle && (
+            <div className={`w-4 h-4 rounded-full ${casoInfo.color}`} />
+          )}
+          {!displayTitle && (
+            <div>
+              <h1 className="text-3xl font-bold" title={casoInfo.nombre}>{tituloVisible}</h1>
+              <p className="text-muted-foreground">{displayTitle ? `Vista temporal basada en plantilla ${casoInfo.nombre}` : casoInfo.descripcion}</p>
+            </div>
+          )}
+          {!displayTitle && (
+            <Badge variant="outline" className="text-green-600 border-green-600 ml-auto">
+              Activo
+            </Badge>
+          )}
         </div>
 
         {/* Métricas por Pestañas - Ocupando todo el espacio */}

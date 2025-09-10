@@ -10,7 +10,8 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 262.1 83.3% 57.8%; /* ADL: #6941C6 */
+  /* Primary updated to #4A3EF9 */
+  --primary: 244 94% 61%; /* #4A3EF9 in HSL */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -22,7 +23,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 262.1 83.3% 57.8%; /* ADL: #6941C6 */
+  --ring: 244 94% 61%; /* match primary */
     --radius: 0.5rem;
     
     /* Custom: Sidebar */
@@ -43,8 +44,8 @@
     --danger-light: 0 90.6% 97.5%; /* #FEF2F2 */
     --danger-foreground: 210 40% 98%;
     
-    /* Custom: Primary Light */
-    --primary-light: 262.1 83.3% 96%; /* Lightest version of #6941C6 */
+  /* Custom: Primary Light */
+  --primary-light: 244 100% 97%; /* Lightest version of #4A3EF9 */
   }
  
   .dark {
@@ -54,7 +55,7 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 262.1 83.3% 57.8%;
+  --primary: 244 94% 61%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -66,7 +67,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 262.1 83.3% 57.8%;
+  --ring: 244 94% 61%;
     
     /* Custom: Sidebar */
     --sidebar: 222.2 84% 4.9%;
@@ -86,8 +87,8 @@
     --danger-light: 0 90.6% 20%;
     --danger-foreground: 210 40% 98%;
     
-    /* Custom: Primary Light - Darker for dark mode */
-    --primary-light: 262.1 83.3% 25%;
+  /* Custom: Primary Light - Darker for dark mode */
+  --primary-light: 244 94% 30%;
   }
 }
  

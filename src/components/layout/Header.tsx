@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, Menu, Moon, User } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/use-mobile";
 
@@ -27,17 +27,6 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
       
       <div className="flex items-center gap-2 md:gap-5">
         <h1 className="text-lg font-bold text-primary hidden sm:block">Aval Digital Labs</h1>
-        <div className="flex items-center gap-2 sm:gap-4">
-          <button className="icon-button group hidden sm:flex">
-            <User className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
-            <span className="tooltip -bottom-8 hidden sm:group-hover:inline-flex">Perfil de usuario</span>
-          </button>
-          <button className="icon-button relative group hidden sm:flex">
-            <Bell className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
-            <div className="absolute top-0 right-0 h-2 w-2 bg-primary rounded-full"></div>
-            <span className="tooltip -bottom-8 hidden sm:group-hover:inline-flex">Notificaciones</span>
-          </button>
-        </div>
       </div>
     </header>
   );

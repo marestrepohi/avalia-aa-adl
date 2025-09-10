@@ -308,7 +308,7 @@ export const Slider: React.FC<SliderProps> = ({
           onChange={handleChange}
           className="w-full h-2 bg-muted rounded-md appearance-none cursor-pointer"
           style={{
-            background: `linear-gradient(to right, #6941C6 0%, #6941C6 ${percentage}%, #F3F4F6 ${percentage}%, #F3F4F6 100%)`,
+            background: `linear-gradient(to right, #4A3EF9 0%, #4A3EF9 ${percentage}%, #F3F4F6 ${percentage}%, #F3F4F6 100%)`,
           }}
         />
       </div>
