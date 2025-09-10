@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Brain, TrendingDown, Target, Zap, BarChart3, Building2, DollarSign, FolderKanban, Briefcase, Users, CheckCircle2, Activity, PauseCircle, ExternalLink, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Brain, TrendingDown, Target, Zap, BarChart3, Building2, DollarSign, FolderKanban, Briefcase, Users, CheckCircle2, Activity, PauseCircle, ExternalLink, Calendar, User, AlertCircle } from 'lucide-react';
 import { useDashboard } from '@/contexts/DashboardContext';
 import CasoUso from '@/components/casos-uso/CasoUso';
 import Papa from 'papaparse';
@@ -153,6 +153,11 @@ const EntityCasosUso = () => {
       return estado.includes('desarrollo') || estado.includes('pilotaje');
     }).length;
 
+    const inactivos = casosUso.filter(caso => {
+      const estado = caso.Estado?.toLowerCase() || '';
+      return estado.includes('deprecado') || estado.includes('sin uso');
+    }).length;
+
     const cientificos = new Set();
     casosUso.forEach(caso => {
       if (caso.DS1) cientificos.add(caso.DS1);
@@ -169,6 +174,7 @@ const EntityCasosUso = () => {
       total,
       activos,
       enDesarrollo,
+      inactivos,
       cientificos: cientificos.size,
       conImpacto,
       porcentajeActivos: total > 0 ? Math.round((activos / total) * 100) : 0
@@ -280,8 +286,8 @@ const EntityCasosUso = () => {
         </div>
       </div>
 
-      {/* Métricas Resumen */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  {/* Métricas Resumen */}
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 dark:from-blue-950/50 dark:to-blue-900/30 dark:border-blue-800">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -327,6 +333,21 @@ const EntityCasosUso = () => {
               </div>
               <div className="p-3 bg-orange-100 dark:bg-orange-900/50 rounded-xl">
                 <Activity className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-red-50 to-red-100/50 border-red-200 dark:from-red-950/50 dark:to-red-900/30 dark:border-red-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">Casos Inactivos</p>
+                <p className="text-3xl font-bold text-red-900 dark:text-red-100">{metricas.inactivos}</p>
+                <p className="text-xs text-red-600/70 mt-1">Deprecados o sin uso</p>
+              </div>
+              <div className="p-3 bg-red-100 dark:bg-red-900/50 rounded-xl">
+                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
             </div>
           </CardContent>

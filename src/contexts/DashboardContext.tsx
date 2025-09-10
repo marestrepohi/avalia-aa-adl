@@ -10,7 +10,8 @@ interface DashboardContextType {
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
 
 export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [activeView, setActiveView] = useState<ViewType>('dashboard');
+  // Default to "Casos de Uso" instead of the general summary when entering /dashboard
+  const [activeView, setActiveView] = useState<ViewType>('casosUso');
 
   return (
     <DashboardContext.Provider value={{ activeView, setActiveView }}>

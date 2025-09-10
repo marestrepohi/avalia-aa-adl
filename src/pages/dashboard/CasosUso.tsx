@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Brain, Users, Activity, Building2, AlertCircle, CheckCircle2, DollarSign } from 'lucide-react';
+import { ArrowRight, Brain, Users, Activity, Building2, AlertCircle, CheckCircle2, DollarSign, FolderKanban } from 'lucide-react';
 import { loadCasosUsoCsv, CasoUsoCsvRecord } from '@/lib/parseCasosUsoCsv';
 import { supabase } from '@/integrations/supabase/client';
 import { useDashboard } from '@/contexts/DashboardContext';
@@ -37,6 +37,13 @@ const CasosUso = () => {
     impactoTotal: number;
     ds: number; // científicos de datos únicos derivados del CSV
   }>>({});
+  const [globalSummary, setGlobalSummary] = useState<{
+    total: number;
+    activos: number;
+    inactivos: number;
+    desarrollo: number;
+    impactoTotal: number;
+  }>({ total: 0, activos: 0, inactivos: 0, desarrollo: 0, impactoTotal: 0 });
 
   useEffect(() => {
   const fetchData = async () => {
@@ -59,7 +66,7 @@ const CasosUso = () => {
         setCasosUso(casosData || []);
 
         // Cargar CSV (solo una vez)
-        try {
+    try {
           const { records } = await loadCasosUsoCsv('/casos_uso.csv');
             setCsvRecords(records);
             // Construir summaries por entidad
@@ -91,7 +98,7 @@ const CasosUso = () => {
               s.total++;
               const estadoLc = (r.Estado || '').toLowerCase();
               // Activo definido como 'Finalizado - con uso'
-              if (/finalizado\s*-?\s*con\s*uso/i.test(estadoLc)) s.activos++;
+      if (/(finalizado|entregado)\s*-?\s*con\s*uso/i.test(estadoLc) || /en\s*producci[óo]n|\bactivo\b/.test(estadoLc)) s.activos++;
               // En desarrollo / implementación
               if (/(en\s*desarr|\bdesarrollo\b|implementaci[óo]n|en\s*implementaci[óo]n)/i.test(estadoLc)) s.desarrollo++;
               if (alertRegex.test(estadoLc)) s.alertas++;
@@ -126,6 +133,18 @@ const CasosUso = () => {
               if (k.startsWith('__dsSet_')) delete (summaries as any)[k];
             });
             setCsvSummaries(summaries);
+
+            // Resumen global
+            const global = records.reduce((acc, r) => {
+              const estadoLc = (r.Estado || '').toLowerCase();
+              acc.total += 1;
+              if (/(finalizado|entregado)\s*-?\s*con\s*uso/i.test(estadoLc) || /en\s*producci[óo]n|\bactivo\b/.test(estadoLc)) acc.activos += 1;
+              if (/(deprecad|finalizado\s*-?\s*sin\s*uso|entregado\s*-?\s*sin\s*uso)/i.test(estadoLc)) acc.inactivos += 1;
+              if (/(en\s*desarr|\bdesarrollo\b|implementaci[óo]n|en\s*implementaci[óo]n|pilotaje)/i.test(estadoLc)) acc.desarrollo += 1;
+              acc.impactoTotal += parseMonto(r['Impacto Financiero']);
+              return acc;
+            }, { total: 0, activos: 0, inactivos: 0, desarrollo: 0, impactoTotal: 0 });
+            setGlobalSummary(global);
         } catch (e) {
           console.warn('CSV casos_uso.csv no disponible o error parseando', e);
         }
@@ -184,6 +203,79 @@ const CasosUso = () => {
         <p className="text-muted-foreground">
           Selecciona una entidad para ver y gestionar sus casos de uso de IA
         </p>
+      </div>
+
+      {/* Resumen global desde CSV */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 dark:from-blue-950/50 dark:to-blue-900/30 dark:border-blue-800">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-blue-600 dark:text-blue-400">Total Casos</p>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{globalSummary.total}</p>
+              </div>
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
+                <FolderKanban className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200 dark:from-green-950/50 dark:to-green-900/30 dark:border-green-800">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-green-600 dark:text-green-400">Casos Activos</p>
+                <p className="text-2xl font-bold text-green-900 dark:text-green-100">{globalSummary.activos}</p>
+              </div>
+              <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-xl">
+                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-red-50 to-red-100/50 border-red-200 dark:from-red-950/50 dark:to-red-900/30 dark:border-red-800">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-red-600 dark:text-red-400">Casos Inactivos</p>
+                <p className="text-2xl font-bold text-red-900 dark:text-red-100">{globalSummary.inactivos}</p>
+              </div>
+              <div className="p-2 bg-red-100 dark:bg-red-900/50 rounded-xl">
+                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 border-orange-200 dark:from-orange-950/50 dark:to-orange-900/30 dark:border-orange-800">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-orange-600 dark:text-orange-400">En Desarrollo</p>
+                <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">{globalSummary.desarrollo}</p>
+              </div>
+              <div className="p-2 bg-orange-100 dark:bg-orange-900/50 rounded-xl">
+                <Activity className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200 dark:from-emerald-950/50 dark:to-emerald-900/30 dark:border-emerald-800">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Impacto Total</p>
+                <p className="text-2xl font-bold text-emerald-900 dark:text-emerald-100">{new Intl.NumberFormat('es-ES',{notation:'compact',maximumFractionDigits:1}).format(globalSummary.impactoTotal)}</p>
+              </div>
+              <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl">
+                <DollarSign className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
