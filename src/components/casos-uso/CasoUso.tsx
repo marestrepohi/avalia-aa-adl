@@ -5,17 +5,19 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, TrendingDown, DollarSign, Users, Target, Cpu, BarChart3, Zap, Activity, Clock, CheckCircle, AlertCircle, CreditCard, Home, Car, Building } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Users, Target, Cpu, BarChart3, Zap, Activity, Clock, CheckCircle, AlertCircle, CreditCard, Home, Car, Building, ExternalLink } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 interface CasoUsoProps {
   tipo: 'churn' | 'tc' | 'nba' | 'aumento-uso' | 'generico';
   displayTitle?: string; // título temporal personalizado
+  csvRecord?: Record<string, any>; // registro CSV del caso
 }
 
-const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle }) => {
+const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
   const [modeloSeleccionado, setModeloSeleccionado] = useState('tarjeta-credito');
   const [filtroUsuario, setFiltroUsuario] = useState<'activos' | 'durmientes'>('activos');
+  const defaultTab = csvRecord ? 'info' : 'financieras';
   // Función para exportar datos a CSV
   const exportToCsv = (filename: string, rows: Record<string, any>[]) => {
     if (!rows || !rows.length) return;
@@ -195,69 +197,57 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle }) => {
     { name: 'Falsos Negativos', value: 2.0, color: '#ef4444' }
   ];
 
-  // Datos técnicos específicos de Aumento de Uso basados en CSV
-  const aumentoUsoTechnicalData = {
-    durmientes: {
-      modelo: 'Clasificación reactivación uso TC',
-      metricas: {
-        precision: '0.9%',
-        recall: '24.2%',
-        ks: '68.8%',
-        auc: '84.9%',
-        psi: '0.153',
-        tasaVO: '0.3%'
-      },
-      estado: 'Operativizado en seguimiento',
-      frecuenciaRecalibracion: '1 mes',
-      ultimaRecalibracion: '26/3/2025',
-      ultimaEjecucion: '26/4/2025'
-    },
-    activos: {
-      segmentacion: [
-        { modelo: 'TC Tradicional', inercia: '1,107,721' },
-        { modelo: 'TC Express', inercia: '214,905' },
-        { modelo: 'TC La 14', inercia: '5,577' },
-        { modelo: 'TC Cero', inercia: '215,780' },
-        { modelo: 'TC Copa', inercia: '254,665' },
-        { modelo: 'TC Zafiro', inercia: '12,675' }
-      ],
-      recomendacion: [
-        { modelo: 'TC Tradicional', rmse: '0.5578' },
-        { modelo: 'TC Express', rmse: '0.5349' },
-        { modelo: 'TC La 14', rmse: 'Sin población' },
-        { modelo: 'TC Cero', rmse: '0.5515' },
-        { modelo: 'TC Copa', rmse: '0.5479' },
-        { modelo: 'TC Zafiro', rmse: '0.5358' }
-      ]
-    }
-  };
-
-  // Datos para tabla de rendimiento
-  const datosTabla = [
-    { metrica: 'Accuracy', valor: '94.2%', benchmark: '90.0%', estado: 'Excelente' },
-    { metrica: 'Precision', valor: '92.8%', benchmark: '88.0%', estado: 'Bueno' },
-    { metrica: 'Recall', valor: '89.4%', benchmark: '85.0%', estado: 'Bueno' },
-    { metrica: 'F1-Score', valor: '91.0%', benchmark: '86.5%', estado: 'Excelente' },
-    { metrica: 'AUC-ROC', valor: '0.952', benchmark: '0.900', estado: 'Excelente' }
-  ];
-
-  // Datos para series de tiempo Aumento de Uso
+  // Series de tiempo para secciones de Aumento de Uso
   const activosTimeSeriesData = [
     { periodo: 'May-25', contactables: 79.14, compra: 20.05, efectividad: 20.05 },
     { periodo: 'Abr-25', contactables: 77.06, compra: 17.25, efectividad: 17.25 },
-    { periodo: 'Mar-25', contactables: 76.12, compra: 20.08, efectividad: 20.08 },
-    { periodo: 'Feb-25', contactables: 70.83, compra: 12.54, efectividad: 12.54 },
-    { periodo: 'Ene-25', contactables: 75.51, compra: 19.51, efectividad: 19.51 },
-    { periodo: 'Dic-24', contactables: 73.84, compra: 14.27, efectividad: 14.27 }
+    { periodo: 'Mar-25', contactables: 76.12, compra: 20.08, efectividad: 20.08 }
   ];
-
   const durmientesTimeSeriesData = [
     { periodo: 'May-Jul 25', contactables: 66, compra: 23, efectividad: 23.12 },
     { periodo: 'Mar-May 25', contactables: 58, compra: 24, efectividad: 24.26 },
     { periodo: 'Feb-Abr 25', contactables: 61, compra: 24, efectividad: 24.06 },
-    { periodo: 'Ene-Mar 25', contactables: 44, compra: 15, efectividad: 15.20 },
+    { periodo: 'Ene-Mar 25', contactables: 44, compra: 15, efectividad: 15.2 },
     { periodo: 'Dic-Feb 25', contactables: 53, compra: 20, efectividad: 19.73 },
     { periodo: 'Nov-Ene 25', contactables: 47, compra: 31, efectividad: 30.58 }
+  ];
+
+  // Datos técnicos para "Aumento de Uso"
+  const aumentoUsoTechnicalData = {
+    durmientes: {
+      estado: 'Operativo',
+      frecuenciaRecalibracion: 'Mensual',
+      ultimaRecalibracion: '2025-05-10',
+      ultimaEjecucion: '2025-06-01',
+      metricas: {
+        precision: '0.88',
+        recall: '0.24',
+        auc: '0.85',
+        ks: '42',
+        psi: '0.08',
+        tasaVO: '4.2%'
+      }
+    },
+    activos: {
+      segmentacion: [
+        { modelo: 'TC Plata', inercia: '1,234' },
+        { modelo: 'TC Oro', inercia: '1,187' },
+        { modelo: 'TC Black', inercia: '1,092' }
+      ],
+      recomendacion: [
+        { modelo: 'TC Plata', rmse: '0.54' },
+        { modelo: 'TC Oro', rmse: '0.57' },
+        { modelo: 'TC Black', rmse: 'Sin población' }
+      ]
+    }
+  } as const;
+
+  // Datos para tabla de métricas detalladas genéricas
+  const datosTabla = [
+    { metrica: 'Tiempo de Respuesta', valor: '1.8s', benchmark: '< 2s', estado: 'Excelente' },
+    { metrica: 'Disponibilidad', valor: '99.9%', benchmark: '99.5%', estado: 'Excelente' },
+    { metrica: 'Costo por Predicción', valor: '$0.15', benchmark: '$0.20', estado: 'Excelente' },
+    { metrica: 'Precisión', valor: '94.2%', benchmark: '92%', estado: 'Excelente' }
   ];
 
   const renderMetricas = (tipoMetrica: 'financieras' | 'negocio' | 'tecnicas') => {
@@ -288,77 +278,6 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle }) => {
             </Card>
           ))}
         </div>
-
-  {/* Sección especial para NBA - Modelos de crédito */}
-  {tipoMetrica === 'tecnicas' && tipo === 'nba' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold">Modelos de Productos Financieros</h3>
-                <p className="text-muted-foreground">Métricas técnicas por tipo de producto</p>
-              </div>
-              <Select value={modeloSeleccionado} onValueChange={setModeloSeleccionado}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Seleccionar modelo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(modelos).map(([key, modelo]) => {
-                    const IconComponent = modelo.icono;
-                    return (
-                      <SelectItem key={key} value={key}>
-                        <div className="flex items-center space-x-2">
-                          <IconComponent className="h-4 w-4" />
-                          <span>{modelo.nombre}</span>
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Métricas del modelo seleccionado */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Object.entries(modelos[modeloSeleccionado].metricas).map(([key, valor]) => (
-                <Card key={key} className="p-4">
-                  <CardContent className="p-0">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground capitalize">
-                          {key.replace(/([A-Z])/g, ' $1').trim()}
-                        </p>
-                        <p className="text-xl font-bold">{valor as string}</p>
-                      </div>
-                      <BarChart3 className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Gráfico del modelo seleccionado */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  {React.createElement(modelos[modeloSeleccionado].icono, { className: "h-5 w-5" })}
-                  <span>Evolución - {modelos[modeloSeleccionado].nombre}</span>
-                </CardTitle>
-                <CardDescription>Métricas técnicas mensuales del modelo</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={modelos[modeloSeleccionado].datos}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mes" />
-                    <YAxis domain={[85, 100]} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="precision" stroke="#10b981" strokeWidth={2} name="Precision" />
-                    <Line type="monotone" dataKey="recall" stroke="#3b82f6" strokeWidth={2} name="Recall" />
-                    <Line type="monotone" dataKey="f1" stroke="#f59e0b" strokeWidth={2} name="F1-Score" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
 
             {/* Tabla comparativa de todos los modelos */}
             <Card>
@@ -417,8 +336,7 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle }) => {
                 </Table>
               </CardContent>
             </Card>
-          </div>
-        )}
+          
 
         {/* Sección especial para Aumento de Uso - Filtro Activos/Durmientes */}
         {tipoMetrica === 'negocio' && tipo === 'aumento-uso' && (
@@ -1227,12 +1145,179 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle }) => {
 
         {/* Métricas por Pestañas - Ocupando todo el espacio */}
         <div className="flex-1">
-          <Tabs defaultValue="financieras" className="h-full">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue={defaultTab} className="h-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="info">Info</TabsTrigger>
               <TabsTrigger value="financieras">Métricas Financieras</TabsTrigger>
               <TabsTrigger value="negocio">Métricas de Negocio</TabsTrigger>
               <TabsTrigger value="tecnicas">Métricas Técnicas</TabsTrigger>
             </TabsList>
+            <TabsContent value="info" className="space-y-4 mt-6">
+              {csvRecord ? (
+                <div className="space-y-6">
+                  {/* KPI strip */}
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                    <div className="border rounded-md p-3 bg-background/60">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Estado</p>
+                      <div className="mt-1">
+                        {(() => {
+                          const estado = (csvRecord.Estado || '').toLowerCase();
+                          let cls = 'bg-gray-100 text-gray-700 border-gray-300';
+                          if (estado.includes('sin uso') || estado.includes('deprecado')) cls = 'bg-red-100 text-red-700 border-red-300';
+                          else if (estado.includes('desarrollo') || estado.includes('pilotaje')) cls = 'bg-blue-100 text-blue-700 border-blue-300';
+                          else if ((estado.includes('entregado') && estado.includes('con uso')) || (estado.includes('finalizado') && estado.includes('con uso'))) cls = 'bg-green-100 text-green-700 border-green-300';
+                          return (
+                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${cls}`}>
+                              {csvRecord.Estado || 'N/D'}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                    <div className="border rounded-md p-3 bg-background/60">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Etapa</p>
+                      <div className="mt-1">
+                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                          {csvRecord.Etapa || 'N/D'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="border rounded-md p-3 bg-background/60">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Impacto Financiero</p>
+                      <div className="mt-1">
+                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
+                          {csvRecord['Impacto Financiero'] || '—'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="border rounded-md p-3 bg-background/60">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Nivel Impacto</p>
+                      <div className="mt-1">
+                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                          {csvRecord['Nivel Impacto Financiero'] || '—'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="border rounded-md p-3 bg-background/60">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Unidad</p>
+                      <div className="mt-1">
+                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
+                          {csvRecord['Unidad del Impacto Financiero'] || '—'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {/* Resumen del Proyecto */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Resumen del Proyecto</CardTitle>
+                        <CardDescription>Información proveniente del CSV</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Entidad</p>
+                            <p className="font-medium">{csvRecord.Entidad || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Proyecto</p>
+                            <p className="font-medium">{csvRecord.Proyecto || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Estado</p>
+                            <p className="font-medium">{csvRecord.Estado || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Etapa</p>
+                            <p className="font-medium">{csvRecord.Etapa || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Tipo Proyecto</p>
+                            <p className="font-medium">{csvRecord['Tipo Proyecto'] || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Impacto Financiero</p>
+                            <p className="font-medium">{csvRecord['Impacto Financiero'] || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Nivel Impacto</p>
+                            <p className="font-medium">{csvRecord['Nivel Impacto Financiero'] || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Unidad Impacto</p>
+                            <p className="font-medium">{csvRecord['Unidad del Impacto Financiero'] || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Sponsor</p>
+                            <p className="font-medium">{csvRecord.Sponsor || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Main Contact</p>
+                            <p className="font-medium">{csvRecord['Main Contact'] || '—'}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Equipo y Fechas */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Equipo y Fechas</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-xs text-muted-foreground">DS Principal</p>
+                            <p className="font-medium">{csvRecord.DS1 || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">DS Apoyo</p>
+                            <p className="font-medium">{csvRecord.DS2 || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">DE</p>
+                            <p className="font-medium">{csvRecord.DE || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">MDS</p>
+                            <p className="font-medium">{csvRecord.MDS || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Fecha Inicio</p>
+                            <p className="font-medium">{csvRecord['Fecha de Inicio'] || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Fecha Entrega</p>
+                            <p className="font-medium">{csvRecord['Fecha de Entrega'] || '—'}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Observaciones */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Observaciones</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {csvRecord.Observaciones ? (
+                          <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Observaciones</p>
+                            <div className="text-sm p-3 rounded-md bg-muted/30 border border-muted">{csvRecord.Observaciones}</div>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">Sin observaciones registradas.</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">No hay información de CSV disponible.</div>
+              )}
+            </TabsContent>
             
             <TabsContent value="financieras" className="space-y-4 mt-6">
               <div className="mb-4">

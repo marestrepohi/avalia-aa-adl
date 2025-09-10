@@ -54,6 +54,7 @@ const EntityCasosUso = () => {
   const [casosUso, setCasosUso] = useState<CasoUsoCSV[]>([]);
   const [selectedCaso, setSelectedCaso] = useState<string | null>(null);
   const [selectedCasoTitulo, setSelectedCasoTitulo] = useState<string | null>(null);
+  const [selectedCasoRecord, setSelectedCasoRecord] = useState<CasoUsoCSV | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -100,9 +101,10 @@ const EntityCasosUso = () => {
     setActiveView('casosUso');
   };
 
-  const handleCasoClick = (casoId: string, titulo?: string) => {
+  const handleCasoClick = (casoId: string, titulo?: string, record?: CasoUsoCSV) => {
     setSelectedCaso(casoId);
     if (titulo) setSelectedCasoTitulo(titulo);
+    if (record) setSelectedCasoRecord(record);
   };
 
   const getEstadoBadge = (estado: string) => {
@@ -197,21 +199,61 @@ const EntityCasosUso = () => {
     return (
       <div className="space-y-6">
         <div className="space-y-4">
-          <Button variant="ghost" onClick={() => { setSelectedCaso(null); setSelectedCasoTitulo(null); }} className="p-2">
+          <Button variant="ghost" onClick={() => { setSelectedCaso(null); setSelectedCasoTitulo(null); setSelectedCasoRecord(null); }} className="p-2">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver a {entidad?.id_nombre}
           </Button>
           
           {selectedCasoTitulo && (
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                {selectedCasoTitulo}
-              </h1>
-              <p className="text-muted-foreground text-lg">Métricas y análisis del caso de uso</p>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  {selectedCasoTitulo}
+                </h1>
+                <p className="text-muted-foreground text-lg">Métricas y análisis del caso de uso</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {/* SharePoint */}
+                {selectedCasoRecord?.['Sharepoint Link'] ? (
+                  <Button asChild variant="outline" size="sm" className="h-8 px-3 text-xs hover:bg-blue-50 hover:border-blue-300">
+                    <a href={selectedCasoRecord['Sharepoint Link']} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-3 h-3 mr-1.5" />SharePoint
+                    </a>
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" className="h-8 px-3 text-xs" disabled>
+                    <ExternalLink className="w-3 h-3 mr-1.5" />SharePoint
+                  </Button>
+                )}
+                {/* Jira */}
+                {selectedCasoRecord?.['Jira Link'] ? (
+                  <Button asChild variant="outline" size="sm" className="h-8 px-3 text-xs hover:bg-indigo-50 hover:border-indigo-300">
+                    <a href={selectedCasoRecord['Jira Link']} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-3 h-3 mr-1.5" />Jira
+                    </a>
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" className="h-8 px-3 text-xs" disabled>
+                    <ExternalLink className="w-3 h-3 mr-1.5" />Jira
+                  </Button>
+                )}
+                {/* Confluence */}
+                {selectedCasoRecord?.['Confluence Link'] ? (
+                  <Button asChild variant="outline" size="sm" className="h-8 px-3 text-xs hover:bg-purple-50 hover:border-purple-300">
+                    <a href={selectedCasoRecord['Confluence Link']} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-3 h-3 mr-1.5" />Confluence
+                    </a>
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" className="h-8 px-3 text-xs" disabled>
+                    <ExternalLink className="w-3 h-3 mr-1.5" />Confluence
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>
-        <CasoUso tipo={selectedCaso as any} displayTitle={selectedCasoTitulo || undefined} />
+  <CasoUso tipo={selectedCaso as any} displayTitle={selectedCasoTitulo || undefined} csvRecord={selectedCasoRecord as any} />
       </div>
     );
   }
@@ -404,7 +446,7 @@ const EntityCasosUso = () => {
                 <Card 
                   key={`${caso.PROJECT_ID}-${index}`} 
                   className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md bg-gradient-to-br from-background via-background to-muted/20 hover:scale-[1.02] hover:shadow-2xl"
-                  onClick={() => handleCasoClick(tipo, caso.Proyecto)}
+                  onClick={() => handleCasoClick(tipo, caso.Proyecto, caso)}
                 >
                   <CardHeader className="space-y-4 pb-4">
                     <div className="flex items-start justify-between">
