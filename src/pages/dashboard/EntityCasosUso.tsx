@@ -189,12 +189,21 @@ const EntityCasosUso = () => {
 
   if (selectedCaso) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center space-x-4 p-6 pb-0">
-          <Button variant="ghost" onClick={() => { setSelectedCaso(null); setSelectedCasoTitulo(null); }}>
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <Button variant="ghost" onClick={() => { setSelectedCaso(null); setSelectedCasoTitulo(null); }} className="p-2">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver a {entidad.id_nombre}
+            Volver a {entidad?.id_nombre}
           </Button>
+          
+          {selectedCasoTitulo && (
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                {selectedCasoTitulo}
+              </h1>
+              <p className="text-muted-foreground text-lg">Métricas y análisis del caso de uso</p>
+            </div>
+          )}
         </div>
         <CasoUso tipo={selectedCaso as any} displayTitle={selectedCasoTitulo || undefined} />
       </div>
@@ -232,14 +241,15 @@ const EntityCasosUso = () => {
   return (
     <div className="p-6 space-y-8">
       {/* Header */}
-      <div className="flex items-center space-x-4">
-        <Button variant="ghost" onClick={handleBackClick}>
+      <div className="space-y-4">
+        <Button variant="ghost" onClick={handleBackClick} className="p-2">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver
+          Volver a Casos de Uso
         </Button>
+        
         <div className="flex items-center space-x-4">
           <div 
-            className="w-12 h-12 rounded-lg flex items-center justify-center p-2 border shadow-sm"
+            className="w-16 h-16 rounded-xl flex items-center justify-center p-3 border shadow-sm bg-gradient-to-br from-background to-muted/50"
             style={{ backgroundColor: '#ffffff' }}
           >
             {entidad.logo_url ? (
@@ -255,213 +265,284 @@ const EntityCasosUso = () => {
               />
             ) : null}
             <Building2 
-              className="w-6 h-6 text-black" 
+              className="w-8 h-8 text-black" 
               style={{ 
                 display: entidad.logo_url ? 'none' : 'flex'
               }} 
             />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">{entidad.id_nombre}</h1>
-            <p className="text-muted-foreground">{entidad.descripcion}</p>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              {entidad.id_nombre}
+            </h1>
+            <p className="text-muted-foreground text-lg">{entidad.descripcion}</p>
           </div>
         </div>
       </div>
 
       {/* Métricas Resumen */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 dark:from-blue-950/50 dark:to-blue-900/30 dark:border-blue-800">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Casos</p>
-                <p className="text-2xl font-bold">{metricas.total}</p>
+                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Casos</p>
+                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">{metricas.total}</p>
+                <p className="text-xs text-blue-600/70 mt-1">Proyectos registrados</p>
               </div>
-              <FolderKanban className="h-6 w-6 text-primary" />
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
+                <FolderKanban className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200 dark:from-green-950/50 dark:to-green-900/30 dark:border-green-800">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Casos Activos</p>
-                <div className="flex items-center space-x-2">
-                  <p className="text-2xl font-bold">{metricas.activos}</p>
-                  <Badge variant="secondary" className="text-xs">
+                <p className="text-sm font-medium text-green-600 dark:text-green-400">Casos Activos</p>
+                <div className="flex items-baseline space-x-2">
+                  <p className="text-3xl font-bold text-green-900 dark:text-green-100">{metricas.activos}</p>
+                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-300">
                     {metricas.porcentajeActivos}%
                   </Badge>
                 </div>
+                <p className="text-xs text-green-600/70 mt-1">En producción activa</p>
               </div>
-              <CheckCircle2 className="h-6 w-6 text-green-600" />
+              <div className="p-3 bg-green-100 dark:bg-green-900/50 rounded-xl">
+                <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 border-orange-200 dark:from-orange-950/50 dark:to-orange-900/30 dark:border-orange-800">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">En Desarrollo</p>
-                <p className="text-2xl font-bold">{metricas.enDesarrollo}</p>
+                <p className="text-sm font-medium text-orange-600 dark:text-orange-400">En Desarrollo</p>
+                <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{metricas.enDesarrollo}</p>
+                <p className="text-xs text-orange-600/70 mt-1">Proyectos en curso</p>
               </div>
-              <Activity className="h-6 w-6 text-blue-600" />
+              <div className="p-3 bg-orange-100 dark:bg-orange-900/50 rounded-xl">
+                <Activity className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200 dark:from-purple-950/50 dark:to-purple-900/30 dark:border-purple-800">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Científicos</p>
-                <p className="text-2xl font-bold">{metricas.cientificos}</p>
+                <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Científicos</p>
+                <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">{metricas.cientificos}</p>
+                <p className="text-xs text-purple-600/70 mt-1">Equipo asignado</p>
               </div>
-              <Users className="h-6 w-6 text-purple-600" />
+              <div className="p-3 bg-purple-100 dark:bg-purple-900/50 rounded-xl">
+                <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Lista de Casos de Uso */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Casos de Uso</h2>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Casos de Uso</h2>
+          <Badge variant="outline" className="text-sm px-3 py-1">
+            {casosUso.length} {casosUso.length === 1 ? 'caso' : 'casos'}
+          </Badge>
+        </div>
         
         {casosUso.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No hay casos de uso disponibles</h3>
-              <p className="text-muted-foreground mb-4">
-                Esta entidad aún no tiene casos de uso registrados en el sistema.
+          <Card className="bg-gradient-to-br from-muted/30 to-muted/10 border-dashed border-2">
+            <CardContent className="p-12 text-center">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                <Brain className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">No hay casos de uso disponibles</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Esta entidad aún no tiene casos de uso registrados en el sistema. Los casos aparecerán aquí una vez que sean agregados.
               </p>
+              <Badge variant="secondary" className="px-4 py-2">
+                Próximamente disponible
+              </Badge>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
             {casosUso.map((caso, index) => {
               const estadoBadge = getEstadoBadge(caso.Estado || '');
               const CasoIcon = getCasoIcon(caso.Proyecto || '');
               const tipo = classifyCasoTipo(caso.Proyecto || '');
 
               return (
-                <Card key={`${caso.PROJECT_ID}-${index}`} className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                      onClick={() => handleCasoClick(tipo, caso.Proyecto)}>
-                  <CardHeader className="space-y-3">
+                <Card 
+                  key={`${caso.PROJECT_ID}-${index}`} 
+                  className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md bg-gradient-to-br from-background via-background to-muted/20 hover:scale-[1.02] hover:shadow-2xl"
+                  onClick={() => handleCasoClick(tipo, caso.Proyecto)}
+                >
+                  <CardHeader className="space-y-4 pb-4">
                     <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-2">
-                        <CasoIcon className="h-5 w-5 text-primary" />
-                        <Badge className={estadoBadge.color} variant="outline">
-                          {estadoBadge.label}
-                        </Badge>
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                          <CasoIcon className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <Badge className={`${estadoBadge.color} shadow-sm`} variant="outline">
+                            {estadoBadge.label}
+                          </Badge>
+                        </div>
                       </div>
+                      {caso.PROJECT_ID && (
+                        <Badge variant="secondary" className="text-xs font-mono bg-muted/60">
+                          #{caso.PROJECT_ID}
+                        </Badge>
+                      )}
                     </div>
-                    <CardTitle className="text-base line-clamp-2 min-h-[2.5rem]" title={caso.Proyecto}>
+                    
+                    <CardTitle className="text-lg font-bold line-clamp-2 min-h-[3.5rem] group-hover:text-primary transition-colors leading-tight" title={caso.Proyecto}>
                       {caso.Proyecto}
                     </CardTitle>
                   </CardHeader>
                   
-                  <CardContent className="space-y-4">
-                    {/* Información básica */}
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <p className="text-muted-foreground">Etapa</p>
-                        <p className="font-medium truncate">{caso.Etapa || 'N/D'}</p>
+                  <CardContent className="space-y-6 pt-0">
+                    {/* Información básica mejorada */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Etapa</p>
+                        <div className="flex items-center space-x-1">
+                          <div className="w-2 h-2 bg-primary rounded-full"></div>
+                          <p className="font-medium text-sm truncate">{caso.Etapa || 'N/D'}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-muted-foreground">Proyecto ID</p>
-                        <p className="font-medium">{caso.PROJECT_ID || 'N/D'}</p>
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tipo</p>
+                        <p className="font-medium text-sm truncate">{caso['Tipo Proyecto'] || 'Caso de Uso'}</p>
                       </div>
                     </div>
 
-                    {/* Equipo */}
+                    {/* Equipo mejorado */}
                     {(caso.DS1 || caso.DS2 || caso.DE) && (
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">Equipo</p>
-                        <div className="flex flex-wrap gap-1">
+                      <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4 text-primary" />
+                          <p className="text-sm font-semibold text-muted-foreground">Equipo Asignado</p>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2">
                           {caso.DS1 && (
-                            <Badge variant="secondary" className="text-xs">DS1: {caso.DS1}</Badge>
+                            <div className="flex items-center space-x-2 text-xs">
+                              <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
+                                DS Principal
+                              </Badge>
+                              <span className="font-medium">{caso.DS1}</span>
+                            </div>
                           )}
                           {caso.DS2 && (
-                            <Badge variant="secondary" className="text-xs">DS2: {caso.DS2}</Badge>
+                            <div className="flex items-center space-x-2 text-xs">
+                              <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-300">
+                                DS Apoyo
+                              </Badge>
+                              <span className="font-medium">{caso.DS2}</span>
+                            </div>
                           )}
                           {caso.DE && (
-                            <Badge variant="secondary" className="text-xs">DE: {caso.DE}</Badge>
+                            <div className="flex items-center space-x-2 text-xs">
+                              <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 border-purple-300">
+                                Ingeniero
+                              </Badge>
+                              <span className="font-medium">{caso.DE}</span>
+                            </div>
                           )}
                         </div>
                       </div>
                     )}
 
-                    {/* Impacto Financiero */}
+                    {/* Impacto Financiero mejorado */}
                     {caso['Impacto Financiero'] && !caso['Impacto Financiero'].toLowerCase().includes('dimensionamiento') && (
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Impacto Financiero</p>
-                        <p className="text-sm font-semibold text-green-600">
+                      <div className="space-y-2 p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                        <div className="flex items-center space-x-2">
+                          <DollarSign className="h-4 w-4 text-green-600" />
+                          <p className="text-sm font-semibold text-green-800 dark:text-green-200">Impacto Financiero</p>
+                        </div>
+                        <p className="text-lg font-bold text-green-700 dark:text-green-300">
                           {caso['Impacto Financiero']} {caso['Unidad del Impacto Financiero'] || ''}
                         </p>
                         {caso['Nivel Impacto Financiero'] && (
-                          <Badge variant="outline" className="text-xs">
-                            {caso['Nivel Impacto Financiero']}
+                          <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                            Nivel: {caso['Nivel Impacto Financiero']}
                           </Badge>
                         )}
                       </div>
                     )}
 
-                    {/* Observaciones */}
+                    {/* Fechas mejoradas */}
+                    {(caso['Fecha de Inicio'] || caso['Fecha de Entrega']) && (
+                      <div className="space-y-2 p-3 bg-slate-50 dark:bg-slate-900/30 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4 text-slate-600" />
+                          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Cronograma</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 text-xs">
+                          {caso['Fecha de Inicio'] && (
+                            <div className="space-y-1">
+                              <p className="text-muted-foreground font-medium">Inicio</p>
+                              <p className="font-semibold bg-white dark:bg-slate-800 px-2 py-1 rounded border">{caso['Fecha de Inicio']}</p>
+                            </div>
+                          )}
+                          {caso['Fecha de Entrega'] && (
+                            <div className="space-y-1">
+                              <p className="text-muted-foreground font-medium">Entrega</p>
+                              <p className="font-semibold bg-white dark:bg-slate-800 px-2 py-1 rounded border">{caso['Fecha de Entrega']}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Observaciones mejoradas */}
                     {caso.Observaciones && (
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Observaciones</p>
-                        <ScrollArea className="h-16">
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            {caso.Observaciones.slice(0, 150)}
-                            {caso.Observaciones.length > 150 && '...'}
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold text-muted-foreground">Notas del Proyecto</p>
+                        <ScrollArea className="h-20 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                          <p className="text-xs leading-relaxed text-amber-800 dark:text-amber-200">
+                            {caso.Observaciones.slice(0, 200)}
+                            {caso.Observaciones.length > 200 && '...'}
                           </p>
                         </ScrollArea>
                       </div>
                     )}
 
-                    {/* Fechas */}
-                    {(caso['Fecha de Inicio'] || caso['Fecha de Entrega']) && (
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        {caso['Fecha de Inicio'] && (
-                          <div>
-                            <p className="text-muted-foreground">Inicio</p>
-                            <p className="font-medium">{caso['Fecha de Inicio']}</p>
-                          </div>
-                        )}
-                        {caso['Fecha de Entrega'] && (
-                          <div>
-                            <p className="text-muted-foreground">Entrega</p>
-                            <p className="font-medium">{caso['Fecha de Entrega']}</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Enlaces */}
-                    <div className="flex flex-wrap gap-1 pt-2 border-t">
+                    {/* Enlaces mejorados */}
+                    <div className="flex flex-wrap gap-2 pt-4 border-t border-muted/50">
                       {caso['Sharepoint Link'] && (
-                        <Button asChild variant="outline" size="sm" className="h-6 px-2 text-xs">
+                        <Button asChild variant="outline" size="sm" className="h-8 px-3 text-xs hover:bg-blue-50 hover:border-blue-300 transition-colors">
                           <a href={caso['Sharepoint Link']} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                            <ExternalLink className="w-3 h-3 mr-1" />SharePoint
+                            <ExternalLink className="w-3 h-3 mr-1.5" />SharePoint
                           </a>
                         </Button>
                       )}
                       {caso['Jira Link'] && (
-                        <Button asChild variant="outline" size="sm" className="h-6 px-2 text-xs">
+                        <Button asChild variant="outline" size="sm" className="h-8 px-3 text-xs hover:bg-indigo-50 hover:border-indigo-300 transition-colors">
                           <a href={caso['Jira Link']} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                            <ExternalLink className="w-3 h-3 mr-1" />Jira
+                            <ExternalLink className="w-3 h-3 mr-1.5" />Jira
                           </a>
                         </Button>
                       )}
                       {caso['Confluence Link'] && (
-                        <Button asChild variant="outline" size="sm" className="h-6 px-2 text-xs">
+                        <Button asChild variant="outline" size="sm" className="h-8 px-3 text-xs hover:bg-purple-50 hover:border-purple-300 transition-colors">
                           <a href={caso['Confluence Link']} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                            <ExternalLink className="w-3 h-3 mr-1" />Confluence
+                            <ExternalLink className="w-3 h-3 mr-1.5" />Confluence
                           </a>
                         </Button>
                       )}
+                      
+                      <Button variant="ghost" size="sm" className="ml-auto h-8 px-3 text-xs bg-primary/5 hover:bg-primary/10 text-primary font-medium">
+                        Ver Métricas →
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
