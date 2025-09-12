@@ -2,17 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Brain, TrendingDown, Target, Zap, BarChart3, Building2, DollarSign, FolderKanban, Briefcase, Users, CheckCircle2, Activity, PauseCircle, ExternalLink, Calendar, User, AlertCircle, Network } from 'lucide-react';
+import { ArrowLeft, Brain, TrendingDown, Target, Zap, BarChart3, Building2, DollarSign, FolderKanban, Briefcase, Users, CheckCircle2, Activity, PauseCircle, ExternalLink, Calendar, User, AlertCircle } from 'lucide-react';
 import { useDashboard } from '@/contexts/DashboardContext';
 import CasoUso from '@/components/casos-uso/CasoUso';
 import Papa from 'papaparse';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
 
 interface Entidad {
   id_nombre: string;
@@ -136,7 +130,6 @@ const EntityCasosUso = () => {
     if (proyectoLower.includes('top') || proyectoLower.includes('customer')) return Target;
     if (proyectoLower.includes('next') || proyectoLower.includes('action') || proyectoLower.includes('nba')) return Zap;
     if (proyectoLower.includes('aumento') || proyectoLower.includes('uso')) return BarChart3;
-    if (proyectoLower.includes('redes') || proyectoLower.includes('flujos') || proyectoLower.includes('dinero')) return Network;
     return Brain;
   };
 
@@ -203,17 +196,6 @@ const EntityCasosUso = () => {
   }
 
   if (selectedCaso) {
-    const isRedesFlujosDinero = selectedCasoTitulo?.toLowerCase().includes('redes flujos de dinero');
-    
-    if (isRedesFlujosDinero) {
-      return <RedesFlujosDineroView 
-        entidad={entidad} 
-        casoTitulo={selectedCasoTitulo}
-        casoRecord={selectedCasoRecord}
-        onBack={() => { setSelectedCaso(null); setSelectedCasoTitulo(null); setSelectedCasoRecord(null); }}
-      />;
-    }
-    
     return (
       <div className="space-y-6">
         <div className="space-y-4">
@@ -271,7 +253,7 @@ const EntityCasosUso = () => {
             </div>
           )}
         </div>
-        <CasoUso tipo={selectedCaso as any} displayTitle={selectedCasoTitulo || undefined} csvRecord={selectedCasoRecord as any} />
+  <CasoUso tipo={selectedCaso as any} displayTitle={selectedCasoTitulo || undefined} csvRecord={selectedCasoRecord as any} />
       </div>
     );
   }
@@ -632,252 +614,6 @@ const EntityCasosUso = () => {
           </div>
         )}
       </div>
-    </div>
-  );
-};
-
-// Componente específico para Redes flujos de Dinero
-const RedesFlujosDineroView = ({ entidad, casoTitulo, casoRecord, onBack }: {
-  entidad: Entidad;
-  casoTitulo: string | null;
-  casoRecord: CasoUsoCSV | null;
-  onBack: () => void;
-}) => {
-  const form = useForm({
-    defaultValues: {
-      usuariosIniciales: '',
-      usuariosContactables: '',
-      usuariosCompra: '',
-      efectividad: '',
-      cpaPromedio: '',
-      ventasGeneradas: '',
-      impactoFinanciero: '',
-      observaciones: ''
-    }
-  });
-
-  const onSubmit = (data: any) => {
-    console.log('Métricas de negocio enviadas:', data);
-    // Aquí se procesarían los datos del formulario
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <Button variant="ghost" onClick={onBack} className="p-2">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver a {entidad?.id_nombre}
-        </Button>
-        
-        {casoTitulo && (
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                {casoTitulo}
-              </h1>
-              <p className="text-muted-foreground text-lg">Análisis de redes y flujos financieros</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {casoRecord?.['Sharepoint Link'] ? (
-                <Button asChild variant="outline" size="sm" className="h-8 px-3 text-xs hover:bg-blue-50 hover:border-blue-300">
-                  <a href={casoRecord['Sharepoint Link']} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="w-3 h-3 mr-1.5" />SharePoint
-                  </a>
-                </Button>
-              ) : (
-                <Button variant="outline" size="sm" className="h-8 px-3 text-xs" disabled>
-                  <ExternalLink className="w-3 h-3 mr-1.5" />SharePoint
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <Tabs defaultValue="metricas" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="metricas">Métricas y Análisis</TabsTrigger>
-          <TabsTrigger value="formulario">Formulario de Métricas</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="metricas" className="space-y-6">
-          <CasoUso tipo="generico" displayTitle={casoTitulo || undefined} csvRecord={casoRecord as any} />
-        </TabsContent>
-        
-        <TabsContent value="formulario" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Network className="h-5 w-5" />
-                Formulario de Métricas de Negocio
-              </CardTitle>
-              <CardDescription>
-                Complete los campos para registrar las métricas de negocio del caso de uso Redes flujos de Dinero
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="usuariosIniciales"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Usuarios Iniciales</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="Ej: 10,000" 
-                              type="number" 
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="usuariosContactables"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Usuarios Contactables</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="Ej: 8,500" 
-                              type="number" 
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="usuariosCompra"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Usuarios con Compra</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="Ej: 1,200" 
-                              type="number" 
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="efectividad"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Efectividad (%)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="Ej: 14.1" 
-                              type="number" 
-                              step="0.1"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="cpaPromedio"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>CPA Promedio</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="Ej: 15,000" 
-                              type="number" 
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="ventasGeneradas"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Ventas Generadas</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="Ej: 1,500" 
-                              type="number" 
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="impactoFinanciero"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Impacto Financiero</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Ej: $250,000,000" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="observaciones"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Observaciones</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Ingrese observaciones adicionales sobre las métricas..." 
-                            className="min-h-[100px]"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="flex justify-end space-x-4">
-                    <Button type="button" variant="outline" onClick={onBack}>
-                      Cancelar
-                    </Button>
-                    <Button type="submit">
-                      Guardar Métricas
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };
