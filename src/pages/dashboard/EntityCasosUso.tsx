@@ -13,353 +13,428 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import TechnicalMetricsBacktesting from '@/components/ui/dashboard/TechnicalMetricsBacktesting';
 
 interface Entidad {
-  id: string;
   id_nombre: string;
-  casos: number;
-  estado: { implementados: number; total: number };
-  cobertura: number;
-  roi: number;
+  descripcion: string;
+  logo_url: string;
+  color: string;
 }
 
 interface CasoUsoCSV {
+  Entidad: string;
+  Proyecto: string;
+  Etapa: string;
+  Estado: string;
+  Subtarea?: string;
   PROJECT_ID?: string;
-  Proyecto?: string;
-  Estado?: string;
   'Tipo Proyecto'?: string;
-  Etapa?: string;
-  'DS1'?: string;
-  'DS2'?: string;
-  'DE'?: string;
-  'Inicio Proyecto'?: string;
-  'Fin Proyecto'?: string;
+  DS1?: string;
+  DS2?: string;
+  DE?: string;
+  MDS?: string;
+  Maintance?: string;
+  Tallaje?: string;
+  Observaciones?: string;
+  'Fecha de Inicio'?: string;
+  'Fecha de Entrega'?: string;
+  Mantenimiento?: string;
+  'DS Entidad'?: string;
+  'Nivel Impacto Financiero'?: string;
+  'Unidad del Impacto Financiero'?: string;
+  'Impacto Financiero'?: string;
+  'Financiero Aval Digital Labs'?: string;
+  'Financiero Entidad'?: string;
+  Sponsor?: string;
+  'Main Contact'?: string;
+  Sandbox?: string;
   'Sharepoint Link'?: string;
+  'Sharepoint Actividades'?: string;
   'Jira Link'?: string;
   'Confluence Link'?: string;
-  'Duración estimada (meses)'?: number;
-  'Meses Invertidos'?: number;
-  entidad?: string;
-  kpi1?: string;
-  kpi2?: string;
-  observaciones?: string;
-  // ... otros campos
 }
 
-interface EntityCasosUsoProps {
-  entidad: Entidad;
-  onSelectCaso?: (tipo: string, titulo?: string) => void;
-}
-
-const EntityCasosUso: React.FC<EntityCasosUsoProps> = ({ entidad, onSelectCaso }) => {
-  const { } = useDashboard();
+const EntityCasosUso = () => {
+  const { setActiveView } = useDashboard();
+  const [entidad, setEntidad] = useState<Entidad | null>(null);
   const [casosUso, setCasosUso] = useState<CasoUsoCSV[]>([]);
+  const [selectedCaso, setSelectedCaso] = useState<string | null>(null);
+  const [selectedCasoTitulo, setSelectedCasoTitulo] = useState<string | null>(null);
+  const [selectedCasoRecord, setSelectedCasoRecord] = useState<CasoUsoCSV | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Estados para casos específicos
-  const [casoSeleccionado, setCasoSeleccionado] = useState<string | null>(null);
-  const [casoRecord, setCasoRecord] = useState<CasoUsoCSV | null>(null);
-  const [showBusinessMetrics, setShowBusinessMetrics] = useState(false);
-  const [showTechnicalMetrics, setShowTechnicalMetrics] = useState(false);
 
   useEffect(() => {
-    const loadCasosUso = async () => {
-      try {
-        const response = await fetch('/casos_uso.csv');
-        const csvText = await response.text();
-        
-        Papa.parse<CasoUsoCSV>(csvText, {
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => {
-            const filteredData = results.data.filter(row => {
-              const proyectoEntidad = row.entidad?.toLowerCase().trim();
-              const entidadName = entidad.id_nombre.toLowerCase().trim();
-              return proyectoEntidad === entidadName;
-            });
-            
-            setCasosUso(filteredData);
-            setLoading(false);
-          },
-          error: (error) => {
-            console.error('Error parsing CSV:', error);
-            setError('Error al cargar los casos de uso');
-            setLoading(false);
-          }
-        });
-      } catch (err) {
-        console.error('Error loading CSV:', err);
-        setError('Error al cargar los datos');
-        setLoading(false);
-      }
-    };
+    const selectedEntityData = localStorage.getItem('selectedEntity');
+    if (selectedEntityData) {
+      const entidadData = JSON.parse(selectedEntityData);
+      setEntidad(entidadData);
+      loadCasosUso(entidadData.id_nombre);
+    }
+  }, []);
 
-    loadCasosUso();
-  }, [entidad]);
-
-  const handleBack = () => {
-    // Navigate back logic can be implemented here
-    window.history.back();
-  };
-
-  // Función para obtener el badge de estado
-  const getEstadoBadge = (estado: string) => {
-    switch (estado?.toLowerCase()) {
-      case 'implementado':
-        return { label: 'Implementado', color: 'bg-green-100 text-green-700 border-green-300' };
-      case 'en desarrollo':
-        return { label: 'En Desarrollo', color: 'bg-blue-100 text-blue-700 border-blue-300' };
-      case 'en pausa':
-        return { label: 'En Pausa', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' };
-      case 'cancelado':
-        return { label: 'Cancelado', color: 'bg-red-100 text-red-700 border-red-300' };
-      case 'por implementar':
-        return { label: 'Por Implementar', color: 'bg-gray-100 text-gray-700 border-gray-300' };
-      default:
-        return { label: 'Sin Estado', color: 'bg-gray-100 text-gray-700 border-gray-300' };
+  const loadCasosUso = async (entidadNombre: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch('/casos_uso.csv');
+      const csvText = await response.text();
+      
+      Papa.parse<CasoUsoCSV>(csvText, {
+        header: true,
+        delimiter: ';',
+        skipEmptyLines: 'greedy',
+        transformHeader: (h) => h.replace(/\uFEFF/g, '').trim(),
+        transform: (value) => typeof value === 'string' ? value.trim() : value,
+        complete: (results) => {
+          const allCasos = results.data || [];
+          const entidadCasos = allCasos.filter(caso => 
+            caso.Entidad && caso.Entidad.trim() === entidadNombre
+          );
+          setCasosUso(entidadCasos);
+          setLoading(false);
+        },
+        error: (error) => {
+          console.error('Error parsing CSV:', error);
+          setLoading(false);
+        }
+      });
+    } catch (error) {
+      console.error('Error loading CSV:', error);
+      setLoading(false);
     }
   };
 
-  // Función para obtener el icono del caso
+  const handleBackClick = () => {
+    setActiveView('casosUso');
+  };
+
+  const handleCasoClick = (casoId: string, titulo?: string, record?: CasoUsoCSV) => {
+    setSelectedCaso(casoId);
+    if (titulo) setSelectedCasoTitulo(titulo);
+    if (record) setSelectedCasoRecord(record);
+  };
+
+  const getEstadoBadge = (estado: string) => {
+    const estadoLower = estado?.toLowerCase() || '';
+    if (estadoLower.includes('entregado') && estadoLower.includes('con uso')) {
+      return { variant: 'default' as const, label: 'Activo', color: 'bg-green-100 text-green-700 border-green-300' };
+    }
+    if (estadoLower.includes('finalizado') && estadoLower.includes('con uso')) {
+      return { variant: 'default' as const, label: 'Activo', color: 'bg-green-100 text-green-700 border-green-300' };
+    }
+    if (estadoLower.includes('desarrollo') || estadoLower.includes('pilotaje')) {
+      return { variant: 'secondary' as const, label: 'En Desarrollo', color: 'bg-blue-100 text-blue-700 border-blue-300' };
+    }
+    if (estadoLower.includes('deprecado') || (estadoLower.includes('sin uso'))) {
+      return { variant: 'destructive' as const, label: 'Inactivo', color: 'bg-red-100 text-red-700 border-red-300' };
+    }
+    return { variant: 'outline' as const, label: estado || 'N/D', color: 'bg-gray-100 text-gray-700 border-gray-300' };
+  };
+
   const getCasoIcon = (proyecto: string) => {
     const proyectoLower = proyecto?.toLowerCase() || '';
-    
-    if (proyectoLower.includes('churn') || proyectoLower.includes('abandono')) {
-      return TrendingDown;
-    }
-    if (proyectoLower.includes('next best') || proyectoLower.includes('recomend')) {
-      return Target;
-    }
-    if (proyectoLower.includes('aumento') || proyectoLower.includes('incremento')) {
-      return Zap;
-    }
-    if (proyectoLower.includes('análisis') || proyectoLower.includes('analisis')) {
-      return BarChart3;
-    }
-    if (proyectoLower.includes('red') || proyectoLower.includes('flujo')) {
-      return Network;
-    }
-    
-    return FolderKanban; // Icono por defecto
+    if (proyectoLower.includes('churn')) return TrendingDown;
+    if (proyectoLower.includes('top') || proyectoLower.includes('customer')) return Target;
+    if (proyectoLower.includes('next') || proyectoLower.includes('action') || proyectoLower.includes('nba')) return Zap;
+    if (proyectoLower.includes('aumento') || proyectoLower.includes('uso')) return BarChart3;
+    if (proyectoLower.includes('redes') || proyectoLower.includes('flujos') || proyectoLower.includes('dinero')) return Network;
+    return Brain;
   };
 
-  // Función para clasificar el tipo de caso
-  const classifyCasoTipo = (proyecto: string) => {
+  const classifyCasoTipo = (proyecto: string): string => {
     const proyectoLower = proyecto?.toLowerCase() || '';
-    
-    if (proyectoLower.includes('redes') && proyectoLower.includes('dinero')) {
-      return 'redes-flujos-dinero';
-    }
-    
-    if (proyectoLower.includes('cobranzas') && proyectoLower.includes('cartera') && proyectoLower.includes('castigada')) {
-      return 'cobranzas-cartera-castigada';
-    }
-    
-    if (proyectoLower.includes('churn')) {
-      return 'churn';
-    }
-    if (proyectoLower.includes('next best')) {
-      return 'next-best-action';
-    }
-    if (proyectoLower.includes('aumento')) {
-      return 'aumento-uso';
-    }
-    
+    if (proyectoLower.includes('churn')) return 'churn';
+    if (proyectoLower.includes('top') || proyectoLower.includes('customer')) return 'tc';
+    if (proyectoLower.includes('next') || proyectoLower.includes('action') || proyectoLower.includes('nba')) return 'nba';
+    if (proyectoLower.includes('aumento') || proyectoLower.includes('uso')) return 'aumento-uso';
     return 'generico';
   };
 
-  // Calcular métricas del resumen
-  const summary = React.useMemo(() => {
+  const getMetricasResumen = () => {
     const total = casosUso.length;
-    const implementados = casosUso.filter(caso => caso.Estado?.toLowerCase() === 'implementado').length;
-    const enDesarrollo = casosUso.filter(caso => caso.Estado?.toLowerCase() === 'en desarrollo').length;
-    const enPausa = casosUso.filter(caso => caso.Estado?.toLowerCase() === 'en pausa').length;
-    const porImplementar = casosUso.filter(caso => caso.Estado?.toLowerCase() === 'por implementar').length;
+    const activos = casosUso.filter(caso => {
+      const estado = caso.Estado?.toLowerCase() || '';
+      return (estado.includes('entregado') && estado.includes('con uso')) || 
+             (estado.includes('finalizado') && estado.includes('con uso'));
+    }).length;
+    
+    const enDesarrollo = casosUso.filter(caso => {
+      const estado = caso.Estado?.toLowerCase() || '';
+      return estado.includes('desarrollo') || estado.includes('pilotaje');
+    }).length;
+
+    const inactivos = casosUso.filter(caso => {
+      const estado = caso.Estado?.toLowerCase() || '';
+      return estado.includes('deprecado') || estado.includes('sin uso');
+    }).length;
+
+    const cientificos = new Set();
+    casosUso.forEach(caso => {
+      if (caso.DS1) cientificos.add(caso.DS1);
+      if (caso.DS2) cientificos.add(caso.DS2);
+    });
+
+    const conImpacto = casosUso.filter(caso => 
+      caso['Impacto Financiero'] && 
+      caso['Impacto Financiero'] !== '' && 
+      !caso['Impacto Financiero'].toLowerCase().includes('dimensionamiento')
+    ).length;
 
     return {
       total,
-      implementados,
+      activos,
       enDesarrollo,
-      enPausa,
-      porImplementar,
-      porcentajeImplementados: total > 0 ? Math.round((implementados / total) * 100) : 0,
-      porcentajeEnDesarrollo: total > 0 ? Math.round((enDesarrollo / total) * 100) : 0
+      inactivos,
+      cientificos: cientificos.size,
+      conImpacto,
+      porcentajeActivos: total > 0 ? Math.round((activos / total) * 100) : 0
     };
-  }, [casosUso]);
-
-  // Manejar casos específicos
-  const handleCasoClick = (tipo: string, titulo?: string, record?: CasoUsoCSV) => {
-    if (tipo === 'redes-flujos-dinero') {
-      setCasoSeleccionado(titulo || tipo);
-      setCasoRecord(record || null);
-      setShowBusinessMetrics(true);
-    } else if (tipo === 'cobranzas-cartera-castigada') {
-      setCasoSeleccionado(titulo || tipo);
-      setCasoRecord(record || null);
-      setShowTechnicalMetrics(true);
-    } else {
-      onSelectCaso?.(tipo, titulo);
-    }
   };
 
-  const onBack = () => {
-    setShowBusinessMetrics(false);
-    setShowTechnicalMetrics(false);
-    setCasoSeleccionado(null);
-    setCasoRecord(null);
-  };
-
-  // Si está en vista de métricas de negocio
-  if (showBusinessMetrics && casoSeleccionado) {
+  if (!entidad) {
     return (
-      <RedesFlujosDineroView 
-        entidad={entidad}
-        casoTitulo={casoSeleccionado}
-        casoRecord={casoRecord}
-        onBack={onBack}
-      />
+      <div className="p-6 text-center">
+        <p>No se encontró información de la entidad</p>
+        <Button onClick={handleBackClick} className="mt-4">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Volver
+        </Button>
+      </div>
     );
   }
 
-  // Si está en vista de métricas técnicas
-  if (showTechnicalMetrics && casoSeleccionado) {
+  if (selectedCaso) {
+    const isRedesFlujosDinero = selectedCasoTitulo?.toLowerCase().includes('redes flujos de dinero');
+    
+    if (isRedesFlujosDinero) {
+      return <RedesFlujosDineroView 
+        entidad={entidad} 
+        casoTitulo={selectedCasoTitulo}
+        casoRecord={selectedCasoRecord}
+        onBack={() => { setSelectedCaso(null); setSelectedCasoTitulo(null); setSelectedCasoRecord(null); }}
+      />;
+    }
+    
     return (
-      <CobranzasCarteraCastigadaView 
-        entidad={entidad}
-        casoTitulo={casoSeleccionado}
-        casoRecord={casoRecord}
-        onBack={onBack}
-      />
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <Button variant="ghost" onClick={() => { setSelectedCaso(null); setSelectedCasoTitulo(null); setSelectedCasoRecord(null); }} className="p-2">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Volver a {entidad?.id_nombre}
+          </Button>
+          
+          {selectedCasoTitulo && (
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  {selectedCasoTitulo}
+                </h1>
+                <p className="text-muted-foreground text-lg">Métricas y análisis del caso de uso</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {/* SharePoint */}
+                {selectedCasoRecord?.['Sharepoint Link'] ? (
+                  <Button asChild variant="outline" size="sm" className="h-8 px-3 text-xs hover:bg-blue-50 hover:border-blue-300">
+                    <a href={selectedCasoRecord['Sharepoint Link']} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-3 h-3 mr-1.5" />SharePoint
+                    </a>
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" className="h-8 px-3 text-xs" disabled>
+                    <ExternalLink className="w-3 h-3 mr-1.5" />SharePoint
+                  </Button>
+                )}
+                {/* Jira */}
+                {selectedCasoRecord?.['Jira Link'] ? (
+                  <Button asChild variant="outline" size="sm" className="h-8 px-3 text-xs hover:bg-indigo-50 hover:border-indigo-300">
+                    <a href={selectedCasoRecord['Jira Link']} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-3 h-3 mr-1.5" />Jira
+                    </a>
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" className="h-8 px-3 text-xs" disabled>
+                    <ExternalLink className="w-3 h-3 mr-1.5" />Jira
+                  </Button>
+                )}
+                {/* Confluence */}
+                {selectedCasoRecord?.['Confluence Link'] ? (
+                  <Button asChild variant="outline" size="sm" className="h-8 px-3 text-xs hover:bg-purple-50 hover:border-purple-300">
+                    <a href={selectedCasoRecord['Confluence Link']} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-3 h-3 mr-1.5" />Confluence
+                    </a>
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" className="h-8 px-3 text-xs" disabled>
+                    <ExternalLink className="w-3 h-3 mr-1.5" />Confluence
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        <CasoUso tipo={selectedCaso as any} displayTitle={selectedCasoTitulo || undefined} csvRecord={selectedCasoRecord as any} />
+      </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando casos de uso...</p>
+      <div className="p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-muted rounded-lg"></div>
+            <div className="space-y-2">
+              <div className="h-6 bg-muted rounded w-48"></div>
+              <div className="h-4 bg-muted rounded w-32"></div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-24 bg-muted rounded-lg"></div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-64 bg-muted rounded-lg"></div>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Card className="max-w-md">
-          <CardContent className="p-6 text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h3 className="font-semibold text-lg mb-2">Error al cargar datos</h3>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>
-              Reintentar
-            </Button>
+  const metricas = getMetricasResumen();
+
+  return (
+    <div className="p-6 space-y-8">
+      {/* Header */}
+      <div className="space-y-4">
+        <Button variant="ghost" onClick={handleBackClick} className="p-2">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Volver a Casos de Uso
+        </Button>
+        
+        <div className="flex items-center space-x-4">
+          <div 
+            className="w-16 h-16 rounded-xl flex items-center justify-center p-3 border shadow-sm bg-gradient-to-br from-background to-muted/50"
+            style={{ backgroundColor: '#ffffff' }}
+          >
+            {entidad.logo_url ? (
+              <img 
+                src={entidad.logo_url} 
+                alt={`Logo ${entidad.id_nombre}`}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                  if (nextElement) nextElement.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <Building2 
+              className="w-8 h-8 text-black" 
+              style={{ 
+                display: entidad.logo_url ? 'none' : 'flex'
+              }} 
+            />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              {entidad.id_nombre}
+            </h1>
+            <p className="text-muted-foreground text-lg">{entidad.descripcion}</p>
+          </div>
+        </div>
+      </div>
+
+  {/* Métricas Resumen */}
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 dark:from-blue-950/50 dark:to-blue-900/30 dark:border-blue-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Casos</p>
+                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">{metricas.total}</p>
+                <p className="text-xs text-blue-600/70 mt-1">Proyectos registrados</p>
+              </div>
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
+                <FolderKanban className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200 dark:from-green-950/50 dark:to-green-900/30 dark:border-green-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-green-600 dark:text-green-400">Casos Activos</p>
+                <div className="flex items-baseline space-x-2">
+                  <p className="text-3xl font-bold text-green-900 dark:text-green-100">{metricas.activos}</p>
+                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-300">
+                    {metricas.porcentajeActivos}%
+                  </Badge>
+                </div>
+                <p className="text-xs text-green-600/70 mt-1">En producción activa</p>
+              </div>
+              <div className="p-3 bg-green-100 dark:bg-green-900/50 rounded-xl">
+                <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 border-orange-200 dark:from-orange-950/50 dark:to-orange-900/30 dark:border-orange-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-orange-600 dark:text-orange-400">En Desarrollo</p>
+                <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{metricas.enDesarrollo}</p>
+                <p className="text-xs text-orange-600/70 mt-1">Proyectos en curso</p>
+              </div>
+              <div className="p-3 bg-orange-100 dark:bg-orange-900/50 rounded-xl">
+                <Activity className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-red-50 to-red-100/50 border-red-200 dark:from-red-950/50 dark:to-red-900/30 dark:border-red-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">Casos Inactivos</p>
+                <p className="text-3xl font-bold text-red-900 dark:text-red-100">{metricas.inactivos}</p>
+                <p className="text-xs text-red-600/70 mt-1">Deprecados o sin uso</p>
+              </div>
+              <div className="p-3 bg-red-100 dark:bg-red-900/50 rounded-xl">
+                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200 dark:from-purple-950/50 dark:to-purple-900/30 dark:border-purple-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Científicos</p>
+                <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">{metricas.cientificos}</p>
+                <p className="text-xs text-purple-600/70 mt-1">Equipo asignado</p>
+              </div>
+              <div className="p-3 bg-purple-100 dark:bg-purple-900/50 rounded-xl">
+                <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
-    );
-  }
 
-  return (
-    <div className="space-y-6 p-6">
-      {/* Header con botón de volver */}
-      <div className="flex items-center gap-4">
-        <Button 
-          variant="ghost" 
-          onClick={handleBack}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Volver al Dashboard
-        </Button>
-      </div>
-
-      {/* Header de la entidad */}
-      <div className="space-y-4">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            {entidad.id_nombre}
-          </h1>
-          <p className="text-muted-foreground text-lg">Casos de uso y proyectos de la entidad</p>
-        </div>
-
-        {/* Cards de resumen mejoradas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-700">Total Casos</p>
-                  <p className="text-2xl font-bold text-blue-900">{summary.total}</p>
-                </div>
-                <FolderKanban className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-700">Implementados</p>
-                  <p className="text-2xl font-bold text-green-900">{summary.implementados}</p>
-                  <p className="text-xs text-green-600">{summary.porcentajeImplementados}% del total</p>
-                </div>
-                <CheckCircle2 className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-700">En Desarrollo</p>
-                  <p className="text-2xl font-bold text-blue-900">{summary.enDesarrollo}</p>
-                  <p className="text-xs text-blue-600">{summary.porcentajeEnDesarrollo}% del total</p>
-                </div>
-                <Activity className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 border-yellow-200 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-yellow-700">En Pausa</p>
-                  <p className="text-2xl font-bold text-yellow-900">{summary.enPausa}</p>
-                </div>
-                <PauseCircle className="h-8 w-8 text-yellow-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-gray-50 to-gray-100/50 border-gray-200 hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Por Implementar</p>
-                  <p className="text-2xl font-bold text-gray-900">{summary.porImplementar}</p>
-                </div>
-                <Users className="h-8 w-8 text-gray-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Lista de casos de uso */}
+      {/* Lista de Casos de Uso */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Casos de Uso</h2>
-          <Badge variant="secondary" className="px-3 py-1">
-            {casosUso.length} casos encontrados
+          <Badge variant="outline" className="text-sm px-3 py-1">
+            {casosUso.length} {casosUso.length === 1 ? 'caso' : 'casos'}
           </Badge>
         </div>
         
@@ -444,7 +519,7 @@ const EntityCasosUso: React.FC<EntityCasosUsoProps> = ({ entidad, onSelectCaso }
                               <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
                                 DS Principal
                               </Badge>
-                              <span className="font-medium truncate">{caso.DS1}</span>
+                              <span className="font-medium">{caso.DS1}</span>
                             </div>
                           )}
                           {caso.DS2 && (
@@ -452,62 +527,73 @@ const EntityCasosUso: React.FC<EntityCasosUsoProps> = ({ entidad, onSelectCaso }
                               <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-300">
                                 DS Apoyo
                               </Badge>
-                              <span className="font-medium truncate">{caso.DS2}</span>
+                              <span className="font-medium">{caso.DS2}</span>
                             </div>
                           )}
                           {caso.DE && (
                             <div className="flex items-center space-x-2 text-xs">
                               <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 border-purple-300">
-                                DE
+                                Ingeniero
                               </Badge>
-                              <span className="font-medium truncate">{caso.DE}</span>
+                              <span className="font-medium">{caso.DE}</span>
                             </div>
                           )}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Impacto Financiero mejorado */}
+                    {caso['Impacto Financiero'] && !caso['Impacto Financiero'].toLowerCase().includes('dimensionamiento') && (
+                      <div className="space-y-2 p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                        <div className="flex items-center space-x-2">
+                          <DollarSign className="h-4 w-4 text-green-600" />
+                          <p className="text-sm font-semibold text-green-800 dark:text-green-200">Impacto Financiero</p>
+                        </div>
+                        <p className="text-lg font-bold text-green-700 dark:text-green-300">
+                          {caso['Impacto Financiero']} {caso['Unidad del Impacto Financiero'] || ''}
+                        </p>
+                        {caso['Nivel Impacto Financiero'] && (
+                          <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                            Nivel: {caso['Nivel Impacto Financiero']}
+                          </Badge>
+                        )}
                       </div>
                     )}
 
                     {/* Fechas mejoradas */}
-                    {(caso['Inicio Proyecto'] || caso['Fin Proyecto']) && (
-                      <div className="space-y-2 p-3 bg-accent/5 rounded-lg border border-accent/20">
+                    {(caso['Fecha de Inicio'] || caso['Fecha de Entrega']) && (
+                      <div className="space-y-2 p-3 bg-slate-50 dark:bg-slate-900/30 rounded-lg">
                         <div className="flex items-center space-x-2">
-                          <Calendar className="h-4 w-4 text-accent-foreground" />
-                          <p className="text-sm font-semibold text-accent-foreground">Cronograma</p>
+                          <Calendar className="h-4 w-4 text-slate-600" />
+                          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Cronograma</p>
                         </div>
-                        <div className="grid grid-cols-1 gap-2 text-xs">
-                          {caso['Inicio Proyecto'] && (
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Inicio:</span>
-                              <span className="font-medium">{caso['Inicio Proyecto']}</span>
+                        <div className="grid grid-cols-2 gap-3 text-xs">
+                          {caso['Fecha de Inicio'] && (
+                            <div className="space-y-1">
+                              <p className="text-muted-foreground font-medium">Inicio</p>
+                              <p className="font-semibold bg-white dark:bg-slate-800 px-2 py-1 rounded border">{caso['Fecha de Inicio']}</p>
                             </div>
                           )}
-                          {caso['Fin Proyecto'] && (
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Fin:</span>
-                              <span className="font-medium">{caso['Fin Proyecto']}</span>
+                          {caso['Fecha de Entrega'] && (
+                            <div className="space-y-1">
+                              <p className="text-muted-foreground font-medium">Entrega</p>
+                              <p className="font-semibold bg-white dark:bg-slate-800 px-2 py-1 rounded border">{caso['Fecha de Entrega']}</p>
                             </div>
                           )}
                         </div>
                       </div>
                     )}
 
-                    {/* Progreso mejorado */}
-                    {(caso['Duración estimada (meses)'] || caso['Meses Invertidos']) && (
+                    {/* Observaciones mejoradas */}
+                    {caso.Observaciones && (
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Progreso</span>
-                          <span className="font-medium">
-                            {caso['Meses Invertidos'] || 0} / {caso['Duración estimada (meses)'] || 0} meses
-                          </span>
-                        </div>
-                        <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                          <div 
-                            className="bg-gradient-to-r from-primary to-primary/80 h-2 rounded-full transition-all duration-500"
-                            style={{ 
-                              width: `${Math.min(100, ((caso['Meses Invertidos'] || 0) / (caso['Duración estimada (meses)'] || 1)) * 100)}%` 
-                            }}
-                          />
-                        </div>
+                        <p className="text-sm font-semibold text-muted-foreground">Notas del Proyecto</p>
+                        <ScrollArea className="h-20 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                          <p className="text-xs leading-relaxed text-amber-800 dark:text-amber-200">
+                            {caso.Observaciones.slice(0, 200)}
+                            {caso.Observaciones.length > 200 && '...'}
+                          </p>
+                        </ScrollArea>
                       </div>
                     )}
 
@@ -790,64 +876,6 @@ const RedesFlujosDineroView = ({ entidad, casoTitulo, casoRecord, onBack }: {
               </Form>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-};
-
-// Componente específico para Cobranzas Cartera Castigada BdB
-const CobranzasCarteraCastigadaView = ({ entidad, casoTitulo, casoRecord, onBack }: {
-  entidad: Entidad;
-  casoTitulo: string | null;
-  casoRecord: CasoUsoCSV | null;
-  onBack: () => void;
-}) => {
-  return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <Button variant="ghost" onClick={onBack} className="p-2">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver a {entidad?.id_nombre}
-        </Button>
-        
-        {casoTitulo && (
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                {casoTitulo}
-              </h1>
-              <p className="text-muted-foreground text-lg">Modelo de recuperación de cartera castigada</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {casoRecord?.['Sharepoint Link'] ? (
-                <Button asChild variant="outline" size="sm" className="h-8 px-3 text-xs hover:bg-blue-50 hover:border-blue-300">
-                  <a href={casoRecord['Sharepoint Link']} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="w-3 h-3 mr-1.5" />SharePoint
-                  </a>
-                </Button>
-              ) : (
-                <Button variant="outline" size="sm" className="h-8 px-3 text-xs" disabled>
-                  <ExternalLink className="w-3 h-3 mr-1.5" />SharePoint
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <Tabs defaultValue="info" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="info">Información del Modelo</TabsTrigger>
-          <TabsTrigger value="tecnicas">Métricas Técnicas</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="info" className="space-y-6">
-          <CasoUso tipo="generico" displayTitle={casoTitulo || undefined} csvRecord={casoRecord as any} />
-        </TabsContent>
-        
-        <TabsContent value="tecnicas" className="space-y-6">
-          <TechnicalMetricsBacktesting />
         </TabsContent>
       </Tabs>
     </div>
