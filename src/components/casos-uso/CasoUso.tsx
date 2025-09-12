@@ -61,9 +61,10 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
     // Cargar descripciones de campos para tooltips del backtesting (si aplica)
     const cargarCampos = async () => {
       if (!esCastigadaBdB) return;
+      const base = (import.meta as any)?.env?.BASE_URL || '/';
       const candidatos = [
-        '/campos_backtesting_Cobranzas Cartera Castigada BdB.csv',
-        '/campos_backtestig_Cobranzas Cartera Castigada BdB.csv' // fallback con posible typo
+        `${base}campos_backtesting_Cobranzas Cartera Castigada BdB.csv`,
+        `${base}campos_backtestig_Cobranzas Cartera Castigada BdB.csv` // fallback con posible typo
       ];
       for (const url of candidatos) {
         try {
@@ -115,7 +116,8 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
     const cargarBacktesting = async () => {
       if (!esCastigadaBdB) return;
       try {
-        const res = await fetch('/backtesting_Cobranzas Cartera Castigada BdB.csv');
+        const base = (import.meta as any)?.env?.BASE_URL || '/';
+        const res = await fetch(`${base}backtesting_Cobranzas Cartera Castigada BdB.csv`);
         if (!res.ok) return;
         const text = await res.text();
         const parsed = Papa.parse(text, {
