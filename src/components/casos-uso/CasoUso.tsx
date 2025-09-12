@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, TrendingDown, DollarSign, Users, Target, Cpu, BarChart3, Zap, Activity, Clock, CheckCircle, AlertCircle, CreditCard, Home, Car, Building, ExternalLink } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, ComposedChart, Legend } from 'recharts';
+import Papa from 'papaparse';
 
 interface CasoUsoProps {
   tipo: 'churn' | 'tc' | 'nba' | 'aumento-uso' | 'generico';
@@ -17,6 +20,163 @@ interface CasoUsoProps {
 const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
   const [modeloSeleccionado, setModeloSeleccionado] = useState('tarjeta-credito');
   const [filtroUsuario, setFiltroUsuario] = useState<'activos' | 'durmientes'>('activos');
+  const [vistaTecnica, setVistaTecnica] = useState<'modelo' | 'backtesting'>('modelo');
+  const esCastigadaBdB = !!(csvRecord?.Proyecto?.toLowerCase?.().includes('cobranzas cartera castigada bdb'));
+  const [camposDesc, setCamposDesc] = useState<Record<string, string>>({});
+  // Backtesting (BdB) state
+  type BtRow = {
+    decil_probabilidad: number;
+    marca_bueno_evidente: number;
+    clientes: number;
+    respuesta: number;
+    tasa_buenos: number;
+    distribucion: number;
+    lift: number;
+    saldo_total: number;
+    // pagos por horizonte
+    sum_pagos_1m_total?: number;
+    sum_pagos_2m_total?: number;
+    sum_pagos_3m_total: number;
+    // acumulados (opcionales en algunas filas)
+    sum_pagos_3m_acum?: number;
+    tasa_recu_3m_acum?: number;
+    psi?: number;
+    ks?: number;
+    roc?: number;
+    fecha: string; // ej: 202503
+    segmento: string; // ej: 1_Alto_p1
+  };
+  const [btRows, setBtRows] = useState<BtRow[] | null>(null);
+  const [btFecha, setBtFecha] = useState<string | null>(null);
+  const [btSegmento, setBtSegmento] = useState<string | null>(null);
+  const [btHorizon, setBtHorizon] = useState<'1m' | '2m' | '3m'>('3m');
+  const [btTechMetric, setBtTechMetric] = useState<'auc' | 'ks' | 'psi'>('auc');
+  // Pilot negocio (BdB)
+  const [pilotDeciles, setPilotDeciles] = useState<number>(3);
+  const [pilotCostoContacto, setPilotCostoContacto] = useState<number>(0);
+  // Negocio (BdB) agrupaciones
+  const [negGroupBy, setNegGroupBy] = useState<'segmento' | 'fecha' | 'decil' | 'marca'>('segmento');
+
+  useEffect(() => {
+    // Cargar descripciones de campos para tooltips del backtesting (si aplica)
+    const cargarCampos = async () => {
+      if (!esCastigadaBdB) return;
+      const candidatos = [
+        '/campos_backtesting_Cobranzas Cartera Castigada BdB.csv',
+        '/campos_backtestig_Cobranzas Cartera Castigada BdB.csv' // fallback con posible typo
+      ];
+      for (const url of candidatos) {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) continue;
+          const text = await res.text();
+          const parsed = Papa.parse<{ Campo: string; Descripcion?: string }>(text, {
+            header: true,
+            delimiter: ';',
+            skipEmptyLines: true
+          });
+          const map: Record<string, string> = {};
+          parsed.data.forEach((row) => {
+            if (row.Campo) map[row.Campo.trim()] = (row.Descripcion || '').trim();
+          });
+          if (Object.keys(map).length) {
+            setCamposDesc(map);
+            break;
+          }
+        } catch {}
+      }
+    };
+    cargarCampos();
+  }, [esCastigadaBdB]);
+
+  // Helper: parse numbers from CSV with comma decimals, thousand dots, spaces and scientific notation
+  const parseCsvNumber = (v: any): number => {
+    if (v == null) return 0;
+    if (typeof v === 'number') return v;
+    let s = String(v).trim();
+    if (!s) return 0;
+    // remove spaces
+    s = s.replace(/\s+/g, '');
+    // detect comma decimals or scientific notation with comma
+    const hasComma = /,/.test(s);
+    if (hasComma) {
+      // remove thousand dots then replace comma with dot
+      s = s.replace(/\./g, '').replace(/,/g, '.');
+    } else {
+      // no comma, just drop thousand separators
+      s = s.replace(/\./g, '');
+    }
+    const n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+  };
+
+  // Cargar datos de backtesting reales
+  useEffect(() => {
+    const cargarBacktesting = async () => {
+      if (!esCastigadaBdB) return;
+      try {
+        const res = await fetch('/backtesting_Cobranzas Cartera Castigada BdB.csv');
+        if (!res.ok) return;
+        const text = await res.text();
+        const parsed = Papa.parse(text, {
+          header: true,
+          delimiter: ';',
+          skipEmptyLines: true
+        });
+        const rows: BtRow[] = (parsed.data as any[])
+          .map((r) => {
+            // normalizar llaves con espacios
+            const get = (key: string) => r[key] ?? r[key.trim()] ?? r[key.replace(/\s+/g, ' ')] ?? r[key.replace(/\s+/g, '')];
+            return {
+              decil_probabilidad: parseCsvNumber(get('decil_probabilidad')),
+              marca_bueno_evidente: parseCsvNumber(get('marca_bueno_evidente')),
+              clientes: parseCsvNumber(get('clientes')),
+              respuesta: parseCsvNumber(get('respuesta')),
+              tasa_buenos: parseCsvNumber(get('tasa_buenos')),
+              distribucion: parseCsvNumber(get('distribucion')),
+              lift: parseCsvNumber(get('lift')),
+              saldo_total: parseCsvNumber(get('saldo_total')),
+              sum_pagos_1m_total: parseCsvNumber(get('sum_pagos_1m_total')),
+              sum_pagos_2m_total: parseCsvNumber(get('sum_pagos_2m_total')),
+              sum_pagos_3m_total: parseCsvNumber(get('sum_pagos_3m_total')),
+              sum_pagos_3m_acum: parseCsvNumber(get('sum_pagos_3m_acum')),
+              tasa_recu_3m_acum: parseCsvNumber(get('tasa_recu_3m_acum')),
+              psi: parseCsvNumber(get('psi')),
+              ks: parseCsvNumber(get('ks')),
+              roc: parseCsvNumber(get('roc')),
+              fecha: String(get('fecha') ?? ''),
+              segmento: String(get('segmento') ?? '')
+            } as BtRow;
+          })
+          .filter((r) => r.segmento && r.fecha);
+
+        if (!rows.length) return;
+        setBtRows(rows);
+
+        // fechas disponibles y selección por defecto (máxima)
+        const fechas = Array.from(new Set(rows.map((r) => r.fecha))).sort();
+        const fechaDefault = fechas[fechas.length - 1];
+        setBtFecha(fechaDefault);
+
+        // seleccionar segmento con mayor pagado en esa fecha por defecto
+        const porFecha = rows.filter((r) => r.fecha === fechaDefault);
+        const porSegmentoMap = new Map<string, { pagado: number }>();
+        porFecha.forEach((r) => {
+          const acc = porSegmentoMap.get(r.segmento) || { pagado: 0 };
+          acc.pagado += r.sum_pagos_3m_total;
+          porSegmentoMap.set(r.segmento, acc);
+        });
+        const segmentoDefault = Array.from(porSegmentoMap.entries()).sort((a, b) => b[1].pagado - a[1].pagado)[0]?.[0] || porFecha[0].segmento;
+        setBtSegmento(segmentoDefault);
+      } catch (e) {
+        // noop
+      }
+    };
+    cargarBacktesting();
+  }, [esCastigadaBdB]);
+
+  const getDesc = (campo: string, fallback?: string) =>
+    camposDesc[campo] || fallback || '';
   const defaultTab = csvRecord ? 'info' : 'financieras';
   // Función para exportar datos a CSV
   const exportToCsv = (filename: string, rows: Record<string, any>[]) => {
@@ -251,6 +411,819 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
   ];
 
   const renderMetricas = (tipoMetrica: 'financieras' | 'negocio' | 'tecnicas') => {
+    // Vista especializada para BdB - Métricas de Negocio (Piloto)
+    if (tipoMetrica === 'negocio' && esCastigadaBdB) {
+      const formatoDineroMM = (v: number) => `$${v.toLocaleString('es-CO')} MM`;
+      // Negocio: usar pagos a 3 meses por defecto
+      const getPagos = (r: BtRow): number => r.sum_pagos_3m_total ?? 0;
+  const fechas = btRows ? Array.from(new Set(btRows.map((r) => r.fecha))).sort() : [];
+  const rowsSelFecha = btRows?.filter((r) => !btFecha || r.fecha === btFecha) || [];
+  const segmentosDisponibles = Array.from(new Set(rowsSelFecha.map((r) => r.segmento))).sort();
+  const rowsSegSel = rowsSelFecha.filter((r) => !btSegmento || r.segmento === btSegmento);
+
+      // Agregación por decil del segmento
+      const decilMap = new Map<number, { clientes: number; saldo: number; pagado: number }>();
+      rowsSegSel.forEach((r) => {
+        const d = r.decil_probabilidad;
+        const cur = decilMap.get(d) || { clientes: 0, saldo: 0, pagado: 0 };
+        cur.clientes += r.clientes || 0;
+        cur.saldo += r.saldo_total || 0;
+        cur.pagado += getPagos(r) || 0;
+        decilMap.set(d, cur);
+      });
+      const deciles = Array.from(decilMap.entries())
+        .sort((a, b) => a[0] - b[0])
+        .map(([decil0, v]) => ({
+          decil: decil0 + 1,
+          clientes: v.clientes,
+          saldo: v.saldo / 1_000_000,
+          pagado: v.pagado / 1_000_000,
+          tasa: v.saldo > 0 ? (v.pagado / v.saldo) * 100 : 0
+        }));
+
+      // Totales
+      const totalSaldoSeg = rowsSegSel.reduce((s, r) => s + r.saldo_total, 0);
+      const totalPagadoSeg = rowsSegSel.reduce((s, r) => s + getPagos(r), 0);
+
+      // Pilot cutoff (deciles a intervenir)
+      const k = Math.min(Math.max(1, pilotDeciles), 10);
+      const contactados = deciles.filter(d => d.decil <= k);
+      const noContactados = deciles.filter(d => d.decil > k);
+      const clientesContactados = contactados.reduce((s, d) => s + d.clientes, 0);
+      const pagadoContactados = contactados.reduce((s, d) => s + d.pagado * 1_000_000, 0);
+      const saldoContactados = contactados.reduce((s, d) => s + d.saldo * 1_000_000, 0);
+      const tasaRecContactados = saldoContactados > 0 ? (pagadoContactados / saldoContactados) * 100 : 0;
+      const sharePagadoContactados = totalPagadoSeg > 0 ? (pagadoContactados / totalPagadoSeg) * 100 : 0;
+
+      const costoTotal = clientesContactados * (pilotCostoContacto || 0);
+      const ingresoNeto = pagadoContactados - costoTotal;
+      const roi = costoTotal > 0 ? (ingresoNeto / costoTotal) : 0;
+
+      // Dataset para barras comparativas
+      const comparativa = [{
+        grupo: 'Contactados',
+        saldoMM: saldoContactados / 1_000_000,
+        pagadoMM: pagadoContactados / 1_000_000
+      }, {
+        grupo: 'No contactados',
+        saldoMM: (totalSaldoSeg - saldoContactados) / 1_000_000,
+        pagadoMM: (totalPagadoSeg - pagadoContactados) / 1_000_000
+      }];
+
+      return (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-base font-semibold">Piloto de Negocio — Cobranzas Castigada BdB</h4>
+              <p className="text-muted-foreground text-sm">Simula el impacto de intervenir los primeros deciles</p>
+            </div>
+          </div>
+
+          {/* Controles piloto */}
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Fecha</span>
+              <Select value={btFecha ?? 'todas'} onValueChange={(v) => setBtFecha(v === 'todas' ? null : v)}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Selecciona fecha" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">Todas</SelectItem>
+                  {fechas.map((f) => (
+                    <SelectItem key={f} value={f}>{f}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Segmento</span>
+              <Select value={btSegmento ?? 'todos'} onValueChange={(v) => setBtSegmento(v === 'todos' ? null : v)}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Selecciona segmento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  {segmentosDisponibles.map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Horizonte — removido en negocio */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Agrupar por</span>
+              <Select value={negGroupBy} onValueChange={(v) => setNegGroupBy(v as any)}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Dimensión" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="segmento">Segmento</SelectItem>
+                  <SelectItem value="fecha">Fecha</SelectItem>
+                  <SelectItem value="decil">Decil</SelectItem>
+                  <SelectItem value="marca">Marca bueno evidente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Deciles a intervenir y Costo — removidos en negocio */}
+          </div>
+
+          {/* KPIs del piloto — removidos para negocio basado en CSV */}
+
+          {/* Comparativa por contacto — removida según requerimiento */}
+
+          {/* Segmentos: Saldo vs Pagado (migrado desde Técnicas) */}
+          {(() => {
+            const segmentosAgg2 = rowsSelFecha.reduce((acc: Record<string, { saldo: number; pagado: number }>, r) => {
+              acc[r.segmento] = acc[r.segmento] || { saldo: 0, pagado: 0 };
+              acc[r.segmento].saldo += r.saldo_total || 0;
+              acc[r.segmento].pagado += getPagos(r) || 0;
+              return acc;
+            }, {});
+            const segRank = (s: string) => {
+              const m = s?.match?.(/^(\d+)_/);
+              return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
+            };
+            const segmentosNeg = Object.entries(segmentosAgg2)
+              .map(([segmento, v]) => ({ segmento, saldo: v.saldo / 1_000_000, pagado: v.pagado / 1_000_000 }))
+              .sort((a, b) => {
+                const ra = segRank(a.segmento);
+                const rb = segRank(b.segmento);
+                if (ra !== rb) return ra - rb;
+                return a.segmento.localeCompare(b.segmento);
+              });
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Segmentos: Saldo vs Pagado</CardTitle>
+                  <CardDescription>Comparativa por segmento — unidades en millones COP</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={segmentosNeg}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="segmento" />
+                      <YAxis />
+                      <Tooltip formatter={(v: any, name) => [formatoDineroMM(Number(v)), name]} />
+                      <Legend />
+                      <Bar dataKey="saldo" name="Saldo" fill="#60a5fa" />
+                      <Bar dataKey="pagado" name="Pagado" fill="#34d399" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+          {/* Comparaciones negocio por dimensión seleccionada */}
+          {(() => {
+            // source rows: filtro fecha/segmento ya aplicado (rowsSegSel)
+            const keyFn = (r: BtRow) => {
+              if (negGroupBy === 'segmento') return r.segmento || 'N/D';
+              if (negGroupBy === 'fecha') return r.fecha || 'N/D';
+              if (negGroupBy === 'decil') return `D${(r.decil_probabilidad ?? 0) + 1}`;
+              return String(r.marca_bueno_evidente ?? '0');
+            };
+            const agg = new Map<string, { clientes: number; respuesta: number; saldo: number; pagos: number }>();
+            rowsSegSel.forEach(r => {
+              const k = keyFn(r);
+              const cur = agg.get(k) || { clientes: 0, respuesta: 0, saldo: 0, pagos: 0 };
+              cur.clientes += r.clientes || 0;
+              cur.respuesta += r.respuesta || 0;
+              cur.saldo += r.saldo_total || 0;
+              cur.pagos += getPagos(r) || 0;
+              agg.set(k, cur);
+            });
+            const rows = Array.from(agg.entries()).map(([grupo, v]) => ({
+              grupo,
+              clientes: v.clientes,
+              respuesta: v.respuesta,
+              tasa_exito: v.clientes > 0 ? (v.respuesta / v.clientes) * 100 : 0,
+              saldoMM: v.saldo / 1_000_000,
+              pagosMM: v.pagos / 1_000_000,
+              tasa_rec: v.saldo > 0 ? (v.pagos / v.saldo) * 100 : 0
+            }));
+            // ordenar por pagos desc
+            rows.sort((a, b) => b.pagosMM - a.pagosMM);
+
+            return (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Clientes vs Respuesta</CardTitle>
+                    <CardDescription>Éxito % por {negGroupBy}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={320}>
+                      <ComposedChart data={rows}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="grupo" interval={0} angle={-30} textAnchor="end" height={80} />
+                        <YAxis yAxisId="left" />
+                        <YAxis yAxisId="right" orientation="right" />
+                        <Tooltip formatter={(v: any, name: any, ctx: any) => {
+                          if (ctx?.dataKey === 'tasa_exito') return [`${Number(v).toFixed(2)}%`, 'Tasa de éxito'];
+                          return [v, name];
+                        }} />
+                        <Legend />
+                        <Bar yAxisId="left" dataKey="clientes" name="Clientes" fill="#60a5fa" />
+                        <Bar yAxisId="left" dataKey="respuesta" name="Respuesta" fill="#a78bfa" />
+                        <Line yAxisId="right" type="monotone" dataKey="tasa_exito" name="Éxito %" stroke="#ef4444" strokeWidth={2} />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Saldo vs Pagos</CardTitle>
+                    <CardDescription>Recuperación % por {negGroupBy}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={320}>
+                      <ComposedChart data={rows}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="grupo" interval={0} angle={-30} textAnchor="end" height={80} />
+                        <YAxis yAxisId="left" label={{ value: 'MM', angle: -90, position: 'insideLeft' }} />
+                        <YAxis yAxisId="right" orientation="right" />
+                        <Tooltip formatter={(v: any, name: any, ctx: any) => {
+                          if (ctx?.dataKey === 'tasa_rec') return [`${Number(v).toFixed(2)}%`, 'Tasa rec.'];
+                          return [formatoDineroMM(Number(v)), name];
+                        }} />
+                        <Legend />
+                        <Bar yAxisId="left" dataKey="saldoMM" name="Saldo (MM)" fill="#60a5fa" />
+                        <Bar yAxisId="left" dataKey="pagosMM" name="Pagos (MM)" fill="#34d399" />
+                        <Line yAxisId="right" type="monotone" dataKey="tasa_rec" name="Recuperación %" stroke="#f59e0b" strokeWidth={2} />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+            );
+          })()}
+
+          {/* Tabla resumen + export */}
+          {(() => {
+            const keyFn = (r: BtRow) => {
+              if (negGroupBy === 'segmento') return r.segmento || 'N/D';
+              if (negGroupBy === 'fecha') return r.fecha || 'N/D';
+              if (negGroupBy === 'decil') return `D${(r.decil_probabilidad ?? 0) + 1}`;
+              return String(r.marca_bueno_evidente ?? '0');
+            };
+            const agg = new Map<string, { clientes: number; respuesta: number; saldo: number; pagos: number }>();
+            rowsSegSel.forEach(r => {
+              const k = keyFn(r);
+              const cur = agg.get(k) || { clientes: 0, respuesta: 0, saldo: 0, pagos: 0 };
+              cur.clientes += r.clientes || 0;
+              cur.respuesta += r.respuesta || 0;
+              cur.saldo += r.saldo_total || 0;
+              cur.pagos += getPagos(r) || 0;
+              agg.set(k, cur);
+            });
+            const rows = Array.from(agg.entries()).map(([grupo, v]) => ({
+              grupo,
+              clientes: v.clientes,
+              respuesta: v.respuesta,
+              tasa_exito: v.clientes > 0 ? (v.respuesta / v.clientes) * 100 : 0,
+              saldoMM: v.saldo / 1_000_000,
+              pagosMM: v.pagos / 1_000_000,
+              tasa_rec: v.saldo > 0 ? (v.pagos / v.saldo) * 100 : 0
+            })).sort((a, b) => b.pagosMM - a.pagosMM);
+
+            return (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Resumen por {negGroupBy}</CardTitle>
+                      <CardDescription>Clientes/Respuesta y Saldo/Pagos</CardDescription>
+                    </div>
+                    <Button onClick={() => exportToCsv(`bdb_negocio_resumen_${negGroupBy}.csv`, rows.map(r => ({
+                      Grupo: r.grupo,
+                      Clientes: r.clientes,
+                      Respuesta: r.respuesta,
+                      'Tasa Éxito %': Number(r.tasa_exito.toFixed(2)),
+                      'Saldo (MM)': Number(r.saldoMM.toFixed(2)),
+                      'Pagos (MM)': Number(r.pagosMM.toFixed(2)),
+                      'Tasa Rec. %': Number(r.tasa_rec.toFixed(2))
+                    })))}>
+                      Descargar CSV
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Grupo</TableHead>
+                        <TableHead>Clientes</TableHead>
+                        <TableHead>Respuesta</TableHead>
+                        <TableHead>Tasa Éxito %</TableHead>
+                        <TableHead>Saldo (MM)</TableHead>
+                        <TableHead>Pagos (MM)</TableHead>
+                        <TableHead>Tasa Rec. %</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rows.map((r) => (
+                        <TableRow key={r.grupo}>
+                          <TableCell className="font-medium">{r.grupo}</TableCell>
+                          <TableCell>{r.clientes.toLocaleString('es-CO')}</TableCell>
+                          <TableCell>{r.respuesta.toLocaleString('es-CO')}</TableCell>
+                          <TableCell>{r.tasa_exito.toFixed(2)}%</TableCell>
+                          <TableCell>{r.saldoMM.toLocaleString('es-CO')}</TableCell>
+                          <TableCell>{r.pagosMM.toLocaleString('es-CO')}</TableCell>
+                          <TableCell>{r.tasa_rec.toFixed(2)}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+          {/* Export resumen — removido (dependía de deciles/horizonte/costo) */}
+        </div>
+      );
+    }
+    // Vista especializada para BdB - Cartera Castigada en pestaña técnicas
+    if (tipoMetrica === 'tecnicas' && esCastigadaBdB) {
+      // Derivados a partir de CSV real
+      const formatoDineroMM = (v: number) => `$${v.toLocaleString('es-CO')} MM`;
+
+      // Preparar listas para selects
+      const fechas = btRows ? Array.from(new Set(btRows.map((r) => r.fecha))).sort() : [];
+      const rowsSelFecha = btRows?.filter((r) => !btFecha || r.fecha === btFecha) || [];
+      const segmentosDisponibles = Array.from(new Set(rowsSelFecha.map((r) => r.segmento))).sort();
+      // util: selector de pagos por horizonte
+      const getPagos = (r: BtRow): number => {
+        if (btHorizon === '1m') return r.sum_pagos_1m_total ?? 0;
+        if (btHorizon === '2m') return r.sum_pagos_2m_total ?? 0;
+        return r.sum_pagos_3m_total ?? 0;
+      };
+
+      // Agregación por segmento (saldo y pagado en MM) para la fecha seleccionada
+      const segmentosAgg = rowsSelFecha.reduce((acc: Record<string, { saldo: number; pagado: number; clientes: number }>, r) => {
+        acc[r.segmento] = acc[r.segmento] || { saldo: 0, pagado: 0, clientes: 0 };
+        acc[r.segmento].saldo += r.saldo_total;
+        acc[r.segmento].pagado += getPagos(r);
+        acc[r.segmento].clientes += r.clientes || 0;
+        return acc;
+      }, {});
+      const segmentos = Object.entries(segmentosAgg)
+        .map(([segmento, v]) => ({ segmento, saldo: v.saldo / 1_000_000, pagado: v.pagado / 1_000_000 }))
+        .sort((a, b) => b.pagado - a.pagado);
+
+      // Totales por fecha (para shares y lift segmental)
+      const totalSaldoFecha = rowsSelFecha.reduce((s, r) => s + r.saldo_total, 0);
+      const totalPagadoFecha = rowsSelFecha.reduce((s, r) => s + getPagos(r), 0);
+      const tasaGlobalFecha = totalSaldoFecha > 0 ? (totalPagadoFecha / totalSaldoFecha) * 100 : 0;
+      const segmentosTable = Object.entries(segmentosAgg)
+        .map(([segmento, v]) => ({
+          segmento,
+          clientes: v.clientes,
+          saldoMM: v.saldo / 1_000_000,
+          pagadoMM: v.pagado / 1_000_000,
+          tasa: v.saldo > 0 ? (v.pagado / v.saldo) * 100 : 0,
+          sharePagado: totalPagadoFecha > 0 ? (v.pagado / totalPagadoFecha) * 100 : 0,
+          liftSeg: tasaGlobalFecha > 0 ? ((v.saldo > 0 ? (v.pagado / v.saldo) * 100 : 0) / tasaGlobalFecha) : 0
+        }))
+        .sort((a, b) => b.pagadoMM - a.pagadoMM);
+
+      // Agregación por decil del segmento seleccionado
+      const rowsSegSel = rowsSelFecha.filter((r) => !btSegmento || r.segmento === btSegmento);
+      const totalPagadoSeg = rowsSegSel.reduce((s, r) => s + getPagos(r), 0);
+      const totalSaldoSeg = rowsSegSel.reduce((s, r) => s + r.saldo_total, 0);
+      const decilMap = new Map<number, { clientes: number; saldo: number; pagado: number }>();
+      rowsSegSel.forEach((r) => {
+        const d = r.decil_probabilidad;
+        const cur = decilMap.get(d) || { clientes: 0, saldo: 0, pagado: 0 };
+        cur.clientes += r.clientes || 0;
+        cur.saldo += r.saldo_total || 0;
+        cur.pagado += getPagos(r) || 0;
+        decilMap.set(d, cur);
+      });
+      const decilesRaw = Array.from(decilMap.entries())
+        .sort((a, b) => a[0] - b[0])
+        .map(([decil0, v]) => ({
+          decil: decil0 + 1,
+          clientes: v.clientes,
+          saldo: v.saldo / 1_000_000,
+          pagado: v.pagado / 1_000_000,
+          tasa: v.saldo > 0 ? (v.pagado / v.saldo) * 100 : 0
+        }));
+      // recall acumulado y lift aproximado
+      let acumPag = 0;
+      const totalPag = totalPagadoSeg || decilesRaw.reduce((s, d) => s + d.pagado * 1_000_000, 0);
+      const tasaGlobal = totalSaldoSeg > 0 ? (totalPagadoSeg / totalSaldoSeg) * 100 : 0;
+      const totalClientes = decilesRaw.reduce((s, d) => s + d.clientes, 0) || 1;
+      const deciles = decilesRaw.map((d) => {
+        acumPag += d.pagado * 1_000_000;
+        const recallAcum = totalPag > 0 ? (acumPag / totalPag) * 100 : 0;
+        const lift = tasaGlobal > 0 ? d.tasa / tasaGlobal : 0;
+        return { ...d, recallAcum, lift };
+      });
+      // fila de referencia y métricas adicionales
+      const anyRow = rowsSegSel[0];
+      const auc = anyRow?.roc ?? 0;
+      const ks = anyRow?.ks ?? 0;
+      const psi = anyRow?.psi ?? 0;
+      const gini = Math.max(0, Math.min(1, 2 * auc - 1));
+      const liftTop1 = deciles[0]?.lift ?? 0;
+      const top3Pagado = deciles.slice(0, 3).reduce((s, d) => s + d.pagado * 1_000_000, 0);
+      const top3Share = totalPag > 0 ? (top3Pagado / totalPag) * 100 : 0;
+      const recomendadoCut = (() => {
+        const target = 80; // 80% recall acumulado
+        const idx = deciles.findIndex((d) => d.recallAcum >= target);
+        return idx >= 0 ? deciles[idx].decil : deciles[deciles.length - 1]?.decil ?? 10;
+      })();
+
+      // (se eliminan curvas avanzadas a petición)
+
+      // KPIs del header (Periodo, Tasa, AUC, KS, PSI)
+      const periodoStr = btFecha ? `${btFecha.slice(0, 4)}-${btFecha.slice(4)}` : '—';
+      const tasaRecuperacion = totalSaldoSeg > 0 ? (totalPagadoSeg / totalSaldoSeg) * 100 : 0;
+
+      return (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-base font-semibold">Cobranzas Cartera Castigada - Banco de Bogotá</h4>
+              <p className="text-muted-foreground text-sm">Analítica técnica del modelo y resultados de backtesting</p>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Vista</span>
+              <Select value={vistaTecnica} onValueChange={(v) => setVistaTecnica(v as any)}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Selecciona vista" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="modelo">Modelo actual</SelectItem>
+                  <SelectItem value="backtesting">Resultados Backtesting</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {vistaTecnica === 'modelo' && (
+            <>
+              {/* KPIs del modelo actual */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {metricas.tecnicas.map((m, i) => (
+                  <Card key={i} className="p-4">
+                    <CardContent className="p-0">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">{m.titulo}</p>
+                          <p className="text-2xl font-bold">{m.valor}</p>
+                        </div>
+                        <m.icono className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Gráficos genéricos del modelo */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Latencia API</CardTitle>
+                    <CardDescription>Tiempo de respuesta promedio</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={seriesTemporales}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="fecha" />
+                        <YAxis domain={[40, 50]} />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="latencia" stroke="#ef4444" strokeWidth={3} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Distribución de Predicciones</CardTitle>
+                    <CardDescription>Exactitud del modelo</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={datosPie}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          dataKey="value"
+                          label={({ name, value }) => `${name}: ${value}%`}
+                        >
+                          {datosPie.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )}
+
+          {vistaTecnica === 'backtesting' && (
+            <>
+              {/* Filtros de Fecha, Segmento y Horizonte */}
+              <div className="flex flex-wrap gap-3 items-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Fecha</span>
+                  <Select value={btFecha ?? undefined} onValueChange={(v) => setBtFecha(v)}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Selecciona fecha" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fechas.map((f) => (
+                        <SelectItem key={f} value={f}>{f}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Segmento</span>
+                  <Select value={btSegmento ?? undefined} onValueChange={(v) => setBtSegmento(v)}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Selecciona segmento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {segmentosDisponibles.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Horizonte</span>
+                  <Select value={btHorizon} onValueChange={(v) => setBtHorizon(v as any)}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Horizonte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1m">1 mes</SelectItem>
+                      <SelectItem value="2m">2 meses</SelectItem>
+                      <SelectItem value="3m">3 meses</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* KPIs del backtesting (extendidos) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <Card className="p-4">
+                  <CardContent className="p-0">
+                    <p className="text-sm text-muted-foreground">Periodo evaluado</p>
+                    <p className="text-2xl font-bold" title={getDesc('Periodo', 'Periodo del backtesting')}>{periodoStr}</p>
+                  </CardContent>
+                </Card>
+                <Card className="p-4">
+                  <CardContent className="p-0">
+                    <p className="text-sm text-muted-foreground">Tasa de recuperación</p>
+                    <p className="text-2xl font-bold" title={getDesc('Tasa recuperación', 'Pagado / Saldo')}>{tasaRecuperacion.toFixed(2)}%</p>
+                  </CardContent>
+                </Card>
+                <Card className="p-4">
+                  <CardContent className="p-0">
+                    <p className="text-sm text-muted-foreground">AUC</p>
+                    <p className="text-2xl font-bold" title={getDesc('AUC', 'Área bajo la curva ROC')}>{(auc ?? 0).toFixed(3)}</p>
+                  </CardContent>
+                </Card>
+                <Card className="p-4">
+                  <CardContent className="p-0">
+                    <p className="text-sm text-muted-foreground">KS</p>
+                    <p className="text-2xl font-bold" title={getDesc('KS', 'Kolmogorov-Smirnov')}>{(ks ?? 0).toFixed(3)}</p>
+                  </CardContent>
+                </Card>
+                <Card className="p-4">
+                  <CardContent className="p-0">
+                    <p className="text-sm text-muted-foreground">PSI</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-2xl font-bold" title={getDesc('PSI', 'Population Stability Index')}>{(psi ?? 0).toFixed(3)}</p>
+                      <Badge variant="outline" className={psi < 0.1 ? 'text-emerald-600 border-emerald-300' : psi < 0.25 ? 'text-amber-600 border-amber-300' : 'text-red-600 border-red-300'}>
+                        {psi < 0.1 ? 'Estable' : psi < 0.25 ? 'Alerta' : 'Alto'}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="p-4">
+                  <CardContent className="p-0">
+                    <p className="text-sm text-muted-foreground">Gini</p>
+                    <p className="text-2xl font-bold" title={getDesc('Gini', '2*AUC - 1')}>{gini.toFixed(3)}</p>
+                  </CardContent>
+                </Card>
+                <Card className="p-4">
+                  <CardContent className="p-0">
+                    <p className="text-sm text-muted-foreground">Lift @D1</p>
+                    <p className="text-2xl font-bold" title={getDesc('Lift', 'Lift en el mejor decil (D1)')}>{liftTop1.toFixed(2)}</p>
+                  </CardContent>
+                </Card>
+                <Card className="p-4">
+                  <CardContent className="p-0">
+                    <p className="text-sm text-muted-foreground">Top 3 captura</p>
+                    <p className="text-2xl font-bold" title={getDesc('Top3', '% del pagado capturado en top 3 deciles')}>{top3Share.toFixed(1)}%</p>
+                  </CardContent>
+                </Card>
+                <Card className="p-4">
+                  <CardContent className="p-0">
+                    <p className="text-sm text-muted-foreground">Corte sugerido</p>
+                    <p className="text-2xl font-bold" title={getDesc('Corte 80% recall', 'Decil mínimo para alcanzar 80% de recall acumulado')}>D{recomendadoCut}</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Segmentos: Saldo vs Pagado — movido a Métricas de Negocio */}
+
+              {/* Distribución por deciles: Pagado y Tasa */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Distribución por Deciles</CardTitle>
+                  <CardDescription>Pagado por decil y tasa de recuperación</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={320}>
+                    <ComposedChart data={deciles}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="decil" />
+                      <YAxis yAxisId="left" label={{ value: 'Pagado (MM)', angle: -90, position: 'insideLeft' }} />
+                      <YAxis yAxisId="right" orientation="right" label={{ value: 'Tasa %', angle: 90, position: 'insideRight' }} />
+                      <Tooltip formatter={(v: any, name, ctx: any) => {
+                        if (ctx?.dataKey === 'tasa') return [`${Number(v).toFixed(1)}%`, 'Tasa recuperación'];
+                        if (ctx?.dataKey === 'pagado') return [formatoDineroMM(Number(v)), 'Pagado'];
+                        return [v, name];
+                      }} />
+                      <Legend />
+                      <Bar yAxisId="left" dataKey="pagado" name="Pagado (MM)" fill="#a78bfa" />
+                      <Line yAxisId="right" type="monotone" dataKey="tasa" name="Tasa %" stroke="#f59e0b" strokeWidth={2} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+
+              {/* Resumen por Segmento (tabla) */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Resumen por Segmento</CardTitle>
+                  <CardDescription>Clientes, saldos, pagado y métricas clave por segmento</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-end mb-2">
+                    <Button onClick={() => exportToCsv('castigada_bdb_segmentos.csv', segmentosTable.map(s => ({
+                      Segmento: s.segmento,
+                      Clientes: s.clientes,
+                      'Saldo (MM)': Number(s.saldoMM.toFixed(2)),
+                      'Pagado (MM)': Number(s.pagadoMM.toFixed(2)),
+                      'Tasa rec. %': Number(s.tasa.toFixed(2)),
+                      'Participación pagado %': Number(s.sharePagado.toFixed(1)),
+                      'Lift seg.': Number(s.liftSeg.toFixed(2))
+                    })))}>Descargar CSV</Button>
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Segmento</TableHead>
+                        <TableHead>Clientes</TableHead>
+                        <TableHead>Saldo (MM)</TableHead>
+                        <TableHead>Pagado (MM)</TableHead>
+                        <TableHead>Tasa rec. %</TableHead>
+                        <TableHead>Part. pagado %</TableHead>
+                        <TableHead>Lift seg.</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {segmentosTable.map((s) => (
+                        <TableRow key={s.segmento} className={s.segmento === btSegmento ? 'bg-muted/30' : ''}>
+                          <TableCell className="font-medium">{s.segmento}</TableCell>
+                          <TableCell>{s.clientes.toLocaleString('es-CO')}</TableCell>
+                          <TableCell>{s.saldoMM.toLocaleString('es-CO')}</TableCell>
+                          <TableCell>{s.pagadoMM.toLocaleString('es-CO')}</TableCell>
+                          <TableCell>{s.tasa.toFixed(2)}%</TableCell>
+                          <TableCell>{s.sharePagado.toFixed(1)}%</TableCell>
+                          <TableCell>{s.liftSeg.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Tendencias técnicas por fecha (segmento seleccionado) */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Tendencias Técnicas</CardTitle>
+                      <CardDescription>Comportamiento en el tiempo por segmento</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Métrica</span>
+                      <Select value={btTechMetric} onValueChange={(v) => setBtTechMetric(v as any)}>
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue placeholder="Selecciona métrica" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="auc">AUC</SelectItem>
+                          <SelectItem value="ks">KS</SelectItem>
+                          <SelectItem value="psi">PSI</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    const trendRows = (btRows || []).filter(r => !btSegmento || r.segmento === btSegmento);
+                    const fechasT = Array.from(new Set(trendRows.map(r => r.fecha))).sort();
+                    const data = fechasT.map(f => {
+                      const rs = trendRows.filter(r => r.fecha === f);
+                      return {
+                        fecha: `${f.slice(0,4)}-${f.slice(4)}`,
+                        auc: rs[0]?.roc ?? 0,
+                        ks: rs[0]?.ks ?? 0,
+                        psi: rs[0]?.psi ?? 0
+                      };
+                    });
+                    const maxVal = (data.length ? Math.max(...data.map(d => (d as any)[btTechMetric] || 0)) : 0);
+                    const domainMax = Math.max(0.5, Math.min(1, maxVal + 0.1));
+                    const color = btTechMetric === 'auc' ? '#6366f1' : btTechMetric === 'ks' ? '#f97316' : '#ef4444';
+                    const name = btTechMetric.toUpperCase();
+                    return (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={data}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="fecha" />
+                          <YAxis domain={[0, domainMax]} />
+                          <Tooltip formatter={(v: any) => [Number(v).toFixed(3), name]} />
+                          <Line type="monotone" dataKey={btTechMetric} name={name} stroke={color} strokeWidth={3} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    )
+                  })()}
+                </CardContent>
+              </Card>
+
+              {/* Tabla resumen por decil con exportación */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Resumen por Decil</CardTitle>
+                  <CardDescription>Clientes, saldos, pagado y métricas clave</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-end mb-2">
+                    <Button onClick={() => exportToCsv('castigada_bdb_backtesting_deciles.csv', deciles.map(d => ({
+                      Decil: d.decil,
+                      Clientes: d.clientes,
+                      'Saldo (MM)': d.saldo,
+                      'Pagado (MM)': d.pagado,
+                      'Tasa recuperación %': Number(d.tasa.toFixed(2)),
+                      'Recall acumulado %': Number(d.recallAcum.toFixed(1)),
+                      'Lift': Number(d.lift.toFixed(2))
+                    })))}>Descargar CSV</Button>
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead title={getDesc('Decil', 'Ordenamiento por score (1=mejor)')}>Decil</TableHead>
+                        <TableHead title={getDesc('Clientes', 'Número de clientes / cuentas en el decil')}>Clientes</TableHead>
+                        <TableHead title={getDesc('Saldo', 'Saldo de cartera castigada (MM COP)')}>Saldo (MM)</TableHead>
+                        <TableHead title={getDesc('Pagado', 'Valor pagado durante ventana de observación (MM COP)')}>Pagado (MM)</TableHead>
+                        <TableHead title={getDesc('Tasa recuperación', 'Pagado / Saldo por decil')}>Tasa recuperación</TableHead>
+                        <TableHead title={getDesc('Recall acumulado', 'Porcentaje acumulado capturado hasta el decil')}>Recall acum.</TableHead>
+                        <TableHead title={getDesc('Lift', 'Mejora vs azar en el decil')}>Lift</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {deciles.map((d) => (
+                        <TableRow key={d.decil}>
+                          <TableCell className="font-medium">{d.decil}</TableCell>
+                          <TableCell>{d.clientes.toLocaleString('es-CO')}</TableCell>
+                          <TableCell>{d.saldo.toLocaleString('es-CO')}</TableCell>
+                          <TableCell>{d.pagado.toLocaleString('es-CO')}</TableCell>
+                          <TableCell>{d.tasa.toFixed(1)}%</TableCell>
+                          <TableCell>{d.recallAcum.toFixed(1)}%</TableCell>
+                          <TableCell>{d.lift.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-6">
         {/* KPIs principales */}

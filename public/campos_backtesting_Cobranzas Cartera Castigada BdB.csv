@@ -1,0 +1,24 @@
+﻿Variable;Descripción
+decil_probabilidad;Decil de la probabilidad de recuperación asignado por el modelo. Un valor más alto (ej. 10) indica mayor probabilidad de pago.
+marca_bueno_evidente;"Indicador de si un cliente es un ""buen evidente"" (paga sin necesidad de gestión). 1 si lo es, 0 si no."
+clientes;Conteo de clientes que caen en ese decil y segmento específico.
+respuesta;"Número de clientes que cumplieron con la condición de ""pago exitoso"" (la variable_objetivo)."
+tasa_buenos;Tasa de respuesta o recuperación (respuesta / clientes). Indica el porcentaje de clientes que pagaron.
+distribucion;Porcentaje de clientes totales que pertenecen a ese decil.
+lift;Mide cuánto mejor es el modelo en ese decil comparado con una selección aleatoria. (tasa_buenos / tasa de respuesta promedio).
+saldo_total;Suma de los saldos de deuda de todos los clientes en ese decil.
+sum_pagos_3m_total;Suma de todos los pagos realizados en los últimos 3 meses por los clientes de ese decil.
+sum_pagos_2m_total;Suma de todos los pagos realizados en los últimos 2 meses por los clientes de ese decil.
+sum_pagos_1m_total;Suma de todos los pagos realizados en el último mes por los clientes de ese decil.
+sum_pagos_3m_acum;Suma acumulada de los pagos a 3 meses (sum_pagos_3m_total) desde el decil 10.
+sum_pagos_2m_acum;Suma acumulada de los pagos a 2 meses (sum_pagos_2m_total) desde el decil 10.
+sum_pagos_1m_acum;Suma acumulada de los pagos a 1 mes (sum_pagos_1m_total) desde el decil 10.
+tasa_recu_3m_acum;Tasa de recuperación acumulada a 3 meses (sum_pagos_3m_acum / saldo_acum).
+tasa_recu_2m_acum;Tasa de recuperación acumulada a 2 meses (sum_pagos_2m_acum / saldo_acum).
+tasa_recu_1m_acum;Tasa de recuperación acumulada a 1 mes (sum_pagos_1m_acum / saldo_acum).
+buenos_acumulados;Porcentaje acumulado de clientes que pagaron, desde el decil 10 hasta el actual.
+psi;(Population Stability Index) Mide qué tanto ha cambiado la distribución de la población en los deciles respecto a una distribución de referencia (usualmente 10% por decil).
+ks;(Kolmogorov-Smirnov) Métrica que mide el poder de discriminación del modelo. Un valor más alto es mejor.
+roc;(Receiver Operating Characteristic) Área bajo la curva ROC (AUC). Mide la capacidad del modelo para distinguir entre clases. Un valor más cercano a 1 es mejor.
+fecha;Periodo (Año y Mes) al que corresponden los datos del backtesting.
+segmento;Segmento de riesgo al que pertenecen los clientes de esa fila (ej. Alto, Medio, Bajo y sub-partición).
