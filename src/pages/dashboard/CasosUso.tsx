@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Brain, Users, Activity, Building2, AlertCircle, CheckCircle2, DollarSign, FolderKanban } from 'lucide-react';
+import { Brain, Users, Activity, Building2, AlertCircle, CheckCircle2, DollarSign, FolderKanban } from 'lucide-react';
 import { loadCasosUsoCsv, CasoUsoCsvRecord } from '@/lib/parseCasosUsoCsv';
 import { supabase } from '@/integrations/supabase/client';
 import { useDashboard } from '@/contexts/DashboardContext';
@@ -347,7 +347,6 @@ const CasosUso = () => {
                       </CardDescription>
                     </div>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                 </div>
               </CardHeader>
 
@@ -386,11 +385,6 @@ const CasosUso = () => {
 
                 <div className="flex items-center justify-between">
                   <div className="flex space-x-2">
-                    {casosActivos > 0 && (
-                      <Badge variant="default" className="text-xs">
-                        {casosActivos} Activos
-                      </Badge>
-                    )}
                     {totalCasos === 0 && (
                       <Badge variant="secondary" className="text-xs">
                         Sin casos

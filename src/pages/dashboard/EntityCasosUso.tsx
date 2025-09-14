@@ -412,11 +412,8 @@ const EntityCasosUso = () => {
 
       {/* Lista de Casos de Uso */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <h2 className="text-2xl font-bold">Casos de Uso</h2>
-          <Badge variant="outline" className="text-sm px-3 py-1">
-            {casosUso.length} {casosUso.length === 1 ? 'caso' : 'casos'}
-          </Badge>
         </div>
         
         {casosUso.length === 0 ? (
@@ -437,9 +434,15 @@ const EntityCasosUso = () => {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
             {casosUso.map((caso, index) => {
-              const estadoBadge = getEstadoBadge(caso.Estado || '');
-              const CasoIcon = getCasoIcon(caso.Proyecto || '');
               const tipo = classifyCasoTipo(caso.Proyecto || '');
+
+              const estadoDot = (() => {
+                const est = (caso.Estado || '').toLowerCase();
+                if (/(finalizado|entregado)\s*-?\s*con\s*uso|en\s*producci[óo]n|\bactivo\b/.test(est)) return 'bg-green-500';
+                if (/(en\s*desarr|\bdesarrollo\b|implementaci[óo]n|en\s*implementaci[óo]n|pilotaje)/.test(est)) return 'bg-blue-500';
+                if (/deprecad|sin\s*uso/.test(est)) return 'bg-red-500';
+                return 'bg-gray-400';
+              })();
 
               return (
                 <Card 
@@ -447,38 +450,43 @@ const EntityCasosUso = () => {
                   className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md bg-gradient-to-br from-background via-background to-muted/20 hover:scale-[1.02] hover:shadow-2xl"
                   onClick={() => handleCasoClick(tipo, caso.Proyecto, caso)}
                 >
-                  <CardHeader className="space-y-4 pb-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
-                          <CasoIcon className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <Badge className={`${estadoBadge.color} shadow-sm`} variant="outline">
-                            {estadoBadge.label}
-                          </Badge>
-                        </div>
+                  <CardHeader className="space-y-3 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-8 h-8 rounded-md flex items-center justify-center p-1 border bg-white shadow-sm"
+                        style={{ backgroundColor: '#ffffff' }}
+                      >
+                        {entidad.logo_url ? (
+                          <img 
+                            src={entidad.logo_url} 
+                            alt={`Logo ${entidad.id_nombre}`}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                              if (nextElement) nextElement.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <Building2 
+                          className="w-5 h-5 text-muted-foreground" 
+                          style={{ display: entidad.logo_url ? 'none' : 'flex' }} 
+                        />
                       </div>
-                      {caso.PROJECT_ID && (
-                        <Badge variant="secondary" className="text-xs font-mono bg-muted/60">
-                          #{caso.PROJECT_ID}
-                        </Badge>
-                      )}
+                      <CardTitle className="text-lg font-bold line-clamp-2 group-hover:text-primary transition-colors leading-tight" title={caso.Proyecto}>
+                        {caso.Proyecto}
+                      </CardTitle>
                     </div>
-                    
-                    <CardTitle className="text-lg font-bold line-clamp-2 min-h-[3.5rem] group-hover:text-primary transition-colors leading-tight" title={caso.Proyecto}>
-                      {caso.Proyecto}
-                    </CardTitle>
                   </CardHeader>
                   
                   <CardContent className="space-y-6 pt-0">
-                    {/* Información básica mejorada */}
+                    {/* Información básica: mostrar Estado (CSV) y Tipo */}
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Etapa</p>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Estado</p>
                         <div className="flex items-center space-x-1">
-                          <div className="w-2 h-2 bg-primary rounded-full"></div>
-                          <p className="font-medium text-sm truncate">{caso.Etapa || 'N/D'}</p>
+                          <div className={`w-2 h-2 rounded-full ${estadoDot}`}></div>
+                          <p className="font-medium text-sm truncate">{caso.Estado || 'N/D'}</p>
                         </div>
                       </div>
                       <div className="space-y-1">
