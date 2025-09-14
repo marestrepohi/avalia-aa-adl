@@ -39,11 +39,9 @@ const CasosUso = () => {
   }>>({});
   const [globalSummary, setGlobalSummary] = useState<{
     total: number;
-    activos: number;
-    inactivos: number;
-    desarrollo: number;
+    estados: Record<string, number>;
     impactoTotal: number;
-  }>({ total: 0, activos: 0, inactivos: 0, desarrollo: 0, impactoTotal: 0 });
+  }>({ total: 0, estados: {}, impactoTotal: 0 });
 
   useEffect(() => {
   const fetchData = async () => {
@@ -90,6 +88,10 @@ const CasosUso = () => {
             };
             const alertRegex = /finalizado\s*-?\s*sin\s*uso|entregado\s*-?\s*sin\s*uso|deprecad/i;
             const dsColumns = ['DS1','DS2','DE','MDS','DS Entidad'];
+
+            // Extraer estados únicos
+            const uniqueEstados = Array.from(new Set(records.map(r => r.Estado?.trim()).filter(Boolean))).sort();
+
             for (const r of records) {
               const ent = r.Entidad?.trim();
               if (!ent) continue;
@@ -134,16 +136,20 @@ const CasosUso = () => {
             });
             setCsvSummaries(summaries);
 
-            // Resumen global
-            const global = records.reduce((acc, r) => {
-              const estadoLc = (r.Estado || '').toLowerCase();
-              acc.total += 1;
-              if (/(finalizado|entregado)\s*-?\s*con\s*uso/i.test(estadoLc) || /en\s*producci[óo]n|\bactivo\b/.test(estadoLc)) acc.activos += 1;
-              if (/(deprecad|finalizado\s*-?\s*sin\s*uso|entregado\s*-?\s*sin\s*uso)/i.test(estadoLc)) acc.inactivos += 1;
-              if (/(en\s*desarr|\bdesarrollo\b|implementaci[óo]n|en\s*implementaci[óo]n|pilotaje)/i.test(estadoLc)) acc.desarrollo += 1;
-              acc.impactoTotal += parseMonto(r['Impacto Financiero']);
-              return acc;
-            }, { total: 0, activos: 0, inactivos: 0, desarrollo: 0, impactoTotal: 0 });
+            // Resumen global por estados individuales
+            const estadoCounts: Record<string, number> = {};
+            records.forEach(r => {
+              const estado = r.Estado?.trim();
+              if (estado) {
+                estadoCounts[estado] = (estadoCounts[estado] || 0) + 1;
+              }
+            });
+
+            const global = {
+              total: records.length,
+              estados: estadoCounts,
+              impactoTotal: records.reduce((sum, r) => sum + parseMonto(r['Impacto Financiero']), 0)
+            };
             setGlobalSummary(global);
         } catch (e) {
           console.warn('CSV casos_uso.csv no disponible o error parseando', e);
@@ -205,78 +211,89 @@ const CasosUso = () => {
         </p>
       </div>
 
-      {/* Resumen global desde CSV */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 dark:from-blue-950/50 dark:to-blue-900/30 dark:border-blue-800">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-blue-600 dark:text-blue-400">Total Casos</p>
-                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{globalSummary.total}</p>
-              </div>
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
-                <FolderKanban className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+  {/* Resumen global desde CSV - 2 filas, tarjetas compactas con título y valor en línea */}
+      {(() => {
+        type MetricItem = {
+          key: string;
+          title: string;
+          value: string | number;
+          Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+          iconBg: string;
+          titleColor: string;
+        };
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200 dark:from-green-950/50 dark:to-green-900/30 dark:border-green-800">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-green-600 dark:text-green-400">Casos Activos</p>
-                <p className="text-2xl font-bold text-green-900 dark:text-green-100">{globalSummary.activos}</p>
-              </div>
-              <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-xl">
-                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        const items: MetricItem[] = [
+          {
+            key: 'total',
+            title: 'Total de Casos',
+            value: globalSummary.total,
+            Icon: FolderKanban,
+            iconBg: 'bg-blue-100 dark:bg-blue-900/50',
+            titleColor: 'text-blue-700 dark:text-blue-300',
+          },
+          {
+            key: 'impacto',
+            title: 'Impacto Total',
+            value: new Intl.NumberFormat('es-ES', { notation: 'compact', maximumFractionDigits: 1 }).format(globalSummary.impactoTotal),
+            Icon: DollarSign,
+            iconBg: 'bg-emerald-100 dark:bg-emerald-900/50',
+            titleColor: 'text-emerald-700 dark:text-emerald-300',
+          },
+          ...Object.entries(globalSummary.estados || {}).map(([estado, count], idx) => {
+            const palettes = [
+              { iconBg: 'bg-green-100 dark:bg-green-900/50', titleColor: 'text-green-700 dark:text-green-300' },
+              { iconBg: 'bg-blue-100 dark:bg-blue-900/50', titleColor: 'text-blue-700 dark:text-blue-300' },
+              { iconBg: 'bg-purple-100 dark:bg-purple-900/50', titleColor: 'text-purple-700 dark:text-purple-300' },
+              { iconBg: 'bg-orange-100 dark:bg-orange-900/50', titleColor: 'text-orange-700 dark:text-orange-300' },
+              { iconBg: 'bg-red-100 dark:bg-red-900/50', titleColor: 'text-red-700 dark:text-red-300' },
+              { iconBg: 'bg-yellow-100 dark:bg-yellow-900/50', titleColor: 'text-yellow-700 dark:text-yellow-300' },
+              { iconBg: 'bg-pink-100 dark:bg-pink-900/50', titleColor: 'text-pink-700 dark:text-pink-300' },
+              { iconBg: 'bg-indigo-100 dark:bg-indigo-900/50', titleColor: 'text-indigo-700 dark:text-indigo-300' },
+              { iconBg: 'bg-teal-100 dark:bg-teal-900/50', titleColor: 'text-teal-700 dark:text-teal-300' },
+              { iconBg: 'bg-cyan-100 dark:bg-cyan-900/50', titleColor: 'text-cyan-700 dark:text-cyan-300' },
+            ];
+            const p = palettes[idx % palettes.length];
+            return {
+              key: `estado-${estado}`,
+              title: estado,
+              value: count as number,
+              Icon: Activity,
+              iconBg: p.iconBg,
+              titleColor: p.titleColor,
+            } as MetricItem;
+          })
+        ];
 
-        <Card className="bg-gradient-to-br from-red-50 to-red-100/50 border-red-200 dark:from-red-950/50 dark:to-red-900/30 dark:border-red-800">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-red-600 dark:text-red-400">Casos Inactivos</p>
-                <p className="text-2xl font-bold text-red-900 dark:text-red-100">{globalSummary.inactivos}</p>
-              </div>
-              <div className="p-2 bg-red-100 dark:bg-red-900/50 rounded-xl">
-                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        const rows = items.length <= 7
+          ? [items]
+          : [items.slice(0, 7), items.slice(7)];
+        const twoRows = items.length > 7;
 
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 border-orange-200 dark:from-orange-950/50 dark:to-orange-900/30 dark:border-orange-800">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-orange-600 dark:text-orange-400">En Desarrollo</p>
-                <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">{globalSummary.desarrollo}</p>
+        return (
+          <div className="w-full space-y-3">
+            {rows.filter(r => r.length > 0).map((row, idx) => (
+              <div
+                key={idx}
+                className="grid gap-3"
+                style={{ gridTemplateColumns: `repeat(${twoRows ? 7 : row.length}, minmax(0, 1fr))` }}
+              >
+                {row.map((item) => (
+                  <Card key={item.key} className="h-[64px] overflow-hidden border bg-card">
+                    <CardContent className="h-full p-2.5">
+                      <div className="flex h-full items-center">
+                        <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+                          <span className={`text-xs font-medium ${item.titleColor} whitespace-normal break-words leading-tight`}>{item.title}</span>
+                          <span className="text-xl font-bold text-foreground flex-shrink-0">{item.value}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-              <div className="p-2 bg-orange-100 dark:bg-orange-900/50 rounded-xl">
-                <Activity className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200 dark:from-emerald-950/50 dark:to-emerald-900/30 dark:border-emerald-800">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Impacto Total</p>
-                <p className="text-2xl font-bold text-emerald-900 dark:text-emerald-100">{new Intl.NumberFormat('es-ES',{notation:'compact',maximumFractionDigits:1}).format(globalSummary.impactoTotal)}</p>
-              </div>
-              <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl">
-                <DollarSign className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            ))}
+          </div>
+        );
+      })()}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...entidades].sort((a,b)=>a.id_nombre.localeCompare(b.id_nombre,'es',{sensitivity:'base'})).map((entidad) => {
@@ -334,46 +351,35 @@ const CasosUso = () => {
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-center">
-                      <Brain className="w-4 h-4 text-primary mr-1" />
-                      <span className="text-lg font-semibold">{casosActivos}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Activos</p>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                  <div className="rounded-md border p-2 h-10 flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Activos</span>
+                    <span className="text-sm font-semibold">{casosActivos}</span>
                   </div>
-                  
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-center">
-                      <Activity className="w-4 h-4 text-primary mr-1" />
-                      <span className="text-lg font-semibold">{totalCasos}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Total</p>
+                  <div className="rounded-md border p-2 h-10 flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Total</span>
+                    <span className="text-sm font-semibold">{totalCasos}</span>
                   </div>
-                  
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-center">
-                      <Users className="w-4 h-4 text-primary mr-1" />
-                      <span className="text-lg font-semibold">{cientificos}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Científicos</p>
+                  <div className="rounded-md border p-2 h-10 flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Científicos</span>
+                    <span className="text-sm font-semibold">{cientificos}</span>
                   </div>
                 </div>
 
                 {csvSummary && (
-                  <div className="grid grid-cols-3 gap-2 mt-4">
-                    <div className="flex flex-col items-center rounded-md border p-2 bg-background/60">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                    <div className="rounded-md border p-2 h-10 flex items-center justify-between bg-background/60">
                       <span className="text-[10px] text-muted-foreground uppercase tracking-wide">En desarrollo</span>
-                      <span className="text-sm font-semibold flex items-center gap-1">{enDesarrollo}</span>
+                      <span className="text-sm font-semibold">{enDesarrollo}</span>
                     </div>
-                    <div className={`flex flex-col items-center rounded-md border p-2 ${csvSummary.alertas>0 ? 'bg-red-50 border-red-200' : 'bg-background/60'}`}> 
+                    <div className={`rounded-md border p-2 h-10 flex items-center justify-between ${csvSummary.alertas>0 ? 'bg-red-50 border-red-200' : 'bg-background/60'}`}>
                       <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Alertas</span>
-                      <span className="text-sm font-semibold flex items-center gap-1"><AlertCircle className="w-3 h-3" />{csvSummary.alertas}</span>
+                      <span className="text-sm font-semibold">{csvSummary.alertas}</span>
                     </div>
-                    <div className="flex flex-col items-center rounded-md border p-2 bg-background/60">
+                    <div className="rounded-md border p-2 h-10 flex items-center justify-between bg-background/60">
                       <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Impacto Total</span>
-                      <span className="text-sm font-semibold flex items-center gap-1"><DollarSign className="w-3 h-3" />{new Intl.NumberFormat('es-ES',{notation:'compact',maximumFractionDigits:1}).format(csvSummary.impactoTotal)}</span>
+                      <span className="text-sm font-semibold">{new Intl.NumberFormat('es-ES',{notation:'compact',maximumFractionDigits:1}).format(csvSummary.impactoTotal)}</span>
                     </div>
                   </div>
                 )}

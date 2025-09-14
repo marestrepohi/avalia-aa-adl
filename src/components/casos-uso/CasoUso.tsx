@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, TrendingDown, DollarSign, Users, Target, Cpu, BarChart3, Zap, Activity, Clock, CheckCircle, AlertCircle, CreditCard, Home, Car, Building, ExternalLink } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, ComposedChart, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell, ComposedChart, Legend, Scatter, PieChart, Pie } from 'recharts';
 import Papa from 'papaparse';
 
 interface CasoUsoProps {
@@ -21,6 +21,7 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
   const [modeloSeleccionado, setModeloSeleccionado] = useState('tarjeta-credito');
   const [filtroUsuario, setFiltroUsuario] = useState<'activos' | 'durmientes'>('activos');
   const esCastigadaBdB = !!(csvRecord?.Proyecto?.toLowerCase?.().includes('cobranzas cartera castigada bdb'));
+
   const [camposDesc, setCamposDesc] = useState<Record<string, string>>({});
   // Backtesting (BdB) state
   type BtRow = {
@@ -55,6 +56,7 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
   const [pilotCostoContacto, setPilotCostoContacto] = useState<number>(0);
   // Negocio (BdB) agrupaciones
   const [negGroupBy, setNegGroupBy] = useState<'segmento' | 'fecha' | 'decil' | 'marca'>('segmento');
+
 
   useEffect(() => {
     // Cargar descripciones de campos para tooltips del backtesting (si aplica)
@@ -176,6 +178,7 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
     cargarBacktesting();
   }, [esCastigadaBdB]);
 
+
   const getDesc = (campo: string, fallback?: string) =>
     camposDesc[campo] || fallback || '';
   const defaultTab = csvRecord ? 'info' : 'financieras';
@@ -225,6 +228,10 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
       color: 'bg-slate-500'
     }
   };
+
+  // Ensure tipo is valid
+  const tipoValido = casosInfo[tipo] ? tipo : 'generico';
+  const tipoFinal = tipoValido || 'generico';
 
   const metricas = {
     financieras: [
@@ -471,67 +478,106 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
                   <p className="text-sm text-blue-700">Análisis de recuperación basado en backtesting real</p>
                 </div>
                 <div className="flex gap-2">
-                  <Select value={negGroupBy} onValueChange={(v: 'segmento' | 'fecha' | 'decil' | 'marca') => setNegGroupBy(v)}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="segmento">Por Segmento</SelectItem>
-                      <SelectItem value="fecha">Por Fecha</SelectItem>
-                      <SelectItem value="decil">Por Decil</SelectItem>
-                      <SelectItem value="marca">Por Marca Bueno</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Button
+                    variant={negGroupBy === 'segmento' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setNegGroupBy('segmento')}
+                    className="text-xs"
+                  >
+                    Por Segmento
+                  </Button>
+                  <Button
+                    variant={negGroupBy === 'fecha' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setNegGroupBy('fecha')}
+                    className="text-xs"
+                  >
+                    Por Fecha
+                  </Button>
+                  <Button
+                    variant={negGroupBy === 'decil' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setNegGroupBy('decil')}
+                    className="text-xs"
+                  >
+                    Por Decil
+                  </Button>
+                  <Button
+                    variant={negGroupBy === 'marca' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setNegGroupBy('marca')}
+                    className="text-xs"
+                  >
+                    Por Marca Bueno
+                  </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* KPIs Globales */}
+          {/* Enhanced KPIs Globales */}
           <div className="grid grid-cols-4 gap-4">
-            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:shadow-lg transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-green-600" />
-                  <div>
+                  <div className="flex-1">
                     <div className="text-2xl font-bold text-green-900">{totalClientes.toLocaleString()}</div>
                     <div className="text-sm text-green-700">Total Clientes</div>
+                    <div className="mt-2 w-full bg-green-200 rounded-full h-2">
+                      <div className="bg-green-600 h-2 rounded-full" style={{width: '100%'}}></div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            
-            <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
+
+            <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200 hover:shadow-lg transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-blue-600" />
-                  <div>
+                  <div className="flex-1">
                     <div className="text-2xl font-bold text-blue-900">{formatoPorcentaje(tasaExitoGlobal)}</div>
                     <div className="text-sm text-blue-700">Tasa de Éxito</div>
+                    <div className="mt-2 w-full bg-blue-200 rounded-full h-2">
+                      <div className="bg-blue-600 h-2 rounded-full" style={{width: `${Math.min(tasaExitoGlobal * 100, 100)}%`}}></div>
+                    </div>
+                    <div className="text-xs text-blue-600 mt-1">
+                      {tasaExitoGlobal > 0.1 ? 'Excelente' : tasaExitoGlobal > 0.05 ? 'Bueno' : 'Mejorable'}
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            
-            <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+
+            <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:shadow-lg transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5 text-amber-600" />
-                  <div>
+                  <div className="flex-1">
                     <div className="text-2xl font-bold text-amber-900">{formatoDinero(totalSaldo)}</div>
                     <div className="text-sm text-amber-700">Saldo Total</div>
+                    <div className="mt-2 w-full bg-amber-200 rounded-full h-2">
+                      <div className="bg-amber-600 h-2 rounded-full" style={{width: '100%'}}></div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            
-            <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
+
+            <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 hover:shadow-lg transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-purple-600" />
-                  <div>
+                  <div className="flex-1">
                     <div className="text-2xl font-bold text-purple-900">{formatoPorcentaje(tasaRecuperacionGlobal)}</div>
                     <div className="text-sm text-purple-700">Tasa Recuperación</div>
+                    <div className="mt-2 w-full bg-purple-200 rounded-full h-2">
+                      <div className="bg-purple-600 h-2 rounded-full" style={{width: `${Math.min(tasaRecuperacionGlobal * 100, 100)}%`}}></div>
+                    </div>
+                    <div className="text-xs text-purple-600 mt-1">
+                      {tasaRecuperacionGlobal > 0.02 ? 'Excelente' : tasaRecuperacionGlobal > 0.01 ? 'Bueno' : 'Mejorable'}
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -607,6 +653,167 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
                     <Line yAxisId="right" type="monotone" dataKey="tasaRecuperacion" stroke="#7c3aed" strokeWidth={2} name="Tasa Recuperación" />
                   </ComposedChart>
                 </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Time Series Trend Chart */}
+          <div className="grid grid-cols-1 gap-6 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Tendencia Temporal de Recuperación
+                </CardTitle>
+                <CardDescription>Evolución de pagos y recuperación por fecha</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <ComposedChart data={datosAgrupados.filter(d => negGroupBy === 'fecha')}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="nombre" />
+                    <YAxis yAxisId="left" tickFormatter={(v) => `$${(v/1000000).toFixed(0)}M`} />
+                    <YAxis yAxisId="right" orientation="right" tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} />
+                    <Tooltip
+                      formatter={(value, name) => {
+                        if (name === 'Tasa Recuperación') return [`${(Number(value) * 100).toFixed(2)}%`, name];
+                        return [`$${(Number(value) / 1000000).toFixed(1)}M`, name];
+                      }}
+                    />
+                    <Legend />
+                    <Bar yAxisId="left" dataKey="pagos" fill="#10b981" name="Pagos 3M" />
+                    <Line yAxisId="right" type="monotone" dataKey="tasaRecuperacion" stroke="#7c3aed" strokeWidth={3} name="Tasa Recuperación" />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* New Enhanced Visualizations */}
+          <div className="grid grid-cols-2 gap-6 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Balance vs Payments Scatter
+                </CardTitle>
+                <CardDescription>Relación entre saldo total y pagos por segmento</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <ComposedChart data={datosAgrupados}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      type="number"
+                      dataKey="saldo"
+                      tickFormatter={(v) => `$${(v/1000000).toFixed(0)}M`}
+                      label={{ value: 'Saldo Total', position: 'insideBottom', offset: -5 }}
+                    />
+                    <YAxis
+                      type="number"
+                      dataKey="pagos"
+                      tickFormatter={(v) => `$${(v/1000000).toFixed(0)}M`}
+                      label={{ value: 'Pagos 3M', angle: -90, position: 'insideLeft' }}
+                    />
+                    <Tooltip
+                      formatter={(value, name) => {
+                        return [`$${(Number(value) / 1000000).toFixed(1)}M`, name];
+                      }}
+                      labelFormatter={(label) => `Saldo: $${(Number(label) / 1000000).toFixed(1)}M`}
+                    />
+                    <Scatter
+                      name="Saldo vs Pagos"
+                      data={datosAgrupados}
+                      fill="#3b82f6"
+                      shape="circle"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey={(entry) => entry.saldo}
+                      stroke="#ef4444"
+                      strokeWidth={1}
+                      dot={false}
+                      name="Tendencia"
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Recovery Rate by Decile
+                </CardTitle>
+                <CardDescription>Tasa de recuperación por decil de probabilidad</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={datosAgrupados.slice(0, 10)}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="nombre" />
+                    <YAxis tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} />
+                    <Tooltip
+                      formatter={(value, name) => [`${(Number(value) * 100).toFixed(2)}%`, name]}
+                    />
+                    <Bar dataKey="tasaRecuperacion" fill="#10b981" name="Tasa Recuperación" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Insights Cards */}
+          <div className="grid grid-cols-3 gap-4 mt-6">
+            <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-green-600" />
+                  <div>
+                    <div className="text-sm font-medium text-green-900">Mejor Segmento</div>
+                    <div className="text-lg font-bold text-green-800">
+                      {datosAgrupados.sort((a, b) => b.tasaRecuperacion - a.tasaRecuperacion)[0]?.nombre || 'N/A'}
+                    </div>
+                    <div className="text-xs text-green-700">
+                      {formatoPorcentaje(datosAgrupados.sort((a, b) => b.tasaRecuperacion - a.tasaRecuperacion)[0]?.tasaRecuperacion || 0)} recuperación
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                  <div>
+                    <div className="text-sm font-medium text-blue-900">Tasa Promedio</div>
+                    <div className="text-lg font-bold text-blue-800">
+                      {formatoPorcentaje(datosAgrupados.reduce((sum, d) => sum + d.tasaRecuperacion, 0) / datosAgrupados.length)}
+                    </div>
+                    <div className="text-xs text-blue-700">
+                      Recuperación promedio
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-r from-purple-50 to-violet-50 border-purple-200">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-purple-600" />
+                  <div>
+                    <div className="text-sm font-medium text-purple-900">Oportunidad</div>
+                    <div className="text-lg font-bold text-purple-800">
+                      {formatoDinero(totalSaldo - totalPagos)}
+                    </div>
+                    <div className="text-xs text-purple-700">
+                      Saldo pendiente por recuperar
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -738,47 +945,85 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
                 </Badge>
               </div>
               
-              <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-purple-800">Fecha</label>
-                  <Select value={btFecha || ''} onValueChange={setBtFecha}>
-                    <SelectTrigger className="bg-white/70">
-                      <SelectValue placeholder="Todas las fechas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todas las fechas</SelectItem>
-                      {fechas.map((f) => (
-                        <SelectItem key={f} value={f}>{f}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm font-medium text-purple-800 mb-2 block">Fecha</label>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant={btFecha === '' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setBtFecha('')}
+                      className="text-xs"
+                    >
+                      Todas las fechas
+                    </Button>
+                    {fechas.map((f) => (
+                      <Button
+                        key={f}
+                        variant={btFecha === f ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setBtFecha(f)}
+                        className="text-xs"
+                      >
+                        {f}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
+
                 <div>
-                  <label className="text-sm font-medium text-purple-800">Segmento</label>
-                  <Select value={btSegmento || ''} onValueChange={setBtSegmento}>
-                    <SelectTrigger className="bg-white/70">
-                      <SelectValue placeholder="Todos los segmentos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos los segmentos</SelectItem>
-                      {segmentos.map((s) => (
-                        <SelectItem key={s} value={s}>{s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm font-medium text-purple-800 mb-2 block">Segmento</label>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant={btSegmento === '' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setBtSegmento('')}
+                      className="text-xs"
+                    >
+                      Todos los segmentos
+                    </Button>
+                    {segmentos.map((s) => (
+                      <Button
+                        key={s}
+                        variant={btSegmento === s ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setBtSegmento(s)}
+                        className="text-xs"
+                      >
+                        {s}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
+
                 <div>
-                  <label className="text-sm font-medium text-purple-800">Horizonte</label>
-                  <Select value={btHorizon} onValueChange={(v: '1m' | '2m' | '3m') => setBtHorizon(v)}>
-                    <SelectTrigger className="bg-white/70">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1m">1 Mes</SelectItem>
-                      <SelectItem value="2m">2 Meses</SelectItem>
-                      <SelectItem value="3m">3 Meses</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm font-medium text-purple-800 mb-2 block">Horizonte</label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={btHorizon === '1m' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setBtHorizon('1m')}
+                      className="text-xs"
+                    >
+                      1 Mes
+                    </Button>
+                    <Button
+                      variant={btHorizon === '2m' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setBtHorizon('2m')}
+                      className="text-xs"
+                    >
+                      2 Meses
+                    </Button>
+                    <Button
+                      variant={btHorizon === '3m' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setBtHorizon('3m')}
+                      className="text-xs"
+                    >
+                      3 Meses
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -1246,148 +1491,182 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
     );
   };
 
-  const info = casosInfo[tipo];
-  const nombreCaso = displayTitle || csvRecord?.['Caso de Uso'] || info.nombre;
+  const info = casosInfo[tipoFinal];
+  const nombreCaso = displayTitle || csvRecord?.['Caso de Uso'] || csvRecord?.Proyecto || info.nombre;
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <div className={`h-12 w-12 rounded-lg ${info.color} flex items-center justify-center text-white`}>
-          <BarChart3 className="h-6 w-6" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold">{nombreCaso}</h1>
-          <p className="text-muted-foreground">{csvRecord?.Descripcion || info.descripcion}</p>
+  // Error handling
+  if (!info) {
+    console.error('Invalid tipo:', tipo, 'falling back to generico');
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-lg bg-red-500 flex items-center justify-center text-white">
+            <BarChart3 className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Error: Tipo Inválido</h1>
+            <p className="text-muted-foreground">El tipo de caso de uso especificado no es válido.</p>
+          </div>
         </div>
       </div>
+    );
+  }
 
-      {csvRecord && (
-        <Tabs defaultValue={defaultTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="info">Información</TabsTrigger>
-            <TabsTrigger value="financieras">Métricas Financieras</TabsTrigger>
-            <TabsTrigger value="negocio">Métricas de Negocio</TabsTrigger>
-            <TabsTrigger value="tecnicas">Métricas Técnicas</TabsTrigger>
-          </TabsList>
+  try {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className={`h-12 w-12 rounded-lg ${info.color} flex items-center justify-center text-white`}>
+            <BarChart3 className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">{nombreCaso || 'Caso de Uso'}</h1>
+            <p className="text-muted-foreground">{csvRecord?.Descripcion || info.descripcion}</p>
+          </div>
+        </div>
 
-          <TabsContent value="info" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Detalles del Caso de Uso</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-sm font-medium text-muted-foreground">Proyecto:</span>
-                      <p className="font-medium">{csvRecord.Proyecto || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-muted-foreground">Entidad:</span>
-                      <p className="font-medium">{csvRecord.Entidad || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-muted-foreground">Industria:</span>
-                      <p className="font-medium">{csvRecord.Industria || 'N/A'}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-sm font-medium text-muted-foreground">Estado:</span>
-                      <Badge variant="default">{csvRecord.Estado || 'Activo'}</Badge>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-muted-foreground">Tipo:</span>
-                      <p className="font-medium">{csvRecord.Tipo || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-muted-foreground">Fecha Implementación:</span>
-                      <p className="font-medium">{csvRecord['Fecha Implementacion'] || 'N/A'}</p>
-                    </div>
-                  </div>
-                </div>
+        {csvRecord ? (
+          <Tabs defaultValue={defaultTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="info">Información</TabsTrigger>
+              <TabsTrigger value="financieras">Métricas Financieras</TabsTrigger>
+              <TabsTrigger value="negocio">Métricas de Negocio</TabsTrigger>
+              <TabsTrigger value="tecnicas">Métricas Técnicas</TabsTrigger>
+            </TabsList>
 
-                {csvRecord.Descripcion && (
-                  <div className="pt-4 border-t">
-                    <span className="text-sm font-medium text-muted-foreground">Descripción:</span>
-                    <p className="mt-2 text-sm leading-relaxed">{csvRecord.Descripcion}</p>
-                  </div>
-                )}
-
-                {(csvRecord.SharePoint || csvRecord.Jira || csvRecord.Confluence) && (
-                  <div className="pt-4 border-t">
-                    <span className="text-sm font-medium text-muted-foreground">Enlaces:</span>
-                    <div className="flex gap-2 mt-2">
-                      {csvRecord.SharePoint && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={csvRecord.SharePoint} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            SharePoint
-                          </a>
-                        </Button>
-                      )}
-                      {csvRecord.Jira && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={csvRecord.Jira} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Jira
-                          </a>
-                        </Button>
-                      )}
-                      {csvRecord.Confluence && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={csvRecord.Confluence} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Confluence
-                          </a>
-                        </Button>
-                      )}
+            <TabsContent value="info" className="space-y-6">
+              {/* Individual Case Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Detalles del Caso de Uso</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground">Proyecto:</span>
+                        <p className="font-medium">{csvRecord.Proyecto || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground">Entidad:</span>
+                        <p className="font-medium">{csvRecord.Entidad || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground">Industria:</span>
+                        <p className="font-medium">{csvRecord.Industria || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground">Estado:</span>
+                        <Badge variant="default">{csvRecord.Estado || 'Activo'}</Badge>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground">Tipo:</span>
+                        <p className="font-medium">{csvRecord.Tipo || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground">Fecha Implementación:</span>
+                        <p className="font-medium">{csvRecord['Fecha Implementacion'] || 'N/A'}</p>
+                      </div>
                     </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          <TabsContent value="financieras">
-            {renderMetricas('financieras')}
-          </TabsContent>
+                  {csvRecord.Descripcion && (
+                    <div className="pt-4 border-t">
+                      <span className="text-sm font-medium text-muted-foreground">Descripción:</span>
+                      <p className="mt-2 text-sm leading-relaxed">{csvRecord.Descripcion}</p>
+                    </div>
+                  )}
 
-          <TabsContent value="negocio" className="space-y-6">
-            {esCastigadaBdB && renderFormularioNegocio()}
-            {renderMetricas('negocio')}
-          </TabsContent>
+                  {(csvRecord.SharePoint || csvRecord.Jira || csvRecord.Confluence) && (
+                    <div className="pt-4 border-t">
+                      <span className="text-sm font-medium text-muted-foreground">Enlaces:</span>
+                      <div className="flex gap-2 mt-2">
+                        {csvRecord.SharePoint && (
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={csvRecord.SharePoint} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              SharePoint
+                            </a>
+                          </Button>
+                        )}
+                        {csvRecord.Jira && (
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={csvRecord.Jira} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Jira
+                            </a>
+                          </Button>
+                        )}
+                        {csvRecord.Confluence && (
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={csvRecord.Confluence} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Confluence
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          <TabsContent value="tecnicas">
-            {renderMetricas('tecnicas')}
-          </TabsContent>
-        </Tabs>
-      )}
+            <TabsContent value="financieras">
+              {renderMetricas('financieras')}
+            </TabsContent>
 
-      {/* Vista simplificada para casos sin CSV */}
-      {!csvRecord && (
-        <Tabs defaultValue="financieras" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="financieras">Métricas Financieras</TabsTrigger>
-            <TabsTrigger value="negocio">Métricas de Negocio</TabsTrigger>
-            <TabsTrigger value="tecnicas">Métricas Técnicas</TabsTrigger>
-          </TabsList>
+            <TabsContent value="negocio" className="space-y-6">
+              {esCastigadaBdB && renderFormularioNegocio()}
+              {renderMetricas('negocio')}
+            </TabsContent>
 
-          <TabsContent value="financieras">
-            {renderMetricas('financieras')}
-          </TabsContent>
+            <TabsContent value="tecnicas">
+              {renderMetricas('tecnicas')}
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <Tabs defaultValue="financieras" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="financieras">Métricas Financieras</TabsTrigger>
+              <TabsTrigger value="negocio">Métricas de Negocio</TabsTrigger>
+              <TabsTrigger value="tecnicas">Métricas Técnicas</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="negocio">
-            {renderMetricas('negocio')}
-          </TabsContent>
+            <TabsContent value="financieras">
+              {renderMetricas('financieras')}
+            </TabsContent>
 
-          <TabsContent value="tecnicas">
-            {renderMetricas('tecnicas')}
-          </TabsContent>
-        </Tabs>
-      )}
-    </div>
-  );
+            <TabsContent value="negocio">
+              {renderMetricas('negocio')}
+            </TabsContent>
+
+            <TabsContent value="tecnicas">
+              {renderMetricas('tecnicas')}
+            </TabsContent>
+          </Tabs>
+        )}
+      </div>
+    );
+  } catch (error) {
+    console.error('Error rendering CasoUso:', error);
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-lg bg-red-500 flex items-center justify-center text-white">
+            <BarChart3 className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Error de Renderizado</h1>
+            <p className="text-muted-foreground">Ha ocurrido un error al renderizar el componente.</p>
+            <p className="text-sm text-red-600 mt-2">{error instanceof Error ? error.message : 'Error desconocido'}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default CasoUso;

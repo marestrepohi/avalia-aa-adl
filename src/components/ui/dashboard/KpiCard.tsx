@@ -6,15 +6,13 @@ interface KpiCardProps {
   value: string;
   change?: string;
   changeType?: "positive" | "negative" | "neutral";
-  icon?: React.ReactNode;
 }
 
 const KpiCard: React.FC<KpiCardProps> = ({ 
   title, 
   value, 
   change, 
-  changeType = "neutral",
-  icon
+  changeType = "neutral"
 }) => {
   const getChangeColor = () => {
     switch (changeType) {
@@ -28,25 +26,15 @@ const KpiCard: React.FC<KpiCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-card p-5 card-hover">
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-sm text-muted-foreground font-medium">{title}</p>
-          <h3 className="text-2xl font-bold mt-1">{value}</h3>
-          
+    <div className="rounded-md border bg-card p-3 h-[64px] flex items-center">
+      <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+        <span className="text-xs text-muted-foreground font-medium whitespace-normal break-words leading-tight">{title}</span>
+        <div className="flex items-center gap-2 flex-shrink-0">
           {change && (
-            <div className="flex items-center mt-2">
-              <div className={`text-xs font-medium ${getChangeColor()}`}>
-                {changeType === "positive" ? '+' : ''}{change}
-              </div>
-            </div>
+            <span className={`text-[10px] font-medium ${getChangeColor()}`}>{changeType === "positive" ? '+' : ''}{change}</span>
           )}
+          <span className="text-xl font-bold text-foreground">{value}</span>
         </div>
-        {icon && (
-          <div className="bg-primary-light p-2 rounded-md">
-            {icon}
-          </div>
-        )}
       </div>
     </div>
   );

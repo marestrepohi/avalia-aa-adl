@@ -144,21 +144,15 @@ const EntityCasosUso = () => {
 
   const getMetricasResumen = () => {
     const total = casosUso.length;
-    const activos = casosUso.filter(caso => {
-      const estado = caso.Estado?.toLowerCase() || '';
-      return (estado.includes('entregado') && estado.includes('con uso')) || 
-             (estado.includes('finalizado') && estado.includes('con uso'));
-    }).length;
-    
-    const enDesarrollo = casosUso.filter(caso => {
-      const estado = caso.Estado?.toLowerCase() || '';
-      return estado.includes('desarrollo') || estado.includes('pilotaje');
-    }).length;
 
-    const inactivos = casosUso.filter(caso => {
-      const estado = caso.Estado?.toLowerCase() || '';
-      return estado.includes('deprecado') || estado.includes('sin uso');
-    }).length;
+    // Contar casos por estado individual
+    const estados: Record<string, number> = {};
+    casosUso.forEach(caso => {
+      const estado = caso.Estado?.trim();
+      if (estado) {
+        estados[estado] = (estados[estado] || 0) + 1;
+      }
+    });
 
     const cientificos = new Set();
     casosUso.forEach(caso => {
@@ -166,20 +160,17 @@ const EntityCasosUso = () => {
       if (caso.DS2) cientificos.add(caso.DS2);
     });
 
-    const conImpacto = casosUso.filter(caso => 
-      caso['Impacto Financiero'] && 
-      caso['Impacto Financiero'] !== '' && 
+    const conImpacto = casosUso.filter(caso =>
+      caso['Impacto Financiero'] &&
+      caso['Impacto Financiero'] !== '' &&
       !caso['Impacto Financiero'].toLowerCase().includes('dimensionamiento')
     ).length;
 
     return {
       total,
-      activos,
-      enDesarrollo,
-      inactivos,
+      estados,
       cientificos: cientificos.size,
-      conImpacto,
-      porcentajeActivos: total > 0 ? Math.round((activos / total) * 100) : 0
+      conImpacto
     };
   };
 
@@ -286,6 +277,73 @@ const EntityCasosUso = () => {
 
   const metricas = getMetricasResumen();
 
+  // Construye los items de métricas (Total, DS y Estados) y los divide en 2 filas equilibradas
+  const buildMetricItems = () => {
+    type MetricItem = {
+      key: string;
+      title: string;
+      value: number;
+      Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+      iconBg: string;
+      titleColor: string;
+    };
+
+    const baseItems: MetricItem[] = [
+      {
+        key: 'total',
+        title: 'Total de Casos',
+        value: metricas.total,
+        Icon: FolderKanban,
+        iconBg: 'bg-blue-100 dark:bg-blue-900/50',
+        titleColor: 'text-blue-700 dark:text-blue-300',
+      },
+      {
+        key: 'ds',
+        title: 'Científicos de Datos',
+        value: metricas.cientificos,
+        Icon: Users,
+        iconBg: 'bg-purple-100 dark:bg-purple-900/50',
+        titleColor: 'text-purple-700 dark:text-purple-300',
+      },
+    ];
+
+    const estadoColors = [
+      { iconBg: 'bg-green-100 dark:bg-green-900/50', title: 'text-green-700 dark:text-green-300' },
+      { iconBg: 'bg-blue-100 dark:bg-blue-900/50', title: 'text-blue-700 dark:text-blue-300' },
+      { iconBg: 'bg-orange-100 dark:bg-orange-900/50', title: 'text-orange-700 dark:text-orange-300' },
+      { iconBg: 'bg-red-100 dark:bg-red-900/50', title: 'text-red-700 dark:text-red-300' },
+      { iconBg: 'bg-yellow-100 dark:bg-yellow-900/50', title: 'text-yellow-700 dark:text-yellow-300' },
+      { iconBg: 'bg-pink-100 dark:bg-pink-900/50', title: 'text-pink-700 dark:text-pink-300' },
+      { iconBg: 'bg-indigo-100 dark:bg-indigo-900/50', title: 'text-indigo-700 dark:text-indigo-300' },
+      { iconBg: 'bg-teal-100 dark:bg-teal-900/50', title: 'text-teal-700 dark:text-teal-300' },
+      { iconBg: 'bg-cyan-100 dark:bg-cyan-900/50', title: 'text-cyan-700 dark:text-cyan-300' },
+      { iconBg: 'bg-gray-100 dark:bg-gray-900/50', title: 'text-gray-700 dark:text-gray-300' },
+    ];
+
+    const estadoItems: MetricItem[] = Object.entries(metricas.estados || {}).map(
+      ([estado, count], idx) => {
+        const palette = estadoColors[idx % estadoColors.length];
+        return {
+          key: `estado-${estado}`,
+          title: estado,
+          value: count as number,
+          Icon: Activity,
+          iconBg: palette.iconBg,
+          titleColor: palette.title,
+        };
+      }
+    );
+
+    const items = [...baseItems, ...estadoItems];
+    if (items.length <= 7) {
+      return { row1: items, row2: [] as typeof items };
+    }
+    return { row1: items.slice(0, 7), row2: items.slice(7) };
+  };
+
+  const { row1, row2 } = buildMetricItems();
+  const twoRows = row2.length > 0;
+
   return (
     <div className="p-6 space-y-8">
       {/* Header */}
@@ -328,88 +386,29 @@ const EntityCasosUso = () => {
         </div>
       </div>
 
-  {/* Métricas Resumen */}
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 dark:from-blue-950/50 dark:to-blue-900/30 dark:border-blue-800">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Casos</p>
-                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">{metricas.total}</p>
-                <p className="text-xs text-blue-600/70 mt-1">Proyectos registrados</p>
-              </div>
-              <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
-                <FolderKanban className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200 dark:from-green-950/50 dark:to-green-900/30 dark:border-green-800">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-600 dark:text-green-400">Casos Activos</p>
-                <div className="flex items-baseline space-x-2">
-                  <p className="text-3xl font-bold text-green-900 dark:text-green-100">{metricas.activos}</p>
-                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-300">
-                    {metricas.porcentajeActivos}%
-                  </Badge>
+  {/* Métricas Resumen - 2 filas, tarjetas compactas con título y valor en línea */}
+  <div className="w-full space-y-3">
+    {[row1, row2].filter(r => r.length > 0).map((row, idx) => (
+      <div
+        key={idx}
+        className="grid gap-3"
+        style={{ gridTemplateColumns: `repeat(${twoRows ? 7 : row.length}, minmax(0, 1fr))` }}
+      >
+        {row.map((item) => (
+          <Card key={item.key} className="h-[64px] overflow-hidden border bg-card">
+            <CardContent className="h-full p-2.5">
+              <div className="flex h-full items-center">
+                <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+                  <span className={`text-xs font-medium ${item.titleColor} whitespace-normal break-words leading-tight`}>{item.title}</span>
+                  <span className="text-xl font-bold text-foreground flex-shrink-0">{item.value}</span>
                 </div>
-                <p className="text-xs text-green-600/70 mt-1">En producción activa</p>
               </div>
-              <div className="p-3 bg-green-100 dark:bg-green-900/50 rounded-xl">
-                <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 border-orange-200 dark:from-orange-950/50 dark:to-orange-900/30 dark:border-orange-800">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-orange-600 dark:text-orange-400">En Desarrollo</p>
-                <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{metricas.enDesarrollo}</p>
-                <p className="text-xs text-orange-600/70 mt-1">Proyectos en curso</p>
-              </div>
-              <div className="p-3 bg-orange-100 dark:bg-orange-900/50 rounded-xl">
-                <Activity className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-red-50 to-red-100/50 border-red-200 dark:from-red-950/50 dark:to-red-900/30 dark:border-red-800">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-red-600 dark:text-red-400">Casos Inactivos</p>
-                <p className="text-3xl font-bold text-red-900 dark:text-red-100">{metricas.inactivos}</p>
-                <p className="text-xs text-red-600/70 mt-1">Deprecados o sin uso</p>
-              </div>
-              <div className="p-3 bg-red-100 dark:bg-red-900/50 rounded-xl">
-                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200 dark:from-purple-950/50 dark:to-purple-900/30 dark:border-purple-800">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Científicos</p>
-                <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">{metricas.cientificos}</p>
-                <p className="text-xs text-purple-600/70 mt-1">Equipo asignado</p>
-              </div>
-              <div className="p-3 bg-purple-100 dark:bg-purple-900/50 rounded-xl">
-                <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ))}
       </div>
+    ))}
+  </div>
 
       {/* Lista de Casos de Uso */}
       <div className="space-y-6">
