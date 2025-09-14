@@ -29,6 +29,7 @@ const CasosUso = () => {
   const [casosUso, setCasosUso] = useState<CasoUso[]>([]);
   const [loading, setLoading] = useState(true);
   const [csvRecords, setCsvRecords] = useState<CasoUsoCsvRecord[]>([]);
+  const [globalDsCount, setGlobalDsCount] = useState<number>(0);
   const [csvSummaries, setCsvSummaries] = useState<Record<string, {
     total: number;
     activos: number; // ahora: Finalizado - con uso
@@ -69,6 +70,7 @@ const CasosUso = () => {
             setCsvRecords(records);
             // Construir summaries por entidad
             const summaries: Record<string, { total:number; activos:number; desarrollo:number; alertas:number; impactoTotal:number; ds:number; }> = {};
+            const globalDs = new Set<string>();
             const parseMonto = (v?: string) => {
               if (!v) return 0;
               let s = v.replace(/[^0-9,.-]/g,'').trim();
@@ -87,7 +89,7 @@ const CasosUso = () => {
               return isNaN(num) ? 0 : num;
             };
             const alertRegex = /finalizado\s*-?\s*sin\s*uso|entregado\s*-?\s*sin\s*uso|deprecad/i;
-            const dsColumns = ['DS1','DS2','DE','MDS','DS Entidad'];
+            const dsColumns = ['DS1'];
 
             // Extraer estados únicos
             const uniqueEstados = Array.from(new Set(records.map(r => r.Estado?.trim()).filter(Boolean))).sort();
@@ -126,6 +128,7 @@ const CasosUso = () => {
                   // Normalizar capitalización
                   const norm = p.replace(/\s+/g,' ').toLowerCase();
                   dsSet.add(norm);
+                  globalDs.add(norm);
                 }
               }
               s.ds = dsSet.size;
@@ -135,6 +138,7 @@ const CasosUso = () => {
               if (k.startsWith('__dsSet_')) delete (summaries as any)[k];
             });
             setCsvSummaries(summaries);
+            setGlobalDsCount(globalDs.size);
 
             // Resumen global por estados individuales
             const estadoCounts: Record<string, number> = {};
@@ -232,6 +236,22 @@ const CasosUso = () => {
             titleColor: 'text-blue-700 dark:text-blue-300',
           },
           {
+            key: 'entidades',
+            title: 'Entidades',
+            value: entidades.length,
+            Icon: Users,
+            iconBg: 'bg-gray-100 dark:bg-gray-900/50',
+            titleColor: 'text-foreground',
+          },
+          {
+            key: 'ds-global',
+            title: 'Científicos de Datos',
+            value: globalDsCount,
+            Icon: Users,
+            iconBg: 'bg-purple-100 dark:bg-purple-900/50',
+            titleColor: 'text-purple-700 dark:text-purple-300',
+          },
+          {
             key: 'impacto',
             title: 'Impacto Total',
             value: new Intl.NumberFormat('es-ES', { notation: 'compact', maximumFractionDigits: 1 }).format(globalSummary.impactoTotal),
@@ -264,10 +284,10 @@ const CasosUso = () => {
           })
         ];
 
-        const rows = items.length <= 7
+        const rows = items.length <= 8
           ? [items]
-          : [items.slice(0, 7), items.slice(7)];
-        const twoRows = items.length > 7;
+          : [items.slice(0, 8), items.slice(8)];
+        const twoRows = items.length > 8;
 
         return (
           <div className="w-full space-y-3">
@@ -275,15 +295,15 @@ const CasosUso = () => {
               <div
                 key={idx}
                 className="grid gap-3"
-                style={{ gridTemplateColumns: `repeat(${twoRows ? 7 : row.length}, minmax(0, 1fr))` }}
+                style={{ gridTemplateColumns: `repeat(${twoRows ? 8 : row.length}, minmax(0, 1fr))` }}
               >
                 {row.map((item) => (
-                  <Card key={item.key} className="h-[64px] overflow-hidden border bg-card">
-                    <CardContent className="h-full p-2.5">
+                  <Card key={item.key} className="h-[60px] overflow-hidden border bg-card">
+                    <CardContent className="h-full p-2">
                       <div className="flex h-full items-center">
                         <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
-                          <span className={`text-xs font-medium ${item.titleColor} whitespace-normal break-words leading-tight`}>{item.title}</span>
-                          <span className="text-xl font-bold text-foreground flex-shrink-0">{item.value}</span>
+                          <span className={`text-[11px] font-medium ${item.titleColor} whitespace-normal break-words leading-tight`}>{item.title}</span>
+                          <span className="text-lg font-bold text-foreground flex-shrink-0">{item.value}</span>
                         </div>
                       </div>
                     </CardContent>

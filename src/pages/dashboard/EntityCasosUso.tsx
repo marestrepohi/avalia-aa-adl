@@ -154,10 +154,20 @@ const EntityCasosUso = () => {
       }
     });
 
-    const cientificos = new Set();
+    // Contar científicos únicos SOLO desde DS1 (normalizado)
+    const dsSet = new Set<string>();
+    const splitRegex = /[;,/]| y | e /i;
+    const isSkip = (s?: string) => !s || s === '-' || /n\/?a/i.test(s);
+    const norm = (s: string) => s.replace(/\s+/g, ' ').trim().toLowerCase();
     casosUso.forEach(caso => {
-      if (caso.DS1) cientificos.add(caso.DS1);
-      if (caso.DS2) cientificos.add(caso.DS2);
+      const raw = (caso as any)['DS1'] as string | undefined;
+      if (isSkip(raw)) return;
+      const parts = String(raw).split(splitRegex);
+      parts.forEach((p) => {
+        const v = p.trim();
+        if (isSkip(v)) return;
+        dsSet.add(norm(v));
+      });
     });
 
     const conImpacto = casosUso.filter(caso =>
@@ -169,7 +179,7 @@ const EntityCasosUso = () => {
     return {
       total,
       estados,
-      cientificos: cientificos.size,
+      cientificos: dsSet.size,
       conImpacto
     };
   };
