@@ -52,7 +52,7 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
   const [btHorizon, setBtHorizon] = useState<'1m' | '2m' | '3m'>('3m');
   const [btTechMetric, setBtTechMetric] = useState<'auc' | 'ks' | 'psi'>('auc');
   // Pilot negocio (BdB)
-  const [pilotDeciles, setPilotDeciles] = useState<number>(3);
+  // Estado pilotDeciles removido junto con el formulario de métricas de negocio BdB
   const [pilotCostoContacto, setPilotCostoContacto] = useState<number>(0);
   // Negocio (BdB) agrupaciones
   const [negGroupBy, setNegGroupBy] = useState<'segmento' | 'fecha' | 'decil' | 'marca'>('segmento');
@@ -148,7 +148,15 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
               ks: parseCsvNumber(get('ks')),
               roc: parseCsvNumber(get('roc')),
               fecha: String(get('fecha') ?? ''),
-              segmento: String(get('segmento') ?? '')
+              segmento: ((): string => {
+                const raw = String(get('segmento') ?? '').trim();
+                if (!raw) return '';
+                // Normalizar guiones y espacios
+                const norm = raw.replace(/\s+/g, '_').replace(/__+/g, '_');
+                // Asegurar prefijo numero_ si viene separado por espacio
+                // Mantener mayúsculas tal como llegan en la porción de riesgo (Alto/Medio/Bajo)
+                return norm;
+              })()
             } as BtRow;
           })
           .filter((r) => r.segmento && r.fecha);
@@ -425,7 +433,35 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
       const formatoPorcentaje = (v: number) => `${(v * 100).toFixed(1)}%`;
       
       const fechas = btRows ? Array.from(new Set(btRows.map((r) => r.fecha))).sort() : [];
-      const segmentos = btRows ? Array.from(new Set(btRows.map((r) => r.segmento))).sort() : [];
+      // Orden personalizado requerido para segmentos BdB Cobranzas Cartera Castigada
+      const ordenSegmentosBdB = [
+        '1_Alto_p1',
+        '2_Alto_p2',
+        '3_Medio_p1',
+        '4_Medio_p2',
+        '5_Bajo_p1',
+        '6_Bajo_p2'
+      ];
+      const prefijoNumero = (seg: string) => {
+        const m = seg.match(/^(\d+)[^\d]?/);
+        return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
+      };
+      const segmentos = btRows
+        ? Array.from(new Set(btRows.map((r) => r.segmento)))
+            .sort((a, b) => {
+              if (!esCastigadaBdB) return a.localeCompare(b);
+              // Primero comparar por número inicial (1..6) y luego por índice en orden definido
+              const na = prefijoNumero(a);
+              const nb = prefijoNumero(b);
+              if (na !== nb) return na - nb;
+              const ia = ordenSegmentosBdB.indexOf(a);
+              const ib = ordenSegmentosBdB.indexOf(b);
+              if (ia === -1 && ib === -1) return a.localeCompare(b);
+              if (ia === -1) return 1;
+              if (ib === -1) return -1;
+              return ia - ib;
+            })
+        : [];
       const allRows = btRows || [];
 
       // Función para agrupar datos según la selección
@@ -449,15 +485,51 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
           grupos.set(clave, actual);
         });
         
-        return Array.from(grupos.entries()).map(([nombre, datos]) => ({
+        const arr = Array.from(grupos.entries()).map(([nombre, datos]) => ({
           nombre,
-          ...datos,
-          tasaExito: datos.clientes ? datos.respuesta / datos.clientes : 0,
-          tasaRecuperacion: datos.saldo ? datos.pagos / datos.saldo : 0
-        })).sort((a, b) => b.tasaExito - a.tasaExito);
+            ...datos,
+            tasaExito: datos.clientes ? datos.respuesta / datos.clientes : 0,
+            tasaRecuperacion: datos.saldo ? datos.pagos / datos.saldo : 0
+        }));
+        if (negGroupBy === 'segmento') {
+          // Caso BdB: usar orden fijo; caso general: orden alfabético
+          if (esCastigadaBdB) {
+            return arr.sort((a, b) => {
+              const na = prefijoNumero(a.nombre);
+              const nb = prefijoNumero(b.nombre);
+              if (na !== nb) return na - nb;
+              const ia = ordenSegmentosBdB.indexOf(a.nombre);
+              const ib = ordenSegmentosBdB.indexOf(b.nombre);
+              if (ia === -1 && ib === -1) return a.nombre.localeCompare(b.nombre, 'es');
+              if (ia === -1) return 1;
+              if (ib === -1) return -1;
+              return ia - ib;
+            });
+          }
+          return arr.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+        }
+        // Otros groupBy mantienen orden por tasa de éxito
+        return arr.sort((a, b) => b.tasaExito - a.tasaExito);
       };
 
-      const datosAgrupados = agruparDatos();
+      let datosAgrupados = agruparDatos();
+      // Reforzar orden fijo para asegurar que ningún ordenamiento posterior lo altere
+      if (esCastigadaBdB && negGroupBy === 'segmento') {
+        datosAgrupados = [...datosAgrupados].sort((a, b) => {
+          const na = prefijoNumero(a.nombre);
+          const nb = prefijoNumero(b.nombre);
+          if (na !== nb) return na - nb;
+          const ordenSegmentosBdB = [
+            '1_Alto_p1','2_Alto_p2','3_Medio_p1','4_Medio_p2','5_Bajo_p1','6_Bajo_p2'
+          ];
+          const ia = ordenSegmentosBdB.indexOf(a.nombre);
+          const ib = ordenSegmentosBdB.indexOf(b.nombre);
+          if (ia === -1 && ib === -1) return a.nombre.localeCompare(b.nombre, 'es');
+          if (ia === -1) return 1;
+          if (ib === -1) return -1;
+          return ia - ib;
+        });
+      }
       
       // KPIs principales
       const totalClientes = allRows.reduce((sum, r) => sum + (r.clientes || 0), 0);
@@ -516,6 +588,7 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
           </Card>
 
           {/* Enhanced KPIs Globales */}
+          {/* Leyenda de colores por segmento removida para usar esquema neutro */}
           <div className="grid grid-cols-4 gap-4">
             <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:shadow-lg transition-shadow">
               <CardContent className="p-4">
@@ -613,8 +686,8 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
                         return [Number(value).toLocaleString(), name];
                       }}
                     />
-                    <Bar yAxisId="left" dataKey="clientes" fill="#e2e8f0" name="Clientes" />
-                    <Bar yAxisId="left" dataKey="respuesta" fill="#3b82f6" name="Respuesta" />
+                    <Bar yAxisId="left" dataKey="clientes" name="Clientes" fill="#e2e8f0" />
+                    <Bar yAxisId="left" dataKey="respuesta" name="Respuesta" fill="#3b82f6" />
                     <Line yAxisId="right" type="monotone" dataKey="tasaExito" stroke="#ef4444" strokeWidth={2} name="Tasa de Éxito" />
                   </ComposedChart>
                 </ResponsiveContainer>
@@ -648,8 +721,8 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
                         return [`$${(Number(value) / 1000000).toFixed(1)}M`, name];
                       }}
                     />
-                    <Bar yAxisId="left" dataKey="saldo" fill="#fef3c7" name="Saldo Total" />
-                    <Bar yAxisId="left" dataKey="pagos" fill="#10b981" name="Pagos 3M" />
+                    <Bar yAxisId="left" dataKey="saldo" name="Saldo Total" fill="#fef3c7" />
+                    <Bar yAxisId="left" dataKey="pagos" name="Pagos 3M" fill="#10b981" />
                     <Line yAxisId="right" type="monotone" dataKey="tasaRecuperacion" stroke="#7c3aed" strokeWidth={2} name="Tasa Recuperación" />
                   </ComposedChart>
                 </ResponsiveContainer>
@@ -1401,95 +1474,6 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
     );
   };
 
-  // Renderizado del formulario de métricas de negocio para BdB
-  const renderFormularioNegocio = () => {
-    if (!esCastigadaBdB) return null;
-
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Formulario de Métricas de Negocio
-          </CardTitle>
-          <CardDescription>
-            Configure las métricas clave para el modelo de Cobranzas Cartera Castigada
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Tasa de Recuperación Objetivo</label>
-                <Input type="number" placeholder="5.2" />
-                <p className="text-xs text-muted-foreground">Porcentaje esperado de recuperación</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Costo por Contacto</label>
-                <Input type="number" placeholder="2500" />
-                <p className="text-xs text-muted-foreground">Costo promedio en COP por gestión</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Horizonte de Evaluación</label>
-                <Select defaultValue="3m">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1m">1 Mes</SelectItem>
-                    <SelectItem value="2m">2 Meses</SelectItem>
-                    <SelectItem value="3m">3 Meses</SelectItem>
-                    <SelectItem value="6m">6 Meses</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Capacidad Mensual de Gestión</label>
-                <Input type="number" placeholder="10000" />
-                <p className="text-xs text-muted-foreground">Número máximo de clientes a contactar</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Segmento Prioritario</label>
-                <Select defaultValue="alto">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="alto">Alto Riesgo</SelectItem>
-                    <SelectItem value="medio">Medio Riesgo</SelectItem>
-                    <SelectItem value="bajo">Bajo Riesgo</SelectItem>
-                    <SelectItem value="todos">Todos los Segmentos</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Deciles a Intervenir</label>
-                <Slider
-                  value={[pilotDeciles]}
-                  onValueChange={(value) => setPilotDeciles(value[0])}
-                  max={10}
-                  min={1}
-                  step={1}
-                  className="w-full"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Intervenir deciles 1 al {pilotDeciles}
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex justify-end gap-2">
-            <Button variant="outline">Resetear</Button>
-            <Button>Calcular Impacto</Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
 
   const info = casosInfo[tipoFinal];
   const nombreCaso = displayTitle || csvRecord?.['Caso de Uso'] || csvRecord?.Proyecto || info.nombre;
@@ -1621,7 +1605,7 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
             </TabsContent>
 
             <TabsContent value="negocio" className="space-y-6">
-              {esCastigadaBdB && renderFormularioNegocio()}
+              {/* Formulario de métricas de negocio removido para caso BdB según requerimiento */}
               {renderMetricas('negocio')}
             </TabsContent>
 

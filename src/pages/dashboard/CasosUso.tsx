@@ -43,6 +43,8 @@ const CasosUso = () => {
     estados: Record<string, number>;
     impactoTotal: number;
   }>({ total: 0, estados: {}, impactoTotal: 0 });
+  // Estado para desplegar/ocultar detalle de estados (métricas globales)
+  const [showEstados, setShowEstados] = useState(false);
 
   useEffect(() => {
   const fetchData = async () => {
@@ -215,102 +217,76 @@ const CasosUso = () => {
         </p>
       </div>
 
-  {/* Resumen global desde CSV - 2 filas, tarjetas compactas con título y valor en línea */}
+      {/* Resumen global compacto: 4 métricas + dropdown de estados dentro de Total de Casos */}
       {(() => {
-        type MetricItem = {
-          key: string;
-          title: string;
-          value: string | number;
-          Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-          iconBg: string;
-          titleColor: string;
-        };
+        const estadosOrdenados = Object.entries(globalSummary.estados || {}).sort((a,b)=> b[1]-a[1]);
 
-        const items: MetricItem[] = [
-          {
-            key: 'total',
-            title: 'Total de Casos',
-            value: globalSummary.total,
-            Icon: FolderKanban,
-            iconBg: 'bg-blue-100 dark:bg-blue-900/50',
-            titleColor: 'text-blue-700 dark:text-blue-300',
-          },
-          {
-            key: 'entidades',
-            title: 'Entidades',
-            value: entidades.length,
-            Icon: Users,
-            iconBg: 'bg-gray-100 dark:bg-gray-900/50',
-            titleColor: 'text-foreground',
-          },
-          {
-            key: 'ds-global',
-            title: 'Científicos de Datos',
-            value: globalDsCount,
-            Icon: Users,
-            iconBg: 'bg-purple-100 dark:bg-purple-900/50',
-            titleColor: 'text-purple-700 dark:text-purple-300',
-          },
-          {
-            key: 'impacto',
-            title: 'Impacto Total',
-            value: new Intl.NumberFormat('es-ES', { notation: 'compact', maximumFractionDigits: 1 }).format(globalSummary.impactoTotal),
-            Icon: DollarSign,
-            iconBg: 'bg-emerald-100 dark:bg-emerald-900/50',
-            titleColor: 'text-emerald-700 dark:text-emerald-300',
-          },
-          ...Object.entries(globalSummary.estados || {}).map(([estado, count], idx) => {
-            const palettes = [
-              { iconBg: 'bg-green-100 dark:bg-green-900/50', titleColor: 'text-green-700 dark:text-green-300' },
-              { iconBg: 'bg-blue-100 dark:bg-blue-900/50', titleColor: 'text-blue-700 dark:text-blue-300' },
-              { iconBg: 'bg-purple-100 dark:bg-purple-900/50', titleColor: 'text-purple-700 dark:text-purple-300' },
-              { iconBg: 'bg-orange-100 dark:bg-orange-900/50', titleColor: 'text-orange-700 dark:text-orange-300' },
-              { iconBg: 'bg-red-100 dark:bg-red-900/50', titleColor: 'text-red-700 dark:text-red-300' },
-              { iconBg: 'bg-yellow-100 dark:bg-yellow-900/50', titleColor: 'text-yellow-700 dark:text-yellow-300' },
-              { iconBg: 'bg-pink-100 dark:bg-pink-900/50', titleColor: 'text-pink-700 dark:text-pink-300' },
-              { iconBg: 'bg-indigo-100 dark:bg-indigo-900/50', titleColor: 'text-indigo-700 dark:text-indigo-300' },
-              { iconBg: 'bg-teal-100 dark:bg-teal-900/50', titleColor: 'text-teal-700 dark:text-teal-300' },
-              { iconBg: 'bg-cyan-100 dark:bg-cyan-900/50', titleColor: 'text-cyan-700 dark:text-cyan-300' },
-            ];
-            const p = palettes[idx % palettes.length];
-            return {
-              key: `estado-${estado}`,
-              title: estado,
-              value: count as number,
-              Icon: Activity,
-              iconBg: p.iconBg,
-              titleColor: p.titleColor,
-            } as MetricItem;
-          })
-        ];
-
-        const rows = items.length <= 8
-          ? [items]
-          : [items.slice(0, 8), items.slice(8)];
-        const twoRows = items.length > 8;
+        const CardBase: React.FC<{title:string; value: string|number; accent?: string; children?: React.ReactNode;}> = ({title,value,accent,children}) => (
+          <Card className="relative overflow-hidden border bg-card">
+            <CardContent className="p-3 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-1 min-w-0">
+                  <span className={`block text-[11px] font-medium tracking-wide uppercase ${accent || 'text-muted-foreground'}`}>{title}</span>
+                  <span className="text-xl font-bold leading-none truncate">{value}</span>
+                </div>
+                {title === 'Total de Casos' && (
+                  <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setShowEstados(s => !s)}>
+                    {showEstados ? 'Cerrar' : 'Detalle'}
+                  </Button>
+                )}
+              </div>
+              {children}
+            </CardContent>
+          </Card>
+        );
 
         return (
-          <div className="w-full space-y-3">
-            {rows.filter(r => r.length > 0).map((row, idx) => (
-              <div
-                key={idx}
-                className="grid gap-3"
-                style={{ gridTemplateColumns: `repeat(${twoRows ? 8 : row.length}, minmax(0, 1fr))` }}
-              >
-                {row.map((item) => (
-                  <Card key={item.key} className="h-[60px] overflow-hidden border bg-card">
-                    <CardContent className="h-full p-2">
-                      <div className="flex h-full items-center">
-                        <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
-                          <span className={`text-[11px] font-medium ${item.titleColor} whitespace-normal break-words leading-tight`}>{item.title}</span>
-                          <span className="text-lg font-bold text-foreground flex-shrink-0">{item.value}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ))}
+          <div className="space-y-3">
+            <div className="grid gap-3 md:grid-cols-4 sm:grid-cols-2 grid-cols-1">
+              <CardBase title="Total de Casos" value={globalSummary.total} accent="text-blue-700 dark:text-blue-300" />
+              <CardBase title="Entidades" value={entidades.length} />
+              <CardBase title="Científicos de Datos" value={globalDsCount} accent="text-purple-700 dark:text-purple-300" />
+              <CardBase title="Impacto Total" value={new Intl.NumberFormat('es-ES', { notation: 'compact', maximumFractionDigits: 1 }).format(globalSummary.impactoTotal)} accent="text-emerald-700 dark:text-emerald-300" />
+            </div>
+            {showEstados && (
+              <Card className="border bg-card">
+                <CardHeader className="py-3 pb-0">
+                  <CardTitle className="text-sm font-medium">Estados de Casos</CardTitle>
+                  <CardDescription className="text-xs">Distribución detallada por estado</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-2">
+                  <div className="rounded-md border bg-background/60 max-h-72 overflow-auto thin-scrollbar">
+                    <table className="w-full text-[12px]">
+                      <thead className="sticky top-0 bg-muted">
+                        <tr className="text-left text-muted-foreground">
+                          <th className="py-1 px-2 font-medium">Estado</th>
+                          <th className="py-1 px-2 font-medium text-right">Casos</th>
+                          <th className="py-1 px-2 font-medium text-right">% Total</th>
+                          <th className="py-1 px-2 font-medium text-right">Barra</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {estadosOrdenados.map(([estado, count]) => {
+                          const pct = globalSummary.total ? (count / globalSummary.total) * 100 : 0;
+                          return (
+                            <tr key={estado} className="border-t last:border-b hover:bg-muted/30">
+                              <td className="py-1 px-2 pr-4 align-top max-w-[240px]"><span className="truncate inline-block" title={estado}>{estado}</span></td>
+                              <td className="py-1 px-2 text-right font-semibold tabular-nums">{count}</td>
+                              <td className="py-1 px-2 text-right tabular-nums text-muted-foreground">{pct.toFixed(1)}%</td>
+                              <td className="py-1 px-2">
+                                <div className="h-2 w-full bg-muted rounded overflow-hidden">
+                                  <div className="h-full bg-blue-500/70 dark:bg-blue-400" style={{width: pct.toFixed(2)+'%'}} />
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         );
       })()}
