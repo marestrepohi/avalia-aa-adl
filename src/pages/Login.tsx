@@ -24,7 +24,7 @@ const Login = () => {
     // Demo credentials check
     if (formData.email === "mateo@adl.com" && formData.password === "1234") {
       toast.success("Inicio de sesión exitoso");
-      navigate("/casosUso");
+      navigate("/dashboard");
     } else {
       toast.error("Credenciales inválidas");
     }
@@ -33,7 +33,7 @@ const Login = () => {
   const handleWindowsLogin = () => {
     toast.info("Iniciando sesión con Microsoft...");
     setTimeout(() => {
-      navigate("/casosUso");
+      navigate("/dashboard");
     }, 1500);
   };
 

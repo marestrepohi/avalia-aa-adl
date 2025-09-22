@@ -1,6 +1,5 @@
 
-import React, { useState, useEffect } from "react";
-import { useDashboard } from "@/contexts/DashboardContext";
+import React, { useState } from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import Chatbot from "../chat/Chatbot";
@@ -14,9 +13,7 @@ interface AppLayoutProps {
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const isMobile = useMobile();
-  const { activeView } = useDashboard();
-  const showSidebar = activeView !== 'casosUso';
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile && showSidebar);
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   const toggleSidebar = () => {
@@ -30,13 +27,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
     <div className="flex min-h-screen bg-background relative overflow-x-hidden">
       <Header toggleSidebar={toggleSidebar} />
-      {showSidebar && (
-        <Sidebar
-          isOpen={sidebarOpen}
-          setIsOpen={setSidebarOpen}
-          onCollapsedChange={handleSidebarCollapsedChange}
-        />
-      )}
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        setIsOpen={setSidebarOpen}
+        onCollapsedChange={handleSidebarCollapsedChange} 
+      />
       <main 
         className={`flex-1 pt-16 transition-all duration-300
           ${sidebarOpen 
