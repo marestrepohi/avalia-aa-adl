@@ -445,19 +445,14 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
       
       const segmentosDisponibles = btRows ? Array.from(new Set(btRows.map((r) => r.segmento))) : [];
       const segmentosOrdenados = ordenarSegmentos(segmentosDisponibles);
+      // Función auxiliar para extraer número de segmento
       const prefijoNumero = (seg: string) => {
-        const m = seg.match(/^(\d+)[^\d]?/);
+        const m = seg.match(/^(\d+)/);
         return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
       };
+      
       const segmentos = btRows
-        ? Array.from(new Set(btRows.map((r) => r.segmento)))
-            .sort((a, b) => {
-              if (!esCastigadaBdB) return a.localeCompare(b);
-              // Comparar por número inicial (1..6)
-              const na = parseInt(a.split('_')[0]) || 0;
-              const nb = parseInt(b.split('_')[0]) || 0;
-              return na - nb;
-            })
+        ? ordenarSegmentos(Array.from(new Set(btRows.map((r) => r.segmento))))
         : [];
       const allRows = btRows || [];
 
@@ -504,23 +499,6 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
       };
 
       let datosAgrupados = agruparDatos();
-      // Reforzar orden fijo para asegurar que ningún ordenamiento posterior lo altere
-      if (esCastigadaBdB && negGroupBy === 'segmento') {
-        datosAgrupados = [...datosAgrupados].sort((a, b) => {
-          const na = prefijoNumero(a.nombre);
-          const nb = prefijoNumero(b.nombre);
-          if (na !== nb) return na - nb;
-          const ordenSegmentosBdB = [
-            '1_Alto_p1','2_Alto_p2','3_Medio_p1','4_Medio_p2','5_Bajo_p1','6_Bajo_p2'
-          ];
-          const ia = ordenSegmentosBdB.indexOf(a.nombre);
-          const ib = ordenSegmentosBdB.indexOf(b.nombre);
-          if (ia === -1 && ib === -1) return a.nombre.localeCompare(b.nombre, 'es');
-          if (ia === -1) return 1;
-          if (ib === -1) return -1;
-          return ia - ib;
-        });
-      }
       
       // KPIs principales
       const totalClientes = allRows.reduce((sum, r) => sum + (r.clientes || 0), 0);
