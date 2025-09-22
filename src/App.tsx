@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { DashboardProvider } from "./contexts/DashboardContext";
-import Index from "./pages/Index";
+import CasosUso from "./pages/dashboard/CasosUso";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { WebSocketProvider } from "@/components/chat/WebSocketProvider";
@@ -31,7 +31,7 @@ const App = () => (
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<Navigate to="/login" replace />} />
-              <Route path="/dashboard" element={<Index />} />
+              <Route path="/casosUso" element={<CasosUso />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
