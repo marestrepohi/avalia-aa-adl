@@ -433,15 +433,18 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
       const formatoPorcentaje = (v: number) => `${(v * 100).toFixed(1)}%`;
       
       const fechas = btRows ? Array.from(new Set(btRows.map((r) => r.fecha))).sort() : [];
-      // Orden personalizado requerido para segmentos BdB Cobranzas Cartera Castigada
-      const ordenSegmentosBdB = [
-        '1_Alto_p1',
-        '2_Alto_p2',
-        '3_Medio_p1',
-        '4_Medio_p2',
-        '5_Bajo_p1',
-        '6_Bajo_p2'
-      ];
+      // Función para ordenar segmentos correctamente
+      const ordenarSegmentos = (segmentos: string[]) => {
+        return segmentos.sort((a, b) => {
+          // Extraer el número inicial del segmento
+          const numA = parseInt(a.split('_')[0]) || 0;
+          const numB = parseInt(b.split('_')[0]) || 0;
+          return numA - numB;
+        });
+      };
+      
+      const segmentosDisponibles = btRows ? Array.from(new Set(btRows.map((r) => r.segmento))) : [];
+      const segmentosOrdenados = ordenarSegmentos(segmentosDisponibles);
       const prefijoNumero = (seg: string) => {
         const m = seg.match(/^(\d+)[^\d]?/);
         return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
@@ -450,16 +453,10 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
         ? Array.from(new Set(btRows.map((r) => r.segmento)))
             .sort((a, b) => {
               if (!esCastigadaBdB) return a.localeCompare(b);
-              // Primero comparar por número inicial (1..6) y luego por índice en orden definido
-              const na = prefijoNumero(a);
-              const nb = prefijoNumero(b);
-              if (na !== nb) return na - nb;
-              const ia = ordenSegmentosBdB.indexOf(a);
-              const ib = ordenSegmentosBdB.indexOf(b);
-              if (ia === -1 && ib === -1) return a.localeCompare(b);
-              if (ia === -1) return 1;
-              if (ib === -1) return -1;
-              return ia - ib;
+              // Comparar por número inicial (1..6)
+              const na = parseInt(a.split('_')[0]) || 0;
+              const nb = parseInt(b.split('_')[0]) || 0;
+              return na - nb;
             })
         : [];
       const allRows = btRows || [];
@@ -495,15 +492,9 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
           // Caso BdB: usar orden fijo; caso general: orden alfabético
           if (esCastigadaBdB) {
             return arr.sort((a, b) => {
-              const na = prefijoNumero(a.nombre);
-              const nb = prefijoNumero(b.nombre);
-              if (na !== nb) return na - nb;
-              const ia = ordenSegmentosBdB.indexOf(a.nombre);
-              const ib = ordenSegmentosBdB.indexOf(b.nombre);
-              if (ia === -1 && ib === -1) return a.nombre.localeCompare(b.nombre, 'es');
-              if (ia === -1) return 1;
-              if (ib === -1) return -1;
-              return ia - ib;
+              const na = parseInt(a.nombre.split('_')[0]) || 0;
+              const nb = parseInt(b.nombre.split('_')[0]) || 0;
+              return na - nb;
             });
           }
           return arr.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
@@ -659,13 +650,13 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
 
           {/* Gráficos de Comparación Principal Mejorados */}
           <div className="grid grid-cols-2 gap-6">
-            <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200 hover:shadow-lg transition-all duration-300">
+            <Card className="hover:shadow-lg transition-all duration-300">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-cyan-900">
+                <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
                   Efectividad por {negGroupBy.charAt(0).toUpperCase() + negGroupBy.slice(1)}
                 </CardTitle>
-                <CardDescription className="text-cyan-700">Análisis de clientes vs respuesta y tasa de éxito</CardDescription>
+                <CardDescription>Análisis de clientes vs respuesta y tasa de éxito</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -726,13 +717,13 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 hover:shadow-lg transition-all duration-300">
+            <Card className="hover:shadow-lg transition-all duration-300">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-emerald-900">
+                <CardTitle className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5" />
                   Rendimiento Financiero por {negGroupBy.charAt(0).toUpperCase() + negGroupBy.slice(1)}
                 </CardTitle>
-                <CardDescription className="text-emerald-700">Saldo total vs pagos recuperados y tasa de recuperación</CardDescription>
+                <CardDescription>Saldo total vs pagos recuperados y tasa de recuperación</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -828,10 +819,10 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
 
             return marcaData.length > 0 ? (
               <div className="mt-6">
-                <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200 hover:shadow-lg transition-all duration-300">
+                <Card className="hover:shadow-lg transition-all duration-300">
                   <CardHeader>
-                    <CardTitle className="text-amber-900">Análisis por Tipo de Cliente</CardTitle>
-                    <CardDescription className="text-amber-700">Comparativa entre Buenos Evidentes vs Clientes que Requieren Gestión</CardDescription>
+                    <CardTitle>Análisis por Tipo de Cliente</CardTitle>
+                    <CardDescription>Comparativa entre Buenos Evidentes vs Clientes que Requieren Gestión</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
@@ -1111,7 +1102,11 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
       }
 
       const fechas = Array.from(new Set(btRows.map((r) => r.fecha))).sort();
-      const segmentos = Array.from(new Set(btRows.map((r) => r.segmento))).sort();
+      const segmentos = Array.from(new Set(btRows.map((r) => r.segmento))).sort((a, b) => {
+        const numA = parseInt(a.split('_')[0]) || 0;
+        const numB = parseInt(b.split('_')[0]) || 0;
+        return numA - numB;
+      });
 
       // Filtros aplicados
       const rowsActuales = btRows.filter((r) => 
@@ -1164,21 +1159,21 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
       return (
         <div className="space-y-6">
           {/* Header con controles */}
-          <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-purple-900">Análisis Técnico - Backtesting</h3>
-                  <p className="text-sm text-purple-700">Modelo: Cobranzas Cartera Castigada BdB</p>
+                  <h3 className="text-lg font-semibold">Análisis Técnico - Backtesting</h3>
+                  <p className="text-sm text-muted-foreground">Modelo: Cobranzas Cartera Castigada BdB</p>
                 </div>
-                <Badge variant="outline" className="bg-white/50">
+                <Badge variant="outline">
                   {rowsActuales.length} registros analizados
                 </Badge>
               </div>
               
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-purple-800 mb-2 block">Fecha</label>
+                  <label className="text-sm font-medium mb-2 block">Fecha</label>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       variant={btFecha === '' ? 'default' : 'outline'}
@@ -1203,7 +1198,7 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-purple-800 mb-2 block">Segmento</label>
+                  <label className="text-sm font-medium mb-2 block">Segmento</label>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       variant={btSegmento === '' ? 'default' : 'outline'}
@@ -1228,7 +1223,7 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-purple-800 mb-2 block">Horizonte</label>
+                  <label className="text-sm font-medium mb-2 block">Horizonte</label>
                   <div className="flex gap-2">
                     <Button
                       variant={btHorizon === '1m' ? 'default' : 'outline'}
@@ -1262,15 +1257,15 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
 
           {/* KPIs Técnicos Principales */}
           <div className="grid grid-cols-4 gap-4">
-            <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
+            <Card>
               <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <div className="text-2xl font-bold text-blue-900" title={getDesc('roc', 'Área bajo la curva ROC')}>
-                      {metricas.roc.toFixed(3)}
-                    </div>
-                    <div className="text-sm text-blue-700">AUC Score</div>
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    <div>
+                      <div className="text-2xl font-bold" title={getDesc('roc', 'Área bajo la curva ROC')}>
+                        {metricas.roc.toFixed(3)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">AUC Score</div>
                     <div className="text-xs text-green-600">
                       {metricas.roc > 0.8 ? 'Excelente' : metricas.roc > 0.7 ? 'Bueno' : 'Regular'}
                     </div>
@@ -1279,15 +1274,15 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
               </CardContent>
             </Card>
             
-            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+            <Card>
               <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-green-600" />
-                  <div>
-                    <div className="text-2xl font-bold text-green-900" title={getDesc('ks', 'Kolmogorov-Smirnov statistic')}>
-                      {metricas.ks.toFixed(1)}
-                    </div>
-                    <div className="text-sm text-green-700">KS Score</div>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    <div>
+                      <div className="text-2xl font-bold" title={getDesc('ks', 'Kolmogorov-Smirnov statistic')}>
+                        {metricas.ks.toFixed(1)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">KS Score</div>
                     <div className="text-xs text-green-600">
                       {metricas.ks > 40 ? 'Excelente' : metricas.ks > 20 ? 'Bueno' : 'Regular'}
                     </div>
@@ -1296,15 +1291,15 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
               </CardContent>
             </Card>
             
-            <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+            <Card>
               <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-amber-600" />
-                  <div>
-                    <div className="text-2xl font-bold text-amber-900" title={getDesc('psi', 'Population Stability Index')}>
-                      {metricas.psi.toFixed(3)}
-                    </div>
-                    <div className="text-sm text-amber-700">PSI</div>
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    <div>
+                      <div className="text-2xl font-bold" title={getDesc('psi', 'Population Stability Index')}>
+                        {metricas.psi.toFixed(3)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">PSI</div>
                     <div className="text-xs text-green-600">
                       {metricas.psi < 0.1 ? 'Estable' : metricas.psi < 0.25 ? 'Moderado' : 'Inestable'}
                     </div>
@@ -1313,15 +1308,15 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
               </CardContent>
             </Card>
             
-            <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
+            <Card>
               <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-purple-600" />
-                  <div>
-                    <div className="text-2xl font-bold text-purple-900">
-                      {(metricas.gini * 100).toFixed(1)}%
-                    </div>
-                    <div className="text-sm text-purple-700">Gini</div>
+                  <div className="flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    <div>
+                      <div className="text-2xl font-bold">
+                        {(metricas.gini * 100).toFixed(1)}%
+                      </div>
+                      <div className="text-sm text-muted-foreground">Gini</div>
                     <div className="text-xs text-green-600">
                       {metricas.gini > 0.6 ? 'Excelente' : metricas.gini > 0.4 ? 'Bueno' : 'Regular'}
                     </div>
@@ -1333,13 +1328,13 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
 
           {/* Gráficos de Análisis Mejorados */}
           <div className="grid grid-cols-2 gap-6">
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-blue-900">
+                <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
                   Poder Discriminatorio por Decil
                 </CardTitle>
-                <CardDescription className="text-blue-700">Lift y distribución poblacional del modelo</CardDescription>
+                <CardDescription>Lift y distribución poblacional del modelo</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -1394,13 +1389,13 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-emerald-900">
+                <CardTitle className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5" />
                   Análisis Financiero por Decil
                 </CardTitle>
-                <CardDescription className="text-emerald-700">Saldo vs Recuperación efectiva</CardDescription>
+                <CardDescription>Saldo vs Recuperación efectiva</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -1456,13 +1451,13 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
 
           {/* Nuevos Gráficos de Análisis de Segmentos */}
           <div className="grid grid-cols-2 gap-6">
-            <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-violet-900">
+                <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
                   Distribución de Clientes por Decil
                 </CardTitle>
-                <CardDescription className="text-violet-700">Concentración poblacional y respuesta</CardDescription>
+                <CardDescription>Concentración poblacional y respuesta</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -1515,13 +1510,13 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-rose-50 to-pink-50 border-rose-200">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-rose-900">
+                <CardTitle className="flex items-center gap-2">
                   <Target className="h-5 w-5" />
                   Tasa de Buenos por Decil
                 </CardTitle>
-                <CardDescription className="text-rose-700">Efectividad del modelo de predicción</CardDescription>
+                <CardDescription>Efectividad del modelo de predicción</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
