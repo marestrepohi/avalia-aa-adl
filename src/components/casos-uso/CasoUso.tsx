@@ -657,78 +657,236 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
             </Card>
           </div>
 
-          {/* Gráfico de Comparación Principal */}
+          {/* Gráficos de Comparación Principal Mejorados */}
           <div className="grid grid-cols-2 gap-6">
-            <Card>
+            <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200 hover:shadow-lg transition-all duration-300">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-cyan-900">
                   <BarChart3 className="h-5 w-5" />
-                  Clientes vs Respuesta
+                  Efectividad por {negGroupBy.charAt(0).toUpperCase() + negGroupBy.slice(1)}
                 </CardTitle>
-                <CardDescription>Tasa de éxito por {negGroupBy}</CardDescription>
+                <CardDescription className="text-cyan-700">Análisis de clientes vs respuesta y tasa de éxito</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <ComposedChart data={datosAgrupados}>
-                    <CartesianGrid strokeDasharray="3 3" />
+                  <ComposedChart data={datosAgrupados} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                    <defs>
+                      <linearGradient id="clientesGradientNeg" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#0891b2" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#0891b2" stopOpacity={0.2}/>
+                      </linearGradient>
+                      <linearGradient id="respuestaGradientNeg" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis 
                       dataKey="nombre" 
-                      tick={{ fontSize: 10 }}
-                      angle={-45}
-                      textAnchor="end"
-                      height={60}
+                      angle={-45} 
+                      textAnchor="end" 
+                      height={80} 
+                      fontSize={10}
+                      stroke="#64748b"
                     />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} />
+                    <YAxis yAxisId="left" stroke="#64748b" tick={{ fontSize: 11 }} />
+                    <YAxis 
+                      yAxisId="right" 
+                      orientation="right" 
+                      tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} 
+                      stroke="#ef4444"
+                      tick={{ fontSize: 11 }}
+                    />
                     <Tooltip 
-                      formatter={(value, name) => {
-                        if (name === 'Tasa de Éxito') return [`${(Number(value) * 100).toFixed(1)}%`, name];
-                        return [Number(value).toLocaleString(), name];
+                      contentStyle={{ 
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
                       }}
+                      formatter={(value, name) => {
+                        if (name === 'Tasa Éxito') return [`${(Number(value) * 100).toFixed(1)}%`, name];
+                        return [Number(value).toLocaleString(), name];
+                      }} 
                     />
-                    <Bar yAxisId="left" dataKey="clientes" name="Clientes" fill="#e2e8f0" />
-                    <Bar yAxisId="left" dataKey="respuesta" name="Respuesta" fill="#3b82f6" />
-                    <Line yAxisId="right" type="monotone" dataKey="tasaExito" stroke="#ef4444" strokeWidth={2} name="Tasa de Éxito" />
+                    <Bar yAxisId="left" dataKey="clientes" fill="url(#clientesGradientNeg)" name="Clientes" radius={[2, 2, 0, 0]} />
+                    <Bar yAxisId="left" dataKey="respuesta" fill="url(#respuestaGradientNeg)" name="Respuesta" radius={[2, 2, 0, 0]} />
+                    <Line 
+                      yAxisId="right" 
+                      type="monotone" 
+                      dataKey="tasaExito" 
+                      stroke="#ef4444" 
+                      strokeWidth={3} 
+                      name="Tasa Éxito"
+                      dot={{ fill: '#ef4444', strokeWidth: 2, r: 5 }}
+                      activeDot={{ r: 7, stroke: '#ef4444', strokeWidth: 2 }}
+                    />
                   </ComposedChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 hover:shadow-lg transition-all duration-300">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-emerald-900">
                   <DollarSign className="h-5 w-5" />
-                  Saldo vs Pagos
+                  Rendimiento Financiero por {negGroupBy.charAt(0).toUpperCase() + negGroupBy.slice(1)}
                 </CardTitle>
-                <CardDescription>Recuperación por {negGroupBy}</CardDescription>
+                <CardDescription className="text-emerald-700">Saldo total vs pagos recuperados y tasa de recuperación</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <ComposedChart data={datosAgrupados}>
-                    <CartesianGrid strokeDasharray="3 3" />
+                  <ComposedChart data={datosAgrupados} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                    <defs>
+                      <linearGradient id="saldoGradientNeg" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#fbbf24" stopOpacity={0.2}/>
+                      </linearGradient>
+                      <linearGradient id="pagosGradientNeg" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.2}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis 
-                      dataKey="nombre"
-                      tick={{ fontSize: 10 }}
-                      angle={-45}
-                      textAnchor="end"
-                      height={60}
+                      dataKey="nombre" 
+                      angle={-45} 
+                      textAnchor="end" 
+                      height={80} 
+                      fontSize={10}
+                      stroke="#64748b"
                     />
-                    <YAxis yAxisId="left" tickFormatter={(v) => `$${(v/1000000).toFixed(0)}M`} />
-                    <YAxis yAxisId="right" orientation="right" tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} />
+                    <YAxis 
+                      yAxisId="left" 
+                      tickFormatter={(v) => `$${(v / 1000000).toFixed(0)}M`} 
+                      stroke="#64748b"
+                      tick={{ fontSize: 11 }}
+                    />
+                    <YAxis 
+                      yAxisId="right" 
+                      orientation="right" 
+                      tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} 
+                      stroke="#7c3aed"
+                      tick={{ fontSize: 11 }}
+                    />
                     <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                      }}
                       formatter={(value, name) => {
                         if (name === 'Tasa Recuperación') return [`${(Number(value) * 100).toFixed(2)}%`, name];
                         return [`$${(Number(value) / 1000000).toFixed(1)}M`, name];
-                      }}
+                      }} 
                     />
-                    <Bar yAxisId="left" dataKey="saldo" name="Saldo Total" fill="#fef3c7" />
-                    <Bar yAxisId="left" dataKey="pagos" name="Pagos 3M" fill="#10b981" />
-                    <Line yAxisId="right" type="monotone" dataKey="tasaRecuperacion" stroke="#7c3aed" strokeWidth={2} name="Tasa Recuperación" />
+                    <Bar yAxisId="left" dataKey="saldo" fill="url(#saldoGradientNeg)" name="Saldo Total" radius={[2, 2, 0, 0]} />
+                    <Bar yAxisId="left" dataKey="pagos" fill="url(#pagosGradientNeg)" name="Pagos 3M" radius={[2, 2, 0, 0]} />
+                    <Line 
+                      yAxisId="right" 
+                      type="monotone" 
+                      dataKey="tasaRecuperacion" 
+                      stroke="#7c3aed" 
+                      strokeWidth={3} 
+                      name="Tasa Recuperación"
+                      dot={{ fill: '#7c3aed', strokeWidth: 2, r: 5 }}
+                      activeDot={{ r: 7, stroke: '#7c3aed', strokeWidth: 2 }}
+                    />
                   </ComposedChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
           </div>
+
+          {/* Nuevo gráfico de análisis por marca_bueno_evidente */}
+          {(() => {
+            const marcaData = (() => {
+              const marcaMap = new Map<string, { clientes: number; respuesta: number; saldo: number; pagos: number }>();
+              const filteredRows = btRows?.filter((r) => 
+                (!btFecha || r.fecha === btFecha) && 
+                (!btSegmento || r.segmento === btSegmento)
+              ) || [];
+              
+              filteredRows.forEach((r) => {
+                const marca = r.marca_bueno_evidente === 1 ? 'Buenos Evidentes' : 'Requieren Gestión';
+                const acc = marcaMap.get(marca) || { clientes: 0, respuesta: 0, saldo: 0, pagos: 0 };
+                acc.clientes += r.clientes;
+                acc.respuesta += r.respuesta;
+                acc.saldo += r.saldo_total;
+                acc.pagos += r.sum_pagos_3m_total;
+                marcaMap.set(marca, acc);
+              });
+              
+              return Array.from(marcaMap.entries()).map(([nombre, data]) => ({
+                nombre,
+                ...data,
+                tasaExito: data.clientes ? data.respuesta / data.clientes : 0,
+                tasaRecuperacion: data.saldo ? data.pagos / data.saldo : 0
+              }));
+            })();
+
+            return marcaData.length > 0 ? (
+              <div className="mt-6">
+                <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200 hover:shadow-lg transition-all duration-300">
+                  <CardHeader>
+                    <CardTitle className="text-amber-900">Análisis por Tipo de Cliente</CardTitle>
+                    <CardDescription className="text-amber-700">Comparativa entre Buenos Evidentes vs Clientes que Requieren Gestión</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <ComposedChart data={marcaData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                        <defs>
+                          <linearGradient id="marcaClientesGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.2}/>
+                          </linearGradient>
+                          <linearGradient id="marcaRespuestaGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#d97706" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#d97706" stopOpacity={0.2}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="nombre" stroke="#64748b" tick={{ fontSize: 12 }} />
+                        <YAxis yAxisId="left" stroke="#64748b" tick={{ fontSize: 11 }} />
+                        <YAxis 
+                          yAxisId="right" 
+                          orientation="right" 
+                          tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} 
+                          stroke="#dc2626"
+                          tick={{ fontSize: 11 }}
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#ffffff',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '8px',
+                            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                          }}
+                          formatter={(value, name) => {
+                            if (name === 'Tasa Éxito') return [`${(Number(value) * 100).toFixed(1)}%`, name];
+                            return [Number(value).toLocaleString(), name];
+                          }} 
+                        />
+                        <Bar yAxisId="left" dataKey="clientes" fill="url(#marcaClientesGradient)" name="Clientes" radius={[4, 4, 0, 0]} />
+                        <Bar yAxisId="left" dataKey="respuesta" fill="url(#marcaRespuestaGradient)" name="Respuesta" radius={[4, 4, 0, 0]} />
+                        <Line 
+                          yAxisId="right" 
+                          type="monotone" 
+                          dataKey="tasaExito" 
+                          stroke="#dc2626" 
+                          strokeWidth={3} 
+                          name="Tasa Éxito"
+                          dot={{ fill: '#dc2626', strokeWidth: 2, r: 6 }}
+                          activeDot={{ r: 8, stroke: '#dc2626', strokeWidth: 2 }}
+                        />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null;
+          })()}
 
           {/* Time Series Trend Chart */}
           <div className="grid grid-cols-1 gap-6 mt-6">
@@ -1173,61 +1331,235 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
             </Card>
           </div>
 
-          {/* Gráficos de Análisis */}
+          {/* Gráficos de Análisis Mejorados */}
           <div className="grid grid-cols-2 gap-6">
-            <Card>
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-blue-900">
                   <BarChart3 className="h-5 w-5" />
-                  Lift por Decil
+                  Poder Discriminatorio por Decil
                 </CardTitle>
-                <CardDescription>Poder discriminatorio del modelo</CardDescription>
+                <CardDescription className="text-blue-700">Lift y distribución poblacional del modelo</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <ComposedChart data={decilData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="decil" />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
+                  <ComposedChart data={decilData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="liftGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis 
+                      dataKey="decil" 
+                      stroke="#64748b"
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `D${value}`}
+                    />
+                    <YAxis yAxisId="left" stroke="#3b82f6" tick={{ fontSize: 12 }} />
+                    <YAxis yAxisId="right" orientation="right" stroke="#64748b" tick={{ fontSize: 12 }} />
                     <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                      }}
                       formatter={(value, name) => {
                         if (name === 'Distribución') return [`${Number(value).toFixed(1)}%`, name];
+                        if (name === 'Lift') return [`${Number(value).toFixed(2)}x`, name];
                         return [Number(value).toFixed(2), name];
                       }}
                     />
-                    <Bar yAxisId="right" dataKey="distribucion" fill="#e2e8f0" name="Distribución %" />
-                    <Line yAxisId="left" type="monotone" dataKey="lift" stroke="#3b82f6" strokeWidth={3} name="Lift" />
+                    <Bar 
+                      yAxisId="right" 
+                      dataKey="distribucion" 
+                      fill="url(#liftGradient)" 
+                      name="Distribución %" 
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Line 
+                      yAxisId="left" 
+                      type="monotone" 
+                      dataKey="lift" 
+                      stroke="#3b82f6" 
+                      strokeWidth={4} 
+                      name="Lift" 
+                      dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
+                      activeDot={{ r: 8, stroke: '#3b82f6', strokeWidth: 2 }}
+                    />
                   </ComposedChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-emerald-900">
                   <DollarSign className="h-5 w-5" />
-                  Recuperación por Decil
+                  Análisis Financiero por Decil
                 </CardTitle>
-                <CardDescription>Rendimiento financiero por segmento</CardDescription>
+                <CardDescription className="text-emerald-700">Saldo vs Recuperación efectiva</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <ComposedChart data={decilData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="decil" />
-                    <YAxis yAxisId="left" tickFormatter={(v) => `$${v.toFixed(0)}M`} />
-                    <YAxis yAxisId="right" orientation="right" tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} />
+                  <ComposedChart data={decilData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="saldoGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#fbbf24" stopOpacity={0.2}/>
+                      </linearGradient>
+                      <linearGradient id="pagosGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.2}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis 
+                      dataKey="decil" 
+                      stroke="#64748b"
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `D${value}`}
+                    />
+                    <YAxis yAxisId="left" tickFormatter={(v) => `$${v.toFixed(0)}M`} stroke="#64748b" tick={{ fontSize: 12 }} />
+                    <YAxis yAxisId="right" orientation="right" tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} stroke="#7c3aed" tick={{ fontSize: 12 }} />
                     <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                      }}
                       formatter={(value, name) => {
                         if (name === 'Tasa Recuperación') return [`${(Number(value) * 100).toFixed(2)}%`, name];
                         return [`$${Number(value).toFixed(1)}M`, name];
                       }}
                     />
-                    <Bar yAxisId="left" dataKey="saldo" fill="#fef3c7" name="Saldo" />
-                    <Bar yAxisId="left" dataKey="pagos" fill="#10b981" name="Pagos" />
-                    <Line yAxisId="right" type="monotone" dataKey="recuperacion" stroke="#7c3aed" strokeWidth={3} name="Tasa Recuperación" />
+                    <Bar yAxisId="left" dataKey="saldo" fill="url(#saldoGradient)" name="Saldo" radius={[4, 4, 0, 0]} />
+                    <Bar yAxisId="left" dataKey="pagos" fill="url(#pagosGradient)" name="Pagos" radius={[4, 4, 0, 0]} />
+                    <Line 
+                      yAxisId="right" 
+                      type="monotone" 
+                      dataKey="recuperacion" 
+                      stroke="#7c3aed" 
+                      strokeWidth={4} 
+                      name="Tasa Recuperación"
+                      dot={{ fill: '#7c3aed', strokeWidth: 2, r: 6 }}
+                      activeDot={{ r: 8, stroke: '#7c3aed', strokeWidth: 2 }}
+                    />
                   </ComposedChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Nuevos Gráficos de Análisis de Segmentos */}
+          <div className="grid grid-cols-2 gap-6">
+            <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-violet-900">
+                  <Users className="h-5 w-5" />
+                  Distribución de Clientes por Decil
+                </CardTitle>
+                <CardDescription className="text-violet-700">Concentración poblacional y respuesta</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={decilData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="clientesGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.1}/>
+                      </linearGradient>
+                      <linearGradient id="respuestaGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis 
+                      dataKey="decil" 
+                      stroke="#64748b"
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `D${value}`}
+                    />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                      }}
+                      formatter={(value, name) => [Number(value).toLocaleString(), name]}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="clientes" 
+                      stackId="1" 
+                      stroke="#8b5cf6" 
+                      fill="url(#clientesGradient)" 
+                      name="Clientes Total"
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="respuesta" 
+                      stackId="2" 
+                      stroke="#06b6d4" 
+                      fill="url(#respuestaGradient)" 
+                      name="Clientes con Respuesta"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-rose-50 to-pink-50 border-rose-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-rose-900">
+                  <Target className="h-5 w-5" />
+                  Tasa de Buenos por Decil
+                </CardTitle>
+                <CardDescription className="text-rose-700">Efectividad del modelo de predicción</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={decilData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="tasaBuenosGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.2}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis 
+                      dataKey="decil" 
+                      stroke="#64748b"
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `D${value}`}
+                    />
+                    <YAxis 
+                      tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} 
+                      stroke="#64748b" 
+                      tick={{ fontSize: 12 }} 
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                      }}
+                      formatter={(value, name) => [`${(Number(value) * 100).toFixed(2)}%`, name]}
+                    />
+                    <Bar 
+                      dataKey="tasaBuenos" 
+                      fill="url(#tasaBuenosGradient)" 
+                      name="Tasa de Buenos"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>

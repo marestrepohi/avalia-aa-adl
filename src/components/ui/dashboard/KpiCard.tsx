@@ -6,13 +6,15 @@ interface KpiCardProps {
   value: string;
   change?: string;
   changeType?: "positive" | "negative" | "neutral";
+  icon?: React.ReactNode;
 }
 
 const KpiCard: React.FC<KpiCardProps> = ({ 
   title, 
   value, 
   change, 
-  changeType = "neutral"
+  changeType = "neutral",
+  icon
 }) => {
   const getChangeColor = () => {
     switch (changeType) {
@@ -27,6 +29,11 @@ const KpiCard: React.FC<KpiCardProps> = ({
 
   return (
     <div className="rounded-md border bg-card p-3 h-[64px] flex items-center">
+      {icon && (
+        <div className="mr-3 text-muted-foreground">
+          {icon}
+        </div>
+      )}
       <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
         <span className="text-xs text-muted-foreground font-medium whitespace-normal break-words leading-tight">{title}</span>
         <div className="flex items-center gap-2 flex-shrink-0">
