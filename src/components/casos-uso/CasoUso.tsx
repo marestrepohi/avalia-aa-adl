@@ -57,6 +57,8 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
   // Negocio (BdB) agrupaciones
   const [negGroupBy, setNegGroupBy] = useState<'segmento' | 'fecha' | 'decil' | 'marca'>('segmento');
 
+  // Estados para casos_uso_informacion.csv
+  const [casoInfo, setCasoInfo] = useState<Record<string, any> | null>(null);
 
   useEffect(() => {
     // Cargar descripciones de campos para tooltips del backtesting (si aplica)
@@ -89,7 +91,38 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
       }
     };
     cargarCampos();
-  }, [esCastigadaBdB]);
+
+    // Cargar información del caso desde casos_uso_informacion.csv
+    const cargarCasoInfo = async () => {
+      try {
+        const base = (import.meta as any)?.env?.BASE_URL || '/';
+        const res = await fetch(`${base}casos_uso_informacion.csv`);
+        if (!res.ok) return;
+        const text = await res.text();
+        const parsed = Papa.parse<Record<string, any>>(text, {
+          header: true,
+          delimiter: ',',
+          skipEmptyLines: true
+        });
+        
+        // Buscar el caso que coincida con el proyecto actual
+        const proyectoActual = csvRecord?.Proyecto || displayTitle;
+        const casoEncontrado = parsed.data.find(row => 
+          row.Proyecto && proyectoActual && 
+          row.Proyecto.toLowerCase().includes(proyectoActual.toLowerCase()) ||
+          proyectoActual.toLowerCase().includes(row.Proyecto.toLowerCase())
+        );
+        
+        if (casoEncontrado) {
+          setCasoInfo(casoEncontrado);
+        }
+      } catch (error) {
+        console.error('Error cargando información del caso:', error);
+      }
+    };
+
+    cargarCasoInfo();
+  }, [esCastigadaBdB, csvRecord, displayTitle]);
 
   // Helper: parse numbers from CSV with comma decimals, thousand dots, spaces and scientific notation
   const parseCsvNumber = (v: any): number => {
@@ -1826,83 +1859,245 @@ const CasoUso: React.FC<CasoUsoProps> = ({ tipo, displayTitle, csvRecord }) => {
             </TabsList>
 
             <TabsContent value="info" className="space-y-6">
-              {/* Individual Case Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Detalles del Caso de Uso</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <div>
-                        <span className="text-sm font-medium text-muted-foreground">Proyecto:</span>
-                        <p className="font-medium">{csvRecord.Proyecto || 'N/A'}</p>
+              {casoInfo ? (
+                <>
+                  {/* Información General */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Target className="h-5 w-5" />
+                        Información General del Proyecto
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div>
+                            <span className="text-sm font-medium text-muted-foreground">Proyecto:</span>
+                            <p className="font-medium text-lg">{casoInfo.Proyecto}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-muted-foreground">Entidad:</span>
+                            <p className="font-medium">{casoInfo.Entidad}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-muted-foreground">Estado:</span>
+                            <Badge variant={
+                              casoInfo.Estado === 'Operativización' ? 'default' :
+                              casoInfo.Estado === 'Desarrollo' ? 'secondary' :
+                              casoInfo.Estado === 'Seguimiento' ? 'outline' :
+                              casoInfo.Estado === 'Automatización' ? 'destructive' :
+                              'default'
+                            }>
+                              {casoInfo.Estado}
+                            </Badge>
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-muted-foreground">Fecha de Actualización:</span>
+                            <p className="font-medium">{casoInfo.Fecha_Actualizacion}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div>
+                            <span className="text-sm font-medium text-muted-foreground">Sponsor:</span>
+                            <p className="font-medium">{casoInfo.Sponsor}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-muted-foreground">Equipo:</span>
+                            <p className="font-medium">{casoInfo.Equipo}</p>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-sm font-medium text-muted-foreground">Entidad:</span>
-                        <p className="font-medium">{csvRecord.Entidad || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-muted-foreground">Industria:</span>
-                        <p className="font-medium">{csvRecord.Industria || 'N/A'}</p>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div>
-                        <span className="text-sm font-medium text-muted-foreground">Estado:</span>
-                        <Badge variant="default">{csvRecord.Estado || 'Activo'}</Badge>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-muted-foreground">Tipo:</span>
-                        <p className="font-medium">{csvRecord.Tipo || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-muted-foreground">Fecha Implementación:</span>
-                        <p className="font-medium">{csvRecord['Fecha Implementacion'] || 'N/A'}</p>
-                      </div>
-                    </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Objetivo y Contexto */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Target className="h-5 w-5 text-blue-500" />
+                          Objetivo
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm leading-relaxed">{casoInfo.Objetivo}</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <AlertCircle className="h-5 w-5 text-orange-500" />
+                          Dolores Identificados
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm leading-relaxed">{casoInfo.Dolores}</p>
+                      </CardContent>
+                    </Card>
                   </div>
 
-                  {csvRecord.Descripcion && (
-                    <div className="pt-4 border-t">
-                      <span className="text-sm font-medium text-muted-foreground">Descripción:</span>
-                      <p className="mt-2 text-sm leading-relaxed">{csvRecord.Descripcion}</p>
-                    </div>
-                  )}
+                  {/* Riesgos y Solución */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <AlertCircle className="h-5 w-5 text-red-500" />
+                          Riesgos
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm leading-relaxed">{casoInfo.Riesgos}</p>
+                      </CardContent>
+                    </Card>
 
-                  {(csvRecord.SharePoint || csvRecord.Jira || csvRecord.Confluence) && (
-                    <div className="pt-4 border-t">
-                      <span className="text-sm font-medium text-muted-foreground">Enlaces:</span>
-                      <div className="flex gap-2 mt-2">
-                        {csvRecord.SharePoint && (
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={csvRecord.SharePoint} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              SharePoint
-                            </a>
-                          </Button>
-                        )}
-                        {csvRecord.Jira && (
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={csvRecord.Jira} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Jira
-                            </a>
-                          </Button>
-                        )}
-                        {csvRecord.Confluence && (
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={csvRecord.Confluence} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Confluence
-                            </a>
-                          </Button>
-                        )}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          Solución Implementada
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm leading-relaxed">{casoInfo.Solucion}</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Impacto y KPIs */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <TrendingUp className="h-5 w-5 text-blue-500" />
+                          Impacto Esperado - KPIs
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm leading-relaxed">{casoInfo['Impacto Esperado KPIs']}</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <BarChart3 className="h-5 w-5 text-green-500" />
+                          Impacto Generado - KPIs
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm leading-relaxed">{casoInfo['Impacto Generado KPIs']}</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* RoadMap y Observaciones */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Clock className="h-5 w-5 text-purple-500" />
+                          RoadMap y Entregables
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm leading-relaxed">{casoInfo['RoadMap y entregables']}</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Activity className="h-5 w-5 text-yellow-500" />
+                          Observaciones
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm leading-relaxed">{casoInfo.Observaciones}</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </>
+              ) : (
+                /* Fallback a información básica si no se encuentra en casos_uso_informacion.csv */
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Detalles del Caso de Uso</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <div>
+                          <span className="text-sm font-medium text-muted-foreground">Proyecto:</span>
+                          <p className="font-medium">{csvRecord?.Proyecto || displayTitle || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-muted-foreground">Entidad:</span>
+                          <p className="font-medium">{csvRecord?.Entidad || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-muted-foreground">Industria:</span>
+                          <p className="font-medium">{csvRecord?.Industria || 'N/A'}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <span className="text-sm font-medium text-muted-foreground">Estado:</span>
+                          <Badge variant="default">{csvRecord?.Estado || 'Activo'}</Badge>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-muted-foreground">Tipo:</span>
+                          <p className="font-medium">{csvRecord?.Tipo || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-muted-foreground">Fecha Implementación:</span>
+                          <p className="font-medium">{csvRecord?.['Fecha Implementacion'] || 'N/A'}</p>
+                        </div>
                       </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+
+                    {csvRecord?.Descripcion && (
+                      <div className="pt-4 border-t">
+                        <span className="text-sm font-medium text-muted-foreground">Descripción:</span>
+                        <p className="mt-2 text-sm leading-relaxed">{csvRecord.Descripcion}</p>
+                      </div>
+                    )}
+
+                    {(csvRecord?.SharePoint || csvRecord?.Jira || csvRecord?.Confluence) && (
+                      <div className="pt-4 border-t">
+                        <span className="text-sm font-medium text-muted-foreground">Enlaces:</span>
+                        <div className="flex gap-2 mt-2">
+                          {csvRecord.SharePoint && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={csvRecord.SharePoint} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                SharePoint
+                              </a>
+                            </Button>
+                          )}
+                          {csvRecord.Jira && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={csvRecord.Jira} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Jira
+                              </a>
+                            </Button>
+                          )}
+                          {csvRecord.Confluence && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={csvRecord.Confluence} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Confluence
+                              </a>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
             <TabsContent value="financieras">
