@@ -1,7 +1,6 @@
-
 import React, { useState } from "react";
 import Header from "./Header";
-import Sidebar from "./Sidebar";
+// import Sidebar from "./Sidebar";
 import Chatbot from "../chat/Chatbot";
 import { useMobile } from "@/hooks/use-mobile";
 import { Menu } from "lucide-react";
@@ -27,19 +26,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
     <div className="flex min-h-screen bg-background relative overflow-x-hidden">
       <Header toggleSidebar={toggleSidebar} />
-      <Sidebar 
+      {/* <Sidebar 
         isOpen={sidebarOpen} 
         setIsOpen={setSidebarOpen}
         onCollapsedChange={handleSidebarCollapsedChange} 
-      />
-      <main 
-        className={`flex-1 pt-16 transition-all duration-300
-          ${sidebarOpen 
-            ? (sidebarCollapsed ? 'md:pl-16' : 'md:pl-64') 
-            : 'pl-0'
-          }
-        `}
-      >
+      /> */}
+      {/* Sidebar deshabilitado temporalmente */}
+      <main className="flex-1 pt-16 transition-all duration-300 pl-0">
         <div className="p-4 sm:p-6 max-w-[100rem] mx-auto">
           {isMobile && (
             <Button
